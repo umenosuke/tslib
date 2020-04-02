@@ -50,8 +50,32 @@ class Route {
         return this.network.getAddress() === n.getAddress() && this.network.getMask() === n.getMask();
     }
 
-    public getNetwork(): IP {
-        return this.network;
+    public getAddress(): bigint {
+        if (!this.isValid()) { return; }
+
+        return this.network.getAddress();
+    }
+    public getAddressStr(): string {
+        if (!this.isValid()) { return; }
+
+        return this.network.getAddressStr();
+    }
+
+    public getMask(): bigint {
+        if (!this.isValid()) { return; }
+
+        return this.network.getMask();
+    }
+    public getMaskStr(): string {
+        if (!this.isValid()) { return; }
+
+        return this.network.getMaskStr();
+    }
+
+    public getPrefixStr(): string {
+        if (!this.isValid()) { return; }
+
+        return this.network.getPrefixStr();
     }
 
     public getNextHop(): bigint {
