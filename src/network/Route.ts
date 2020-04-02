@@ -11,7 +11,7 @@ class Route {
         let tmpNetwork: IP = undefined;
         let tmpNextHop: bigint = undefined;
 
-        if (network.isValid() && network.getAddress() === network.getNetworkAddress()) {
+        if (network?.isValid() && network.getAddress() === network.getNetworkAddress()) {
             tmpNetwork = network;
         }
 
@@ -23,6 +23,8 @@ class Route {
         } else {
             this.network = undefined;
             this.nextHop = undefined;
+
+            console.error("invalid value : ", network?.getAddressStr(), network?.getPrefixStr(), nextHopStr);
         }
     }
 
