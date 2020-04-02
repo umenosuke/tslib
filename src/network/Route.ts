@@ -49,7 +49,7 @@ class Route {
     }
 
     public exact(n: IP): boolean {
-        return this.network.getAddress() === n.getAddress() && this.network.getMask() === n.getMask();
+        return this.network.equal(n);
     }
 
     public getAddress(): bigint {
