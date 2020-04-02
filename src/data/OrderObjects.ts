@@ -1,4 +1,4 @@
-import { arraySwap } from "./arraySwap";
+import { arraySwap } from "./arraySwap.js";
 
 export { OrderObjects };
 

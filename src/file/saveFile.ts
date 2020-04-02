@@ -1,4 +1,4 @@
-import { blob2URI, revokeURI } from "./blob2URI";
+import { blob2URI, revokeURI } from "./blob2URI.js";
 
 export { saveFile };
 
