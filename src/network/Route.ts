@@ -20,6 +20,26 @@ class Route {
         return !!(this.network?.isValid() && this.nextHop != undefined);
     }
 
+    public same(r: Route): boolean {
+        return this.network.getNetworkAddress() === r.network.getNetworkAddress() && this.network.getMask() === r.network.getMask();
+    }
+
+    public equal(r: Route): boolean {
+        return this.same(r) && this.nextHop === r.nextHop;
+    }
+
+    public contain(n: IP): boolean {
+        if (this.network.getMask() > n.getMask()) {
+            return false;
+        }
+
+        return this.network.getNetworkAddress() === BigInt.asUintN(32, n.getAddress() & this.network.getMask());
+    }
+
+    public exact(n: IP): boolean {
+        return this.network.getNetworkAddress() === n.getAddress() && this.network.getMask() === n.getMask();
+    }
+
     public getNetwork(): IP {
         return this.network;
     }

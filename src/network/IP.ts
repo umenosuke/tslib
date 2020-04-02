@@ -54,6 +54,10 @@ class IP {
         return this.address != undefined && this.mask != undefined;
     }
 
+    public equal(n: IP): boolean {
+        return this.getAddress() === n.getAddress() && this.getMask() === n.getMask();
+    }
+
     public getAddress(): bigint {
         if (!this.isValid()) { return; }
 
