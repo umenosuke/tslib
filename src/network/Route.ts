@@ -8,12 +8,22 @@ class Route {
     private nextHop: bigint;
 
     constructor(network: IP, nextHopStr: string) {
-        this.network = undefined;
-        if (network.isValid()) {
-            this.network = network;
+        let tmpNetwork: IP = undefined;
+        let tmpNextHop: bigint = undefined;
+
+        if (network.isValid() && network.getAddress() === network.getNetworkAddress()) {
+            tmpNetwork = network;
         }
 
-        this.nextHop = util.octetStr2BigInt(nextHopStr);
+        tmpNextHop = util.octetStr2BigInt(nextHopStr);
+
+        if (tmpNetwork != undefined && tmpNextHop != undefined) {
+            this.network = tmpNetwork;
+            this.nextHop = tmpNextHop;
+        } else {
+            this.network = undefined;
+            this.nextHop = undefined;
+        }
     }
 
     public isValid(): boolean {
@@ -21,7 +31,7 @@ class Route {
     }
 
     public same(r: Route): boolean {
-        return this.network.getNetworkAddress() === r.network.getNetworkAddress() && this.network.getMask() === r.network.getMask();
+        return this.network.getAddress() === r.network.getAddress() && this.network.getMask() === r.network.getMask();
     }
 
     public equal(r: Route): boolean {
@@ -33,11 +43,11 @@ class Route {
             return false;
         }
 
-        return this.network.getNetworkAddress() === BigInt.asUintN(32, n.getAddress() & this.network.getMask());
+        return this.network.getAddress() === BigInt.asUintN(32, n.getAddress() & this.network.getMask());
     }
 
     public exact(n: IP): boolean {
-        return this.network.getNetworkAddress() === n.getAddress() && this.network.getMask() === n.getMask();
+        return this.network.getAddress() === n.getAddress() && this.network.getMask() === n.getMask();
     }
 
     public getNetwork(): IP {
