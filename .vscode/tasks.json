@@ -1,0 +1,76 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "develop container build",
+            "type": "shell",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml build",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container start",
+            "type": "shell",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml up -d",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container stop",
+            "type": "shell",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml stop",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container remove",
+            "type": "shell",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml down",
+            "problemMatcher": []
+        },
+        {
+            "label": "protobuf build in container",
+            "type": "shell",
+            "command": "docker exec -it proto_build_tslib target_data/.script/proto_build.sh",
+            "dependsOn": [
+                "develop container start"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "typescript build in container",
+            "type": "shell",
+            "command": "docker exec -it typescript_build_tslib target_data/.script/typescript_build.sh './src' './build/'",
+            "dependsOn": [
+                "develop container start"
+            ],
+            "problemMatcher": [
+                {
+                    "base": "$tsc",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/"
+                    ],
+                }
+            ]
+        },
+        {
+            "label": "sass build in container",
+            "type": "shell",
+            "command": "docker exec -it sass_build_tslib target_data/.script/sass_build.sh './src' './build/'",
+            "dependsOn": [
+                "develop container start"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "typescript build in container",
+                "sass build in container"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "es6",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "sourceMap": false,
+        "watch": false,
+        "declaration": false,
+        "outDir": "../build/"
+    }
+}
