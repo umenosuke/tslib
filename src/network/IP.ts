@@ -11,8 +11,16 @@ class IP {
         this.mask = undefined;
         ipStr = ipStr.trim();
 
-        const regExpWithMask = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
-        if (ipStr.match(regExpWithMask)) {
+        const regExpAddress = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+        if (ipStr.match(regExpAddress)) {
+            this.address = util.octetStr2BigInt(ipStr);
+            this.mask = util.BITS;
+
+            return;
+        }
+
+        const regExpAddressWithMask = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+        if (ipStr.match(regExpAddressWithMask)) {
             const input = ipStr.split(" ");
 
             this.address = util.octetStr2BigInt(input[0]);
@@ -29,8 +37,8 @@ class IP {
             return;
         }
 
-        const regExpWithPrefix = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
-        if (ipStr.match(regExpWithPrefix)) {
+        const regExpAddressWithPrefix = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
+        if (ipStr.match(regExpAddressWithPrefix)) {
             const input = ipStr.split("/");
 
             this.address = util.octetStr2BigInt(input[0]);
