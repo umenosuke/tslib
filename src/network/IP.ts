@@ -1,4 +1,4 @@
-import * as network from "network.js";
+import * as util from "./util.js";
 
 export { IP };
 
@@ -6,51 +6,40 @@ class IP {
     private address: bigint;
     private mask: bigint;
 
-    constructor() {
+    constructor(ipStr: string) {
         this.address = undefined;
         this.mask = undefined;
-    }
-
-    public setIPwithMask(ipStr: string) {
-        this.address = undefined;
-        this.mask = undefined;
-
-        const regExp = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
         ipStr = ipStr.trim();
 
-        if (!ipStr.match(regExp)) {
-            console.error("invalid value : " + ipStr);
+        const regExpWithMask = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+        if (ipStr.match(regExpWithMask)) {
+            const input = ipStr.split(" ");
+
+            this.address = util.octetStr2BigInt(input[0]);
+            const tempMask = util.octetStr2BigInt(input[1]);
+            if ((((~(tempMask) & util.BITS) + 1n) % 2n) === 0n) {
+                this.mask = tempMask;
+            } else {
+                console.error("invalid value : " + ipStr);
+                this.address = undefined;
+                this.mask = undefined;
+                return;
+            }
+
             return;
         }
 
-        const input = ipStr.split(" ");
-        this.address = network.octetStr2BigInt(input[0]);
-        const tempMask = network.octetStr2BigInt(input[1]);
-        if ((((~(tempMask) & network.BITS) + 1n) % 2n) === 0n) {
-            this.mask = tempMask;
-        } else {
-            console.error("invalid value : " + ipStr);
-            this.address = undefined;
-            this.mask = undefined;
-            return;
-        }
-    }
+        const regExpWithPrefix = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
+        if (ipStr.match(regExpWithPrefix)) {
+            const input = ipStr.split("/");
 
-    public setIPwithPrefix(ipStr: string) {
-        this.address = undefined;
-        this.mask = undefined;
+            this.address = util.octetStr2BigInt(input[0]);
+            this.mask = util.prefixStr2BigInt(input[1]);
 
-        const regExp = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
-        ipStr = ipStr.trim();
-
-        if (!ipStr.match(regExp)) {
-            console.error("invalid value : " + ipStr);
             return;
         }
 
-        const input = ipStr.split("/");
-        this.address = network.octetStr2BigInt(input[0]);
-        this.mask = network.prefixStr2BigInt(input[1]);
+        console.error("invalid value : " + ipStr);
     }
 
     public isValid(): boolean {
@@ -65,7 +54,7 @@ class IP {
     public getAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return network.bigInt2OctetStr(this.address);
+        return util.bigInt2OctetStr(this.address);
     }
 
     public getMask(): bigint {
@@ -76,7 +65,7 @@ class IP {
     public getMaskStr(): string {
         if (!this.isValid()) { return; }
 
-        return network.bigInt2OctetStr(this.mask);
+        return util.bigInt2OctetStr(this.mask);
     }
 
     public getPrefixStr(): string {
@@ -101,7 +90,7 @@ class IP {
     public getNetworkAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return network.bigInt2OctetStr(this.getNetworkAddress());
+        return util.bigInt2OctetStr(this.getNetworkAddress());
     }
 
     public getBroadcastAddress(): bigint {
@@ -112,7 +101,7 @@ class IP {
     public getBroadcastAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return network.bigInt2OctetStr(this.getBroadcastAddress());
+        return util.bigInt2OctetStr(this.getBroadcastAddress());
     }
 
     public getAddressNum(): number {
