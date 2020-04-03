@@ -10,8 +10,6 @@ _OUTPUT_PATH="./.deploy/$(date '+%Y%m%d_%H%M%S')/${_PRJ_NAME}/${_GIT_TAG}"
 mkdir -p ${_OUTPUT_PATH}/
 
 echo "作業ファイル削除中...";
-find .sass-cache/ -mindepth 1 -type f -name *.scssc -delete
-find .sass-cache/ -mindepth 1 -type d -delete
 find build/ -mindepth 1 -type f -name *.css -delete
 find build/ -mindepth 1 -type f -name *.js -delete
 find build/ -mindepth 1 -type f -name *.d.ts -delete
@@ -44,8 +42,6 @@ echo "トランスパイル用コンテナ停止...";
 _USER="$(id -u):$(id -g)" docker-compose -f .docker/docker-compose.yml stop
 
 echo "作業ファイル削除中...";
-find .sass-cache/ -mindepth 1 -type f -name *.scssc -delete
-find .sass-cache/ -mindepth 1 -type d -delete
 find build/ -mindepth 1 -type f -name *.css -delete
 find build/ -mindepth 1 -type f -name *.js -delete
 find build/ -mindepth 1 -type f -name *.d.ts -delete

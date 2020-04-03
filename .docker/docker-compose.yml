@@ -18,7 +18,6 @@ services:
     volumes:
       - "../:/target_data:ro"
       - "../build/:/target_data/build:rw"
-      - "../.sass-cache/:/target_data/.sass-cache:rw"
   web_server_tslib:
     build: web_server
     tty: true
