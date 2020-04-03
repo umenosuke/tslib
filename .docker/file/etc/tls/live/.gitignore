@@ -1,4 +1,4 @@
 *
-fullchain.pem
+fullchain.crt
 privkey.key
 !.git*

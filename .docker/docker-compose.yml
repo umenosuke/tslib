@@ -3,6 +3,7 @@ services:
   typescript_build_tslib:
     build: typescript_build
     tty: true
+    user: "${_USER}"
     privileged: true
     container_name: typescript_build_tslib
     volumes:
@@ -11,6 +12,7 @@ services:
   sass_build_tslib:
     build: sass_build
     tty: true
+    user: "${_USER}"
     privileged: true
     container_name: sass_build_tslib
     volumes:
@@ -20,6 +22,7 @@ services:
   web_server_tslib:
     build: web_server
     tty: true
+    user: "root"
     privileged: true
     container_name: web_server_tslib
     ports:

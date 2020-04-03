@@ -15,4 +15,6 @@ RUN source /usr/local/nvm/nvm.sh && \
 RUN source /usr/local/nvm/nvm.sh && \
     npm install typescript --global;
 
+RUN mkdir -p /.config && chmod 777 /.config
+
 ENV TZ=Asia/Tokyo
