@@ -3,41 +3,32 @@ import * as util from "./util.js";
 
 export { Route };
 
-class Route {
+class Route<T extends { equal: (compVal: T) => boolean }> {
     private network: IP;
-    private nextHop: bigint;
+    private customOpt: T;
 
-    constructor(network: IP, nextHopStr: string) {
-        let tmpNetwork: IP = undefined;
-        let tmpNextHop: bigint = undefined;
-
+    constructor(network: IP, customOpt: T) {
         if (network?.isValid() && network.getAddress() === network.getNetworkAddress()) {
-            tmpNetwork = network;
-        }
-
-        tmpNextHop = util.octetStr2BigInt(nextHopStr);
-
-        if (tmpNetwork != undefined && tmpNextHop != undefined) {
-            this.network = tmpNetwork;
-            this.nextHop = tmpNextHop;
+            this.network = network;
+            this.customOpt = customOpt;
         } else {
-            this.network = undefined;
-            this.nextHop = undefined;
+            console.error("invalid value : ", network?.getAddressStr(), network?.getPrefixStr(), customOpt);
 
-            console.error("invalid value : ", network?.getAddressStr(), network?.getPrefixStr(), nextHopStr);
+            this.network = undefined;
+            this.customOpt = undefined;
         }
     }
 
     public isValid(): boolean {
-        return !!(this.network?.isValid() && this.nextHop != undefined);
+        return !!(this.network?.isValid() && this.customOpt != undefined);
     }
 
-    public same(r: Route): boolean {
+    public same(r: Route<T>): boolean {
         return this.network.getAddress() === r.network.getAddress() && this.network.getMask() === r.network.getMask();
     }
 
-    public equal(r: Route): boolean {
-        return this.same(r) && this.nextHop === r.nextHop;
+    public equal(r: Route<T>): boolean {
+        return this.same(r) && this.customOpt.equal(r.customOpt);
     }
 
     public contain(n: IP): boolean {
@@ -80,14 +71,9 @@ class Route {
         return this.network.getPrefixStr();
     }
 
-    public getNextHop(): bigint {
+    public getCustomOpt(): T {
         if (!this.isValid()) { return; }
 
-        return this.nextHop;
-    }
-    public getNextHopStr(): string {
-        if (!this.isValid()) { return; }
-
-        return util.bigInt2OctetStr(this.nextHop);
+        return this.customOpt;
     }
 }
