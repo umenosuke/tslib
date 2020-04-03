@@ -4,9 +4,10 @@
         "module": "ES2020",
         "noImplicitAny": true,
         "removeComments": true,
-        "sourceMap": false,
+        "sourceMap": true,
         "watch": false,
-        "declaration": false,
+        "composite": true,
+        "declaration": true,
         "outDir": "../build/"
     }
 }
