@@ -101,12 +101,15 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
             return [this];
         }
 
+        const tmpSubTree: RoutingTable<T>[] = [];
         for (let i = 0, len = this.subTree.length; i < len; i++) {
-            const res = this.subTree.splice(i, 1)[0].removeRoute(route);;
+            const res = this.subTree[i].removeRoute(route);
             for (let j = 0, len = res.length; j < len; j++) {
-                this.subTree.push(res[j]);
+                tmpSubTree.push(res[j]);
             }
         }
+        this.subTree = tmpSubTree;
+
         return [this];
     }
 
