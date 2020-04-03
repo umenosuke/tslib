@@ -1,19 +1,15 @@
 FROM centos:7
 
-RUN yum update -y;
-RUN yum install -y git;
-RUN yum install -y make gcc bzip2 openssl-devel readline-devel zlib-devel;
+RUN yum update -y
+RUN yum install -y wget zip unzip git
 
-ARG RUBY_VERSION='2.7.0'
-ENV RBENV_ROOT /usr/local/rbenv
-RUN git clone https://github.com/rbenv/rbenv.git "${RBENV_ROOT}" && \
-    git clone https://github.com/rbenv/ruby-build.git "${RBENV_ROOT}/plugins/ruby-build";
-ENV PATH /usr/local/rbenv/bin:${PATH}
-RUN rbenv install ${RUBY_VERSION} && \
-    rbenv global ${RUBY_VERSION} && \
-    echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh && \
-    chmod 755 /etc/profile.d/rbenv.sh;
-RUN eval "$(rbenv init -)" && \
-    gem install sass sass-globbing --no-document;
+ARG SASS_VERSION='1.26.3'
+ARG SASS_BINARY="dart-sass-${SASS_VERSION}-linux-x64.tar.gz"
+RUN wget "https://github.com/sass/dart-sass/releases/download/${SASS_VERSION}/${SASS_BINARY}" -O /tmp/"${SASS_BINARY}"
+RUN tar -C /usr/local -xzf /tmp/"${SASS_BINARY}"
+
+ENV SASS_PATH=/usr/local/dart-sass
+RUN echo 'export PATH=${PATH}:${SASS_PATH}' >> /etc/profile.d/mySass.sh
+ENV PATH=${PATH}:${SASS_PATH}
 
 ENV TZ=Asia/Tokyo
