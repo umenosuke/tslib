@@ -1,7 +1,11 @@
 import { Route } from "./Route.js";
 import { IP } from "./IP.js";
 
-export { RoutingTable };
+export { RoutingTable, createRoot };
+
+function createRoot<T extends { equal: (compVal: T) => boolean, toString: () => string }>(customOpt: T): RoutingTable<T> {
+    return new RoutingTable<T>(new Route<T>(new IP("0.0.0.0/0"), customOpt));
+}
 
 class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => string }>{
     private route: Route<T>;
