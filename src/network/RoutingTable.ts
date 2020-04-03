@@ -113,23 +113,14 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
 
     public show(): void {
         console.group(this.route.toString());
-        this.subTree.forEach((t) => {
-            t.show();
-        });
-        console.groupEnd();
-        return;
-        console.group("route");
-        console.log(this.route.toString());
         console.group("redundant");
         this.redundantRotue.forEach((r) => {
             console.log(r.toString());
         });
         console.groupEnd();
-        console.group("subTree");
         this.subTree.forEach((t) => {
             t.show();
         });
-        console.groupEnd();
         console.groupEnd();
     }
 }
