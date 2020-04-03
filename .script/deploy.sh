@@ -3,12 +3,10 @@
 cd "$(dirname $(readlink -f $0))/../"
 _BASE_DIR="$(pwd)"
 
+source ./.script/_conf.sh
+
 echo "出力先作成中...";
-if [ $# = 1 ]; then
-  _OUTPUT_PATH=$1
-else
-  _OUTPUT_PATH=./.deploy/$(date '+%Y%m%d_%H%M%S')
-fi
+_OUTPUT_PATH="./.deploy/$(date '+%Y%m%d_%H%M%S')/${_PRJ_NAME}/${_GIT_TAG}"
 mkdir -p ${_OUTPUT_PATH}/
 
 echo "作業ファイル削除中...";
