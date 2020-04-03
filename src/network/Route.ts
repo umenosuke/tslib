@@ -1,5 +1,4 @@
 import { IP } from "./IP.js";
-import * as util from "./util.js";
 
 export { Route };
 
