@@ -55,7 +55,7 @@ class IP {
     }
 
     public equal(n: IP): boolean {
-        return this.getAddress() === n.getAddress() && this.getMask() === n.getMask();
+        return this.isValid() && n.isValid() && this.getAddress() === n.getAddress() && this.getMask() === n.getMask();
     }
 
     public getAddress(): bigint {
@@ -120,5 +120,11 @@ class IP {
         if (!this.isValid()) { return; }
 
         return Number(BigInt.asUintN(32, ~this.mask)) + 1;
+    }
+
+    public toString(): string {
+        if (!this.isValid()) { return; }
+
+        return this.getAddressStr() + "/" + this.getPrefixStr();
     }
 }

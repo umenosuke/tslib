@@ -2,7 +2,7 @@ import { IP } from "./IP.js";
 
 export { Route };
 
-class Route<T extends { equal: (compVal: T) => boolean }> {
+class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }> {
     private network: IP;
     private customOpt: T;
 
@@ -23,14 +23,21 @@ class Route<T extends { equal: (compVal: T) => boolean }> {
     }
 
     public same(r: Route<T>): boolean {
-        return this.network.getAddress() === r.network.getAddress() && this.network.getMask() === r.network.getMask();
+        return this.isValid() && r.isValid() && this.network.getAddress() === r.network.getAddress() && this.network.getMask() === r.network.getMask();
     }
 
     public equal(r: Route<T>): boolean {
-        return this.same(r) && this.customOpt.equal(r.customOpt);
+        return this.isValid() && r.isValid() && this.same(r) && this.customOpt.equal(r.customOpt);
+    }
+
+    public include(r: Route<T>): boolean {
+        return this.isValid() && r.isValid() && this.contain(r.network);
     }
 
     public contain(n: IP): boolean {
+        if (!this.isValid() || !n.isValid()) {
+            return false;
+        }
         if (this.network.getMask() > n.getMask()) {
             return false;
         }
@@ -39,7 +46,7 @@ class Route<T extends { equal: (compVal: T) => boolean }> {
     }
 
     public exact(n: IP): boolean {
-        return this.network.equal(n);
+        return this.isValid() && n.isValid() && this.network.equal(n);
     }
 
     public getAddress(): bigint {
@@ -74,5 +81,11 @@ class Route<T extends { equal: (compVal: T) => boolean }> {
         if (!this.isValid()) { return; }
 
         return this.customOpt;
+    }
+
+    public toString(): string {
+        if (!this.isValid()) { return; }
+
+        return this.network.toString() + " " + this.customOpt.toString();
     }
 }
