@@ -117,6 +117,27 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return [this];
     }
 
+    public sort(): void {
+        for (let i = 0, len = this.subTree.length; i < len; i++) {
+            this.subTree[i].sort();
+        }
+
+        this.subTree.sort((a, b) => {
+            const aAdd = a.route.getAddress();
+            const bAdd = b.route.getAddress();
+
+            if (aAdd < bAdd) {
+                return -1;
+            }
+
+            if (aAdd > bAdd) {
+                return 1;
+            }
+
+            return 0;
+        });
+    }
+
     public show(): void {
         console.group(this.route.toString());
         console.group("redundant");
