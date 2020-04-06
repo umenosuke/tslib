@@ -13,7 +13,7 @@ class IP {
 
         const regExpAddress = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
         if (ipStr.match(regExpAddress)) {
-            this.address = util.octetStr2BigInt(ipStr);
+            this.address = util.octetStr2Bits(ipStr);
             this.mask = util.BITS;
 
             return;
@@ -23,8 +23,8 @@ class IP {
         if (ipStr.match(regExpAddressWithMask)) {
             const input = ipStr.split(" ");
 
-            this.address = util.octetStr2BigInt(input[0]);
-            const tempMask = util.octetStr2BigInt(input[1]);
+            this.address = util.octetStr2Bits(input[0]);
+            const tempMask = util.octetStr2Bits(input[1]);
             if ((((~(tempMask) & util.BITS) + 1n) % 2n) === 0n) {
                 this.mask = tempMask;
             } else {
@@ -41,8 +41,8 @@ class IP {
         if (ipStr.match(regExpAddressWithPrefix)) {
             const input = ipStr.split("/");
 
-            this.address = util.octetStr2BigInt(input[0]);
-            this.mask = util.prefixStr2BigInt(input[1]);
+            this.address = util.octetStr2Bits(input[0]);
+            this.mask = util.prefixStr2Bits(input[1]);
 
             return;
         }
@@ -66,7 +66,7 @@ class IP {
     public getAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return util.bigInt2OctetStr(this.address);
+        return util.bits2OctetStr(this.address);
     }
 
     public getMask(): bigint {
@@ -77,7 +77,7 @@ class IP {
     public getMaskStr(): string {
         if (!this.isValid()) { return; }
 
-        return util.bigInt2OctetStr(this.mask);
+        return util.bits2OctetStr(this.mask);
     }
 
     public getPrefixStr(): string {
@@ -102,7 +102,7 @@ class IP {
     public getNetworkAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return util.bigInt2OctetStr(this.getNetworkAddress());
+        return util.bits2OctetStr(this.getNetworkAddress());
     }
 
     public getBroadcastAddress(): bigint {
@@ -113,7 +113,7 @@ class IP {
     public getBroadcastAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return util.bigInt2OctetStr(this.getBroadcastAddress());
+        return util.bits2OctetStr(this.getBroadcastAddress());
     }
 
     public getAddressNum(): number {

@@ -1,8 +1,8 @@
-export { BITS, octetStr2BigInt, bigInt2OctetStr, prefixStr2BigInt };
+export { BITS, octetStr2Bits, bits2OctetStr, bitsReverse, prefixStr2Bits };
 
 const BITS: bigint = 4294967295n;
 
-function octetStr2BigInt(octetStr: string): bigint {
+function octetStr2Bits(octetStr: string): bigint {
     const regExp = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
     octetStr = octetStr.trim();
 
@@ -15,14 +15,18 @@ function octetStr2BigInt(octetStr: string): bigint {
     return BigInt.asUintN(32, (BigInt(input[0]) << 24n) + (BigInt(input[1]) << 16n) + (BigInt(input[2]) << 8n) + (BigInt(input[3])));
 }
 
-function bigInt2OctetStr(bi: bigint): string {
+function bits2OctetStr(bi: bigint): string {
     return BigInt.asUintN(8, bi >> 24n).toString(10)
         + "." + BigInt.asUintN(8, bi >> 16n).toString(10)
         + "." + BigInt.asUintN(8, bi >> 8n).toString(10)
         + "." + BigInt.asUintN(8, bi).toString(10);
 }
 
-function prefixStr2BigInt(prefixStr: string): bigint {
+function bitsReverse(bi: bigint): bigint {
+    return BigInt.asUintN(32, ~bi);
+}
+
+function prefixStr2Bits(prefixStr: string): bigint {
     const regExp = /^([1-2]?[0-9]|3[0-2])$/
     prefixStr = prefixStr.trim();
 
