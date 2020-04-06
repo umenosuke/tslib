@@ -74,12 +74,7 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
                 }
             }
 
-            const res: Route<T>[] = [];
-            res.push(this.route);
-            for (let i = 0, len = this.redundantRotue.length; i < len; i++) {
-                res.push(this.redundantRotue[i]);
-            }
-            return res;
+            return [this.route].concat(this.redundantRotue);
         }
 
         return [];
@@ -105,12 +100,9 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
             return [this];
         }
 
-        const tmpSubTree: RoutingTable<T>[] = [];
+        let tmpSubTree: RoutingTable<T>[] = [];
         for (let i = 0, len = this.subTree.length; i < len; i++) {
-            const res = this.subTree[i].removeRoute(route);
-            for (let j = 0, len = res.length; j < len; j++) {
-                tmpSubTree.push(res[j]);
-            }
+            tmpSubTree = tmpSubTree.concat(this.subTree[i].removeRoute(route));
         }
         this.subTree = tmpSubTree;
 
