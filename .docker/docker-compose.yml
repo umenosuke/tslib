@@ -18,15 +18,3 @@ services:
     volumes:
       - "../:/target_data:ro"
       - "../build/:/target_data/build:rw"
-  web_server_tslib:
-    build: web_server
-    tty: true
-    user: "root"
-    privileged: true
-    container_name: web_server_tslib
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "../:/var/www/html/default:ro"
-      - "./file/etc/tls/live/:/etc/tls/live/:ro"
