@@ -1,4 +1,4 @@
-export { BITS, octetStr2Bits, bits2OctetStr, bitsReverse, prefixStr2Bits };
+export { BITS, octetStr2Bits, bits2OctetStr, bitsReverse, bitsIsLOneRZero, prefixStr2Bits };
 
 const BITS: bigint = 4294967295n;
 
@@ -24,6 +24,20 @@ function bits2OctetStr(bi: bigint): string {
 
 function bitsReverse(bi: bigint): bigint {
     return BigInt.asUintN(32, ~bi);
+}
+
+function bitsIsLOneRZero(bi: bigint): boolean {
+    for (let i = 0n; i < 32n; i++) {
+        if ((bi & (1n << i)) !== 0n) {
+            for (; i < 32n; i++) {
+                if ((bi & (1n << i)) === 0n) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 function prefixStr2Bits(prefixStr: string): bigint {

@@ -25,9 +25,9 @@ class IP {
 
             this.address = util.octetStr2Bits(input[0]);
             const tempMask = util.octetStr2Bits(input[1]);
-            if ((util.bitsReverse(tempMask) + 1n) % 2n === 0n) {
+            if (util.bitsIsLOneRZero(tempMask)) {
                 this.mask = tempMask;
-            } if (((tempMask & util.BITS) + 1n) % 2n === 0n) {
+            } else if (util.bitsIsLOneRZero(util.bitsReverse(tempMask))) {
                 this.mask = util.bitsReverse(tempMask);
             } else {
                 console.error("invalid value : " + ipStr);
