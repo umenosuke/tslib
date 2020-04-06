@@ -21,7 +21,7 @@ class IP {
 
         const regExpAddressWithMask = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
         if (ipStr.match(regExpAddressWithMask)) {
-            const input = ipStr.split(" ");
+            const input = ipStr.split(/ +/);
 
             this.address = util.octetStr2Bits(input[0]);
             const tempMask = util.octetStr2Bits(input[1]);
