@@ -66,6 +66,16 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return false;
     }
 
+    public toArray(): Route<T>[] {
+        let arr: Route<T>[] = [];
+
+        for (let i = 0, len = this.subTree.length; i < len; i++) {
+            arr = arr.concat(this.subTree[i].toArray());
+        }
+
+        return arr.concat([this.route].concat(this.redundantRotue));
+    }
+
     public searchRoute(ip: IP): Route<T>[] {
         if (this.route.contain(ip)) {
             for (let i = 0, len = this.subTree.length; i < len; i++) {
