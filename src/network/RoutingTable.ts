@@ -77,11 +77,11 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return arr.concat([this.route].concat(this.redundantRotue));
     }
 
-    public searchRoute(ip: IP): Route<T>[] {
+    public searchRouteLongest(ip: IP): Route<T>[] {
         if (this.route.contain(ip)) {
             for (let i = 0, len = this.subTree.length; i < len; i++) {
                 if (this.subTree[i].route.contain(ip)) {
-                    return this.subTree[i].searchRoute(ip);
+                    return this.subTree[i].searchRouteLongest(ip);
                 }
             }
 
