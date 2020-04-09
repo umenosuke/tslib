@@ -77,6 +77,22 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return arr;
     }
 
+    public searchRoute(ip: IP): Route<T>[] {
+        if (this.route.contain(ip)) {
+            let result = [this.route].concat(this.redundantRotue);
+
+            for (let i = 0, len = this.subTree.length; i < len; i++) {
+                if (this.subTree[i].route.contain(ip)) {
+                    result = result.concat(this.subTree[i].searchRoute(ip));
+                }
+            }
+
+            return result;
+        }
+
+        return [];
+    }
+
     public searchRouteLongest(ip: IP): Route<T>[] {
         if (this.route.contain(ip)) {
             for (let i = 0, len = this.subTree.length; i < len; i++) {
