@@ -91,6 +91,28 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return [];
     }
 
+    public searchRouteLongerPrefixes(route: Route<T>): Route<T>[] {
+        if (route.include(this.route)) {
+            const result = [this.route].concat(this.redundantRotue);
+
+            for (let i = 0, len = this.subTree.length; i < len; i++) {
+                result.concat(this.subTree[i].searchRouteLongerPrefixes(route));
+            }
+
+            return result;
+        } else if (this.route.include(route)) {
+            const result: Route<T>[] = [];
+
+            for (let i = 0, len = this.subTree.length; i < len; i++) {
+                result.concat(this.subTree[i].searchRouteLongerPrefixes(route));
+            }
+
+            return result;
+        }
+
+        return [];
+    }
+
     public removeRoute(route: Route<T>): RoutingTable<T>[] {
         if (this.route.same(route)) {
             if (this.route.equal(route)) {
