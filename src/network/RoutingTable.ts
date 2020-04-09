@@ -22,6 +22,7 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
 
     public addRoute(route: Route<T>): boolean {
         if (!route.isValid()) {
+            console.warn("route is not valid");
             return true;
         }
         if (this.route.include(route)) {
