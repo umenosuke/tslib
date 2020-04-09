@@ -68,13 +68,13 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
     }
 
     public toArray(): Route<T>[] {
-        let arr: Route<T>[] = [];
+        let arr = [this.route].concat(this.redundantRotue);
 
         for (let i = 0, len = this.subTree.length; i < len; i++) {
             arr = arr.concat(this.subTree[i].toArray());
         }
 
-        return arr.concat([this.route].concat(this.redundantRotue));
+        return arr;
     }
 
     public searchRouteLongest(ip: IP): Route<T>[] {
