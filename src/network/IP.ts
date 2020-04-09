@@ -1,55 +1,69 @@
 import * as util from "./util.js";
 
-export { IP };
+export { IP, eParseMode };
+
+enum eParseMode {
+    auto = "auto",
+    host = "host",
+    subnetMask = "subnetMask",
+    wildcardBit = "wildcardBit",
+    prefix = "prefix"
+};
 
 class IP {
     private address: bigint;
     private mask: bigint;
 
-    constructor(ipStr: string) {
+    constructor(ipStr: string, mode: eParseMode = eParseMode.auto) {
         this.address = undefined;
         this.mask = undefined;
         ipStr = ipStr.trim();
 
-        const regExpAddress = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
-        if (ipStr.match(regExpAddress)) {
-            this.address = util.octetStr2Bits(ipStr);
-            this.mask = util.BITS;
+        if (mode === eParseMode.auto || mode === eParseMode.host) {
+            const regExpAddress = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+            if (ipStr.match(regExpAddress)) {
+                this.address = util.octetStr2Bits(ipStr);
+                this.mask = util.BITS;
 
-            return;
-        }
-
-        const regExpAddressWithMask = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
-        if (ipStr.match(regExpAddressWithMask)) {
-            const input = ipStr.split(/ +/);
-
-            this.address = util.octetStr2Bits(input[0]);
-            const tempMask = util.octetStr2Bits(input[1]);
-            if (util.bitsIsLOneRZero(tempMask)) {
-                this.mask = tempMask;
-            } else if (util.bitsIsLOneRZero(util.bitsReverse(tempMask))) {
-                this.mask = util.bitsReverse(tempMask);
-            } else {
-                console.error("invalid value : " + ipStr);
-                this.address = undefined;
-                this.mask = undefined;
                 return;
             }
-
-            return;
         }
 
-        const regExpAddressWithPrefix = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
-        if (ipStr.match(regExpAddressWithPrefix)) {
-            const input = ipStr.split("/");
+        if (mode === eParseMode.auto || mode === eParseMode.subnetMask || mode === eParseMode.wildcardBit) {
+            const regExpAddressWithMask = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]) +(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+            if (ipStr.match(regExpAddressWithMask)) {
+                const input = ipStr.split(/ +/);
 
-            this.address = util.octetStr2Bits(input[0]);
-            this.mask = util.prefixStr2Bits(input[1]);
+                const tempMask = util.octetStr2Bits(input[1]);
+                if ((mode === eParseMode.auto || mode === eParseMode.subnetMask) && util.bitsIsLOneRZero(tempMask)) {
+                    this.address = util.octetStr2Bits(input[0]);
+                    this.mask = tempMask;
 
-            return;
+                    return;
+                } else if ((mode === eParseMode.auto || mode === eParseMode.wildcardBit) && util.bitsIsLOneRZero(util.bitsReverse(tempMask))) {
+                    this.address = util.octetStr2Bits(input[0]);
+                    this.mask = util.bitsReverse(tempMask);
+
+                    return;
+                }
+            }
         }
 
-        console.error("invalid value : " + ipStr);
+        if (mode === eParseMode.auto || mode === eParseMode.prefix) {
+            const regExpAddressWithPrefix = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
+            if (ipStr.match(regExpAddressWithPrefix)) {
+                const input = ipStr.split("/");
+
+                this.address = util.octetStr2Bits(input[0]);
+                this.mask = util.prefixStr2Bits(input[1]);
+
+                return;
+            }
+        }
+
+        this.address = undefined;
+        this.mask = undefined;
+        console.error("invalid value [mode=" + mode + "] : " + ipStr);
     }
 
     public isValid(): boolean {
