@@ -2,17 +2,23 @@ export { Diff, Option, tDiffResult, tDiffResultState };
 
 type tDiffResult = {
     state: tDiffResultState.same,
+    oldLineNum: number,
     oldLine: string,
+    newLineNum: number,
     newLine: string
 } | {
     state: tDiffResultState.add,
+    newLineNum: number,
     newLine: string
 } | {
     state: tDiffResultState.del,
+    oldLineNum: number,
     oldLine: string
 } | {
     state: tDiffResultState.skip,
+    oldLineNum: number | undefined,
     oldLine: string | undefined,
+    newLineNum: number | undefined,
     newLine: string | undefined
 };
 enum tDiffResultState {
@@ -69,13 +75,19 @@ class Diff {
             if (this.opt.ignoreBlankLine && (oldLines[oldSeek] === "" || newLines[newSeek] === "")) {
                 const tmpRes: tDiffResult = {
                     state: tDiffResultState.skip,
-                    oldLine: undefined, newLine: undefined
+                    oldLineNum: undefined,
+                    oldLine: undefined,
+                    newLineNum: undefined,
+                    newLine: undefined
                 };
+
                 if (oldLines[oldSeek] === "") {
+                    tmpRes.oldLineNum = oldSeek;
                     tmpRes.oldLine = oldLinesOrig[oldSeek];
                     oldSeek++;
                 }
                 if (newLines[newSeek] === "") {
+                    tmpRes.newLineNum = newSeek;
                     tmpRes.newLine = newLinesOrig[newSeek];
                     newSeek++;
                 }
@@ -83,7 +95,9 @@ class Diff {
             } else if (oldLines[oldSeek] === newLines[newSeek]) {
                 diffRes.push({
                     state: tDiffResultState.same,
+                    oldLineNum: oldSeek,
                     oldLine: oldLinesOrig[oldSeek],
+                    newLineNum: newSeek,
                     newLine: newLinesOrig[newSeek]
                 });
                 oldSeek++;
@@ -100,7 +114,9 @@ class Diff {
                     if (this.opt.ignoreBlankLine && (newLines[newSeek + tmpSeek] === "")) {
                         tmpDiffStr.push({
                             state: tDiffResultState.skip,
+                            oldLineNum: undefined,
                             oldLine: undefined,
+                            newLineNum: newSeek + tmpSeek,
                             newLine: newLinesOrig[newSeek + tmpSeek]
                         });
                         tmpSeek++;
@@ -108,13 +124,16 @@ class Diff {
                     } else if (oldLines[oldSeek] === newLines[newSeek + tmpSeek]) {
                         tmpDiffStr.push({
                             state: tDiffResultState.same,
+                            oldLineNum: oldSeek,
                             oldLine: oldLinesOrig[oldSeek],
+                            newLineNum: newSeek + tmpSeek,
                             newLine: newLinesOrig[newSeek + tmpSeek]
                         });
                         break;
                     } else {
                         tmpDiffStr.push({
                             state: tDiffResultState.add,
+                            newLineNum: newSeek + tmpSeek,
                             newLine: newLinesOrig[newSeek + tmpSeek]
                         });
                         tmpSeek++;
@@ -124,6 +143,7 @@ class Diff {
                 if (newSeek + tmpSeek === newLen || tmpSeek - skip > this.opt.searchLineRange) {
                     diffRes.push({
                         state: tDiffResultState.del,
+                        oldLineNum: oldSeek,
                         oldLine: oldLinesOrig[oldSeek]
                     });
                     oldSeek++;
@@ -138,6 +158,7 @@ class Diff {
         while (newSeek < newLen) {
             diffRes.push({
                 state: tDiffResultState.add,
+                newLineNum: newSeek,
                 newLine: newLinesOrig[newSeek]
             });
             newSeek++;
@@ -146,6 +167,7 @@ class Diff {
         while (oldSeek < oldLen) {
             diffRes.push({
                 state: tDiffResultState.del,
+                oldLineNum: oldSeek,
                 oldLine: oldLinesOrig[oldSeek]
             });
             oldSeek++;
