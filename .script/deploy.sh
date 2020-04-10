@@ -6,7 +6,7 @@ _BASE_DIR="$(pwd)"
 source ./.script/_conf.sh
 
 echo "出力先作成中...";
-_OUTPUT_PATH="./.deploy/$(date '+%Y%m%d_%H%M%S')/${_PRJ_NAME}/${_GIT_TAG}"
+_OUTPUT_PATH="./.deploy/${_PRJ_NAME}/${_GIT_TAG}/${_GIT_HASH}/$(date '+%Y%m%d_%H%M%S')"
 mkdir -p ${_OUTPUT_PATH}/
 
 echo "作業ファイル削除中...";
