@@ -6,7 +6,6 @@
         "removeComments": true,
         "sourceMap": true,
         "watch": false,
-        "composite": true,
         "declaration": true,
         "outDir": "../build/"
     }
