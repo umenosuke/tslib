@@ -1,5 +1,27 @@
 export { Diff, Option };
 
+type tDiffResult = {
+    state: tDiffResultState.same,
+    oldLine: string,
+    newLine: string
+} | {
+    state: tDiffResultState.add,
+    newLine: string
+} | {
+    state: tDiffResultState.del,
+    oldLine: string
+} | {
+    state: tDiffResultState.skip,
+    oldLine: string | undefined,
+    newLine: string | undefined
+};
+enum tDiffResultState {
+    same = "same",
+    add = "added",
+    del = "deleted",
+    skip = "skip"
+};
+
 class Diff {
     private opt: Option;
 
@@ -21,7 +43,7 @@ class Diff {
         this.opt = opt;
     }
 
-    public diff(oldText: string, newText: string): string[] {
+    public diff(oldText: string, newText: string): tDiffResult[] {
         const oldLinesOrig = oldText.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
         const newLinesOrig = newText.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
         const oldLines = this.opt.ignoreSpace
@@ -41,22 +63,33 @@ class Diff {
         let oldSeek = 0;
         let newSeek = 0;
 
-        let diffStr: string[] = [];
+        let diffRes: tDiffResult[] = [];
 
         while (oldSeek < oldLen && newSeek < newLen) {
             if (this.opt.ignoreBlankLine && (oldLines[oldSeek] === "" || newLines[newSeek] === "")) {
+                const tmpRes: tDiffResult = {
+                    state: tDiffResultState.skip,
+                    oldLine: undefined, newLine: undefined
+                };
                 if (oldLines[oldSeek] === "") {
+                    tmpRes.oldLine = oldLinesOrig[oldSeek];
                     oldSeek++;
                 }
                 if (newLines[newSeek] === "") {
+                    tmpRes.newLine = newLinesOrig[newSeek];
                     newSeek++;
                 }
+                diffRes.push(tmpRes);
             } else if (oldLines[oldSeek] === newLines[newSeek]) {
-                diffStr.push("  " + oldLinesOrig[oldSeek]);
+                diffRes.push({
+                    state: tDiffResultState.same,
+                    oldLine: oldLinesOrig[oldSeek],
+                    newLine: newLinesOrig[newSeek]
+                });
                 oldSeek++;
                 newSeek++;
             } else {
-                const tmpDiffStr: string[] = [];
+                const tmpDiffStr: tDiffResult[] = [];
                 let tmpSeek = 0;
                 let skip = 0;
                 while (newSeek + tmpSeek < newLen) {
@@ -65,22 +98,37 @@ class Diff {
                     }
 
                     if (this.opt.ignoreBlankLine && (newLines[newSeek + tmpSeek] === "")) {
+                        tmpDiffStr.push({
+                            state: tDiffResultState.skip,
+                            oldLine: undefined,
+                            newLine: newLinesOrig[newSeek + tmpSeek]
+                        });
                         tmpSeek++;
                         skip++;
                     } else if (oldLines[oldSeek] === newLines[newSeek + tmpSeek]) {
-                        tmpDiffStr.push("  " + oldLinesOrig[oldSeek]);
+                        tmpDiffStr.push({
+                            state: tDiffResultState.same,
+                            oldLine: oldLinesOrig[oldSeek],
+                            newLine: newLinesOrig[newSeek + tmpSeek]
+                        });
                         break;
                     } else {
-                        tmpDiffStr.push("> " + newLinesOrig[newSeek + tmpSeek]);
+                        tmpDiffStr.push({
+                            state: tDiffResultState.add,
+                            newLine: newLinesOrig[newSeek + tmpSeek]
+                        });
                         tmpSeek++;
                     }
                 }
 
                 if (newSeek + tmpSeek === newLen || tmpSeek - skip > this.opt.searchLineRange) {
-                    diffStr.push("< " + oldLinesOrig[oldSeek]);
+                    diffRes.push({
+                        state: tDiffResultState.del,
+                        oldLine: oldLinesOrig[oldSeek]
+                    });
                     oldSeek++;
                 } else {
-                    diffStr = diffStr.concat(tmpDiffStr);
+                    diffRes = diffRes.concat(tmpDiffStr);
                     oldSeek++;
                     newSeek += tmpSeek + 1;
                 }
@@ -88,16 +136,22 @@ class Diff {
         }
 
         while (newSeek < newLen) {
-            diffStr.push("> " + newLinesOrig[newSeek]);
+            diffRes.push({
+                state: tDiffResultState.add,
+                newLine: newLinesOrig[newSeek]
+            });
             newSeek++;
         }
 
         while (oldSeek < oldLen) {
-            diffStr.push("< " + oldLinesOrig[oldSeek]);
+            diffRes.push({
+                state: tDiffResultState.del,
+                oldLine: oldLinesOrig[oldSeek]
+            });
             oldSeek++;
         }
 
-        return diffStr;
+        return diffRes;
     }
 }
 
