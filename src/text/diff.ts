@@ -52,16 +52,28 @@ class Diff {
     public diff(oldText: string, newText: string): tDiffResult[] {
         const oldLinesOrig = oldText.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
         const newLinesOrig = newText.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-        const oldLines = this.opt.ignoreSpace
-            ? oldLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ''))
-            : (this.opt.lineTrim
-                ? oldLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''))
-                : oldLinesOrig);
-        const newLines = this.opt.ignoreSpace
-            ? newLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ''))
-            : (this.opt.lineTrim
-                ? newLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''))
-                : newLinesOrig);
+        const oldLines = (() => {
+            if (this.opt.ignoreSpace) {
+                return oldLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ''));
+            } else if (this.opt.lineTrim) {
+                if (this.opt.lineTrim) {
+                    return oldLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
+                }
+            } else {
+                return oldLinesOrig;
+            }
+        })();
+        const newLines = (() => {
+            if (this.opt.ignoreSpace) {
+                return newLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ''));
+            } else if (this.opt.lineTrim) {
+                if (this.opt.lineTrim) {
+                    return newLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
+                }
+            } else {
+                return newLinesOrig;
+            }
+        })();
 
         const oldLen = oldLinesOrig.length;
         const newLen = newLinesOrig.length;
