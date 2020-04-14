@@ -172,20 +172,40 @@ class Diff {
         }
 
         while (newSeek < newLen) {
-            diffRes.push({
-                state: tDiffResultState.add,
-                newLineNum: newSeek,
-                newLine: newLinesOrig[newSeek]
-            });
+            if (newLines[newSeek] === "") {
+                diffRes.push({
+                    state: tDiffResultState.skip,
+                    oldLineNum: undefined,
+                    oldLine: undefined,
+                    newLineNum: newSeek,
+                    newLine: newLinesOrig[newSeek]
+                });
+            } else {
+                diffRes.push({
+                    state: tDiffResultState.add,
+                    newLineNum: newSeek,
+                    newLine: newLinesOrig[newSeek]
+                });
+            }
             newSeek++;
         }
 
         while (oldSeek < oldLen) {
-            diffRes.push({
-                state: tDiffResultState.del,
-                oldLineNum: oldSeek,
-                oldLine: oldLinesOrig[oldSeek]
-            });
+            if (oldLines[oldSeek] === "") {
+                diffRes.push({
+                    state: tDiffResultState.skip,
+                    oldLineNum: oldSeek,
+                    oldLine: oldLinesOrig[oldSeek],
+                    newLineNum: undefined,
+                    newLine: undefined
+                });
+            } else {
+                diffRes.push({
+                    state: tDiffResultState.del,
+                    oldLineNum: oldSeek,
+                    oldLine: oldLinesOrig[oldSeek]
+                });
+            }
             oldSeek++;
         }
 
