@@ -55,10 +55,12 @@ class Diff {
         const oldLines = (() => {
             if (this.opt.ignoreSpace) {
                 return oldLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ''));
+            } else if (this.opt.lineTrim && this.opt.ignoreContiguousSpace) {
+                return oldLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ' ').replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
+            } else if (this.opt.ignoreContiguousSpace) {
+                return oldLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ' '));
             } else if (this.opt.lineTrim) {
-                if (this.opt.lineTrim) {
-                    return oldLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
-                }
+                return oldLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
             } else {
                 return oldLinesOrig;
             }
@@ -66,10 +68,12 @@ class Diff {
         const newLines = (() => {
             if (this.opt.ignoreSpace) {
                 return newLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ''));
+            } else if (this.opt.lineTrim && this.opt.ignoreContiguousSpace) {
+                return newLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ' ').replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
+            } else if (this.opt.ignoreContiguousSpace) {
+                return newLinesOrig.map(line => line.replace(/[\s\uFEFF\xA0]+/g, ' '));
             } else if (this.opt.lineTrim) {
-                if (this.opt.lineTrim) {
-                    return newLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
-                }
+                return newLinesOrig.map(line => line.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''));
             } else {
                 return newLinesOrig;
             }
@@ -198,6 +202,14 @@ class Option {
         this._lineTrim = !!input;
     }
 
+    private _ignoreContiguousSpace: boolean;
+    public get ignoreContiguousSpace(): boolean {
+        return this._ignoreContiguousSpace;
+    }
+    public set ignoreContiguousSpace(input: boolean) {
+        this._ignoreContiguousSpace = !!input;
+    }
+
     private _ignoreSpace: boolean;
     public get ignoreSpace(): boolean {
         return this._ignoreSpace;
@@ -233,6 +245,7 @@ class Option {
 
     constructor() {
         this._lineTrim = false;
+        this._ignoreContiguousSpace = false;
         this._ignoreSpace = false;
         this._ignoreBlankLine = false;
         this._searchLineRange = Infinity;
