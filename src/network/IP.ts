@@ -96,6 +96,17 @@ class IP {
         return util.bits2OctetStr(this.mask);
     }
 
+    public getWildcard(): bigint {
+        if (!this.isValid()) { return; }
+
+        return util.bitsReverse(this.mask);
+    }
+    public getWildcardStr(): string {
+        if (!this.isValid()) { return; }
+
+        return util.bits2OctetStr(util.bitsReverse(this.mask));
+    }
+
     public getPrefixStr(): string {
         if (!this.isValid()) { return; }
 
