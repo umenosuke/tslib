@@ -112,6 +112,12 @@ class OrderObjects<T extends Object> {
         }
     }
 
+    public forEach(func: (val: T) => void): void {
+        this.keys.forEach((key) => {
+            func(this.values[key]);
+        });
+    }
+
     public clear(): void {
         this.keys = [];
         this.values = {};
