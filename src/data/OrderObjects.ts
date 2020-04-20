@@ -12,6 +12,8 @@ class OrderObjects<T extends Object> {
         return this.keys.length;
     }
     set length(len: number) {
+        len = (len >= 0) ? len : 0;
+
         while (this.length > len) {
             this.pop(this.length - 1);
         }
