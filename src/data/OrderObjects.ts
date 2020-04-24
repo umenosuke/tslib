@@ -120,6 +120,17 @@ class OrderObjects<T extends Object> {
         });
     }
 
+    public set(data: { keys: string[], values: { [key: string]: T } }): void {
+        this.clear();
+
+        if (!!data.keys) {
+            for (let i = 0, len = data.keys.length; i < len; i++) {
+                const key = data.keys[i];
+                this.push(key, data.values[key]);
+            }
+        }
+    }
+
     public clear(): void {
         this.keys = [];
         this.values = {};
