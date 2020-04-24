@@ -154,6 +154,25 @@ class IP {
         return Number(BigInt.asUintN(32, ~this.mask)) + 1;
     }
 
+    public getHosts(): IP[] {
+        if (!this.isValid()) { return; }
+
+        const ips: IP[] = [];
+
+        const netAddr = this.getNetworkAddress();
+        const mask = this.getMask();
+        for (let i = 1n, len = BigInt(this.getAddressNum()); i < len; i++) {
+            const ip = new IP("", eParseMode.empty);
+
+            ip.address = BigInt.asUintN(32, netAddr + i);
+            ip.mask = mask;
+
+            ips.push(ip);
+        }
+
+        return ips;
+    }
+
     public toString(): string {
         if (!this.isValid()) { return; }
 
