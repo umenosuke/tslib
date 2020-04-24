@@ -7,7 +7,8 @@ enum eParseMode {
     host = "host",
     subnetMask = "subnetMask",
     wildcardBit = "wildcardBit",
-    prefix = "prefix"
+    prefix = "prefix",
+    empty = "empty"
 };
 
 class IP {
@@ -17,6 +18,10 @@ class IP {
     constructor(ipStr: string, mode: eParseMode = eParseMode.auto) {
         this.address = undefined;
         this.mask = undefined;
+        if (mode === eParseMode.empty) {
+            return;
+        }
+
         ipStr = ipStr.trim();
 
         if (mode === eParseMode.auto || mode === eParseMode.host) {
