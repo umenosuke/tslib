@@ -41,7 +41,7 @@ class OrderObjects<T extends Object> {
     public getMatchedKeys(discriminantFunction = function (a: T): boolean { return true; }): string[] {
         const matchKeys: string[] = [];
 
-        for (let i = 0; i < this.keys.length; i++) {
+        for (let i = 0, len = this.keys.length; i < len; i++) {
             if (discriminantFunction(this.item(i))) {
                 matchKeys.push(this.getKey(i));
             }
