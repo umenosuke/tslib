@@ -138,4 +138,8 @@ class OrderObjects<T> {
         this.keys = [];
         this.values = {};
     }
+
+    public toJSON() {
+        return { keys: this.keys, values: this.values };
+    }
 }
