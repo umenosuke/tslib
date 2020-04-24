@@ -1,0 +1,41 @@
+table.sticky-header {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  &:not(.not-vertical-sticky) > thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  &:not(.not-horizontal-sticky) > thead > tr > th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+  }
+  &:not(.not-horizontal-sticky) > tbody > tr > th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  & > thead + tbody > tr {
+    & > th,
+    & > td {
+      border-top: none;
+    }
+  }
+  & > thead > tr,
+  & > tbody > tr {
+    &:not(:first-child) > th,
+    &:not(:first-child) > td {
+      border-top: none;
+    }
+
+    & > th,
+    & > td {
+      &:not(:first-child) {
+        border-left: none;
+      }
+    }
+  }
+}
