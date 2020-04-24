@@ -2,7 +2,7 @@ import { arraySwap } from "./arraySwap.js";
 
 export { OrderObjects };
 
-class OrderObjects<T extends Object> {
+class OrderObjects<T> {
     private keys: string[];
     private values: { [key: string]: T };
 
