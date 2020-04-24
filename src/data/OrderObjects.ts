@@ -38,6 +38,9 @@ class OrderObjects<T> {
         return this.keys[index];
     }
 
+    public getKeys(): string[] {
+        return this.keys.concat();
+    }
     public getMatchedKeys(discriminantFunction = function (a: T): boolean { return true; }): string[] {
         const matchKeys: string[] = [];
 
