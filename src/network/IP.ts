@@ -1,6 +1,6 @@
 import * as util from "./util.js";
 
-export { IP, eParseMode };
+export { IP, eParseMode, eStringifyMode };
 
 enum eParseMode {
     auto = "auto",
@@ -9,6 +9,12 @@ enum eParseMode {
     wildcardBit = "wildcardBit",
     prefix = "prefix",
     empty = "empty"
+};
+
+enum eStringifyMode {
+    subnetMask = "subnetMask",
+    wildcardBit = "wildcardBit",
+    prefix = "prefix"
 };
 
 class IP {
@@ -173,9 +179,17 @@ class IP {
         return ips;
     }
 
-    public toString(): string {
+    public toString(mode: eStringifyMode = eStringifyMode.prefix): string {
         if (!this.isValid()) { return; }
 
-        return this.getAddressStr() + "/" + this.getPrefixStr();
+        switch (mode) {
+            case eStringifyMode.subnetMask:
+                return this.getAddressStr() + " " + this.getMaskStr();
+            case eStringifyMode.wildcardBit:
+                return this.getAddressStr() + " " + this.getWildcardStr();
+            case eStringifyMode.prefix:
+            default:
+                return this.getAddressStr() + "/" + this.getPrefixStr();
+        }
     }
 }
