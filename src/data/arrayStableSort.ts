@@ -1,8 +1,12 @@
 import { arraySwap } from "./arraySwap.js";
 
-export { arrayStableSort };
+export { arrayStableSort, shakerSort };
 
 function arrayStableSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
+    return shakerSort(ary, compareFunction);
+}
+
+function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
     let topInx = 0;
     let btmInx = ary.length - 1;
 
