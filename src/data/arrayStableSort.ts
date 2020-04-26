@@ -1,6 +1,6 @@
 import { arraySwap } from "./arraySwap.js";
 
-export { arrayStableSort, shakerSort };
+export { arrayStableSort, shakerSort, mergeSort };
 
 function arrayStableSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
     return shakerSort(ary, compareFunction);
@@ -33,6 +33,61 @@ function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { retur
         topInx = swapInx;
         if (topInx === btmInx) { break; }
     }
+
+    return ary;
+}
+
+function mergeSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
+    const aryWork: T[] = new Array(ary.length);
+
+    const mergeSortSub = (topInx: number, btmInx: number) => {
+        if (btmInx - topInx <= 1) {
+            return;
+        }
+        const midInx = Math.floor((topInx + btmInx) / 2);
+
+        mergeSortSub(topInx, midInx);
+        mergeSortSub(midInx, btmInx);
+
+        merge(topInx, midInx, btmInx);
+    };
+    const merge = (topInx: number, midInx: number, btmInx: number) => {
+        let upperSeek = topInx;
+        let lowerSeek = midInx;
+        let workSeek = 0;
+
+        while (upperSeek < midInx && lowerSeek < btmInx) {
+            if (!compareFunction(ary[upperSeek], ary[lowerSeek])) {
+                aryWork[workSeek] = ary[upperSeek];
+                workSeek++;
+                upperSeek++;
+            } else {
+                aryWork[workSeek] = ary[lowerSeek];
+                workSeek++;
+                lowerSeek++;
+            }
+        }
+
+        if (lowerSeek === btmInx) {
+            while (upperSeek < midInx) {
+                aryWork[workSeek] = ary[upperSeek];
+                workSeek++;
+                upperSeek++;
+            }
+        } else {
+            while (lowerSeek < btmInx) {
+                aryWork[workSeek] = ary[lowerSeek];
+                workSeek++;
+                lowerSeek++;
+            }
+        }
+
+        for (let i = 0; i < workSeek; i++) {
+            ary[topInx + i] = aryWork[i];
+        }
+    };
+
+    mergeSortSub(0, ary.length);
 
     return ary;
 }
