@@ -1,5 +1,5 @@
 export { cloneProperty };
 
-function cloneProperty<T>(source: T): T {
+function cloneProperty(source: any): any {
     return JSON.parse(JSON.stringify(source));
 }
