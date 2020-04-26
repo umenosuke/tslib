@@ -3,7 +3,7 @@ import { arraySwap } from "./arraySwap.js";
 export { arrayStableSort, shakerSort, mergeSort };
 
 function arrayStableSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
-    return shakerSort(ary, compareFunction);
+    return mergeSort(ary, compareFunction);
 }
 
 function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
