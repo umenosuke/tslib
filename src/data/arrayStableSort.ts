@@ -16,7 +16,7 @@ function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { retur
         swapInx = topInx;
         for (let i = topInx; i < btmInx; i++) {
             if (compareFunction(ary[i], ary[i + 1])) {
-                ary = arraySwap(ary, i, i + 1);
+                arraySwap(ary, i, i + 1);
                 swapInx = i;
             }
         }
@@ -26,7 +26,7 @@ function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { retur
         swapInx = btmInx;
         for (let i = btmInx; i > topInx; i--) {
             if (compareFunction(ary[i - 1], ary[i])) {
-                ary = arraySwap(ary, i - 1, i);
+                arraySwap(ary, i - 1, i);
                 swapInx = i;
             }
         }
