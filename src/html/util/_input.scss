@@ -1,25 +1,7 @@
-.floatcontainer:after {
-  display: block;
-  clear: both;
-  content: "";
-}
-
-button,
-select,
 label,
 input[type="checkbox"],
 input[type="radio"] {
   cursor: pointer;
-}
-
-button {
-  padding: 0;
-  border: none;
-  border-radius: 0.4em;
-  overflow: hidden;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  outline: none;
 }
 
 input[type="checkbox"],
@@ -125,4 +107,8 @@ input[type="radio"] {
       transform: scale(1);
     }
   }
+}
+
+input[type="number"] {
+  text-align: right;
 }
