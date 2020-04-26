@@ -1,4 +1,4 @@
-import { arraySwap } from "./arraySwap.js";
+import { arrayStableSort } from "./arrayStableSort.js";
 
 export { OrderObjects };
 
@@ -89,32 +89,9 @@ class OrderObjects<T> {
     }
 
     public sort(compareFunction = function (a: T, b: T) { return a > b; }): void {
-        let topInx = 0;
-        let btmInx = this.keys.length - 1;
-
-        while (true) {
-            let swapInx: number;
-
-            swapInx = topInx;
-            for (let i = topInx; i < btmInx; i++) {
-                if (compareFunction(this.item(i), this.item(i + 1))) {
-                    arraySwap(this.keys, i, i + 1);
-                    swapInx = i;
-                }
-            }
-            btmInx = swapInx;
-            if (topInx === btmInx) { break; }
-
-            swapInx = btmInx;
-            for (let i = btmInx; i > topInx; i--) {
-                if (compareFunction(this.item(i - 1), this.item(i))) {
-                    arraySwap(this.keys, i - 1, i);
-                    swapInx = i;
-                }
-            }
-            topInx = swapInx;
-            if (topInx === btmInx) { break; }
-        }
+        arrayStableSort(this.keys, (keyA, keyB) => {
+            return compareFunction(this.getValue(keyA), this.getValue(keyB))
+        });
     }
 
     public forEach(func: (val: T) => void): void {
