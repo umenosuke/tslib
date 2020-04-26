@@ -2,11 +2,11 @@ import { arraySwap } from "./arraySwap.js";
 
 export { arrayStableSort, shakerSort, mergeSort };
 
-function arrayStableSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
-    return mergeSort(ary, compareFunction);
+function arrayStableSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): T[] {
+    return mergeSort(ary, compareIfMoveBehindFunc);
 }
 
-function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
+function shakerSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): T[] {
     let topInx = 0;
     let btmInx = ary.length - 1;
 
@@ -15,7 +15,7 @@ function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { retur
 
         swapInx = topInx;
         for (let i = topInx; i < btmInx; i++) {
-            if (compareFunction(ary[i], ary[i + 1])) {
+            if (compareIfMoveBehindFunc(ary[i], ary[i + 1])) {
                 arraySwap(ary, i, i + 1);
                 swapInx = i;
             }
@@ -25,7 +25,7 @@ function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { retur
 
         swapInx = btmInx;
         for (let i = btmInx; i > topInx; i--) {
-            if (compareFunction(ary[i - 1], ary[i])) {
+            if (compareIfMoveBehindFunc(ary[i - 1], ary[i])) {
                 arraySwap(ary, i - 1, i);
                 swapInx = i;
             }
@@ -37,7 +37,7 @@ function shakerSort<T>(ary: T[], compareFunction = function (a: T, b: T) { retur
     return ary;
 }
 
-function mergeSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return a > b; }): T[] {
+function mergeSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): T[] {
     const aryWork: T[] = new Array(ary.length);
 
     const mergeSortSub = (topInx: number, btmInx: number) => {
@@ -57,7 +57,7 @@ function mergeSort<T>(ary: T[], compareFunction = function (a: T, b: T) { return
         let workSeek = 0;
 
         while (upperSeek < midInx && lowerSeek < btmInx) {
-            if (!compareFunction(ary[upperSeek], ary[lowerSeek])) {
+            if (!compareIfMoveBehindFunc(ary[upperSeek], ary[lowerSeek])) {
                 aryWork[workSeek] = ary[upperSeek];
                 workSeek++;
                 upperSeek++;

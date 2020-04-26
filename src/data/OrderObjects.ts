@@ -88,9 +88,9 @@ class OrderObjects<T> {
         return this.pop(this.keys.indexOf(key));
     }
 
-    public sort(compareFunction = function (a: T, b: T) { return a > b; }): void {
+    public sort(compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): void {
         arrayStableSort(this.keys, (keyA, keyB) => {
-            return compareFunction(this.getValue(keyA), this.getValue(keyB))
+            return compareIfMoveBehindFunc(this.getValue(keyA), this.getValue(keyB))
         });
     }
 
