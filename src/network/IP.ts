@@ -167,7 +167,7 @@ class IP {
 
         const netAddr = this.getNetworkAddress();
         const mask = this.getMask();
-        for (let i = 1n, len = BigInt(this.getAddressNum()); i < len; i++) {
+        for (let i = 1n, len = BigInt(this.getAddressNum()) - 1n; i < len; i++) {
             const ip = new IP("", eParseMode.empty);
 
             ip.address = BigInt.asUintN(32, netAddr + i);
