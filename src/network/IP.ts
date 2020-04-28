@@ -85,6 +85,17 @@ class IP {
         return this.isValid() && n.isValid() && this.getAddress() === n.getAddress() && this.getMask() === n.getMask();
     }
 
+    public sameNetwork(n: IP): boolean {
+        if (!this.isValid() || !n.isValid()) {
+            return false;
+        }
+        if (this.getMask() > n.getMask()) {
+            return false;
+        }
+
+        return this.getNetworkAddress() === BigInt.asUintN(32, n.getAddress() & this.getMask());
+    }
+
     public getAddress(): bigint {
         if (!this.isValid()) { return; }
 
