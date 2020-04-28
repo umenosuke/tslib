@@ -2,7 +2,7 @@ import { arrayStableSort } from "./arrayStableSort.js";
 
 export { OrderObjects };
 
-class OrderObjects<T> {
+class OrderObjects<T> implements Iterable<T> {
     private keys: string[];
     private values: { [key: string]: T };
 
@@ -98,6 +98,28 @@ class OrderObjects<T> {
         this.keys.forEach((key) => {
             func(this.values[key]);
         });
+    }
+
+    public [Symbol.iterator](): Iterator<T> {
+        let pointer = 0;
+        let keys = this.keys;
+        let values = this.values;
+
+        return {
+            next(): IteratorResult<T> {
+                if (pointer < keys.length) {
+                    return {
+                        done: false,
+                        value: values[keys[pointer++]]
+                    };
+                } else {
+                    return {
+                        done: true,
+                        value: null
+                    };
+                }
+            }
+        };
     }
 
     public set(data: { keys: string[], values: { [key: string]: T } }): void {
