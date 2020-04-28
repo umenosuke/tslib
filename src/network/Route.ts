@@ -3,89 +3,89 @@ import { IP } from "./IP.js";
 export { Route };
 
 class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }> {
-    private network: IP;
-    private customOpt: T;
+    private _network: IP;
+    private _customOpt: T;
 
     constructor(network: IP, customOpt: T) {
         if (network?.isValid() && network.getAddress() === network.getNetworkAddress()) {
-            this.network = network;
-            this.customOpt = customOpt;
+            this._network = network;
+            this._customOpt = customOpt;
         } else {
             console.error("invalid value : ", network?.getAddressStr(), network?.getPrefixStr(), customOpt);
 
-            this.network = undefined;
-            this.customOpt = undefined;
+            this._network = undefined;
+            this._customOpt = undefined;
         }
     }
 
     public isValid(): boolean {
-        return !!(this.network?.isValid() && this.customOpt != undefined);
+        return !!(this._network?.isValid() && this._customOpt != undefined);
     }
 
     public same(r: Route<T>): boolean {
-        return this.isValid() && r.isValid() && this.network.getAddress() === r.network.getAddress() && this.network.getMask() === r.network.getMask();
+        return this.isValid() && r.isValid() && this._network.getAddress() === r._network.getAddress() && this._network.getMask() === r._network.getMask();
     }
 
     public equal(r: Route<T>): boolean {
-        return this.isValid() && r.isValid() && this.same(r) && this.customOpt.equal(r.customOpt);
+        return this.isValid() && r.isValid() && this.same(r) && this._customOpt.equal(r._customOpt);
     }
 
     public include(r: Route<T>): boolean {
-        return this.isValid() && r.isValid() && this.contain(r.network);
+        return this.isValid() && r.isValid() && this.contain(r._network);
     }
 
     public exact(n: IP): boolean {
-        return this.isValid() && n.isValid() && this.network.equal(n);
+        return this.isValid() && n.isValid() && this._network.equal(n);
     }
 
     public contain(n: IP): boolean {
         if (!this.isValid() || !n.isValid()) {
             return false;
         }
-        if (this.network.getMask() > n.getMask()) {
+        if (this._network.getMask() > n.getMask()) {
             return false;
         }
 
-        return this.network.getAddress() === BigInt.asUintN(32, n.getAddress() & this.network.getMask());
+        return this._network.getAddress() === BigInt.asUintN(32, n.getAddress() & this._network.getMask());
     }
 
     public getAddress(): bigint {
         if (!this.isValid()) { return; }
 
-        return this.network.getAddress();
+        return this._network.getAddress();
     }
     public getAddressStr(): string {
         if (!this.isValid()) { return; }
 
-        return this.network.getAddressStr();
+        return this._network.getAddressStr();
     }
 
     public getMask(): bigint {
         if (!this.isValid()) { return; }
 
-        return this.network.getMask();
+        return this._network.getMask();
     }
     public getMaskStr(): string {
         if (!this.isValid()) { return; }
 
-        return this.network.getMaskStr();
+        return this._network.getMaskStr();
     }
 
     public getPrefixStr(): string {
         if (!this.isValid()) { return; }
 
-        return this.network.getPrefixStr();
+        return this._network.getPrefixStr();
     }
 
     public getCustomOpt(): T {
         if (!this.isValid()) { return; }
 
-        return this.customOpt;
+        return this._customOpt;
     }
 
     public toString(): string {
         if (!this.isValid()) { return; }
 
-        return this.network.toString() + " " + this.customOpt.toString();
+        return this._network.toString() + " " + this._customOpt.toString();
     }
 }
