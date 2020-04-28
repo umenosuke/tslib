@@ -34,6 +34,10 @@ class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }
         return this.isValid() && r.isValid() && this.contain(r.network);
     }
 
+    public exact(n: IP): boolean {
+        return this.isValid() && n.isValid() && this.network.equal(n);
+    }
+
     public contain(n: IP): boolean {
         if (!this.isValid() || !n.isValid()) {
             return false;
@@ -43,10 +47,6 @@ class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }
         }
 
         return this.network.getAddress() === BigInt.asUintN(32, n.getAddress() & this.network.getMask());
-    }
-
-    public exact(n: IP): boolean {
-        return this.isValid() && n.isValid() && this.network.equal(n);
     }
 
     public getAddress(): bigint {
