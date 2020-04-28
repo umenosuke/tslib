@@ -2,7 +2,7 @@ import { IP } from "./IP.js";
 
 export { Route };
 
-class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }> {
+class Route<T extends { equal(compVal: T): boolean, toString(): string }> {
     private _network: IP;
     private _customOpt: T;
 
