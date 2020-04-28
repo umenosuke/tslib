@@ -1,6 +1,41 @@
 import { IP } from "./IP.js";
 
-export { Route };
+export { Route, RouteCustomOptEmpty, RouteCustomOptWithNexthop };
+
+declare const nRouteCustomOptWithNexthop: unique symbol;
+class RouteCustomOptWithNexthop {
+    [nRouteCustomOptWithNexthop]: never;
+
+    private nextHop: IP;
+
+    constructor(nextHop: IP) {
+        this.nextHop = nextHop;
+    }
+
+    public equal(compVal: RouteCustomOptWithNexthop): boolean {
+        return !!this.nextHop?.equal(compVal.nextHop);
+    }
+
+    public toString(): string {
+        return this.nextHop?.toString();
+    }
+}
+
+declare const nRouteCustomOptEmpty: unique symbol;
+class RouteCustomOptEmpty {
+    [nRouteCustomOptEmpty]: never;
+
+    constructor() {
+    }
+
+    public equal(compVal: RouteCustomOptEmpty): boolean {
+        return true;
+    }
+
+    public toString(): string {
+        return "";
+    }
+}
 
 class Route<T extends { equal(compVal: T): boolean, toString(): string }> {
     private _network: IP;
