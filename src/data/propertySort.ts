@@ -1,6 +1,8 @@
 export { propertySort };
 
 function propertySort(inObj: any): any {
+    if (inObj == null) { return inObj; }
+
     if (Array.isArray(inObj)) {
         const outArray: any[] = [];
 
