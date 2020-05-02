@@ -23,6 +23,7 @@ function csv2json(csv: string, keyColumIndex: number = -1): {
     }[] = [];
 
     for (let i = 1; i < csvRows.length; i++) {
+        if (csvRows[i] === "") { continue; }
         const csvCols = csvRows[i].split(",");
 
         const data: { [name: string]: string } = {};
