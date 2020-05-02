@@ -19,8 +19,11 @@ find build/ -mindepth 1 -type d -empty -delete
 echo "htmlファイル移動中...";
 find ./* -name '*.html' -type f -not -path '*/.deploy/*' -exec bash -c 'mkdir -p $(dirname '"${_OUTPUT_PATH}"'/{}) && cp {} '"${_OUTPUT_PATH}"'/{}' \;
 
+echo "txtファイル移動中...";
+find ./* -name '*.txt' -type f -not -path '*/.deploy/*' -exec bash -c 'mkdir -p $(dirname '"${_OUTPUT_PATH}"'/{}) && cp {} '"${_OUTPUT_PATH}"'/{}' \;
+
 echo "リソースファイル移動中...";
-cp -r ./resource/ ${_OUTPUT_PATH}/
+cp -rL ./resource/ ${_OUTPUT_PATH}/
 
 echo "トランスパイル用コンテナ起動中...";
 docker-compose -f .docker/docker-compose.yml up -d
