@@ -69,6 +69,38 @@ class OrderObjects<T> implements Iterable<T> {
         this.values[key] = val;
     }
 
+    public move(targetIndex: number, toIndex: number): void {
+        console.log(targetIndex, toIndex);
+        if (targetIndex < 0 || targetIndex >= this.keys.length) {
+            console.warn("index out of range", targetIndex);
+            return;
+        }
+
+        if (toIndex < 0) {
+            toIndex = 0;
+        } else if (toIndex >= this.keys.length) {
+            toIndex = this.keys.length - 1;
+        } else if (targetIndex < toIndex) {
+            toIndex--;
+        }
+
+        console.log(targetIndex, toIndex);
+        if (targetIndex === toIndex) {
+            return;
+        }
+        console.log(targetIndex, toIndex);
+
+        const target = this.keys.splice(targetIndex, 1);
+        console.log(this.keys);
+        this.keys.splice(toIndex, 0, ...target);
+    }
+    public moveByKey(targetKey: string, toIndex: number): void {
+        this.move(this.getIndex(targetKey), toIndex);
+    }
+    public moveTo(targetKey: string, toKey: string, offset: number = 0): void {
+        this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
+    }
+
     public replace(key: string, val: T): void {
         if (!this.hasKey(key)) { console.warn("key[" + key + "] not exists"); return; }
         if (!this.validateFunc(val)) { console.warn("invalid value"); return; }
