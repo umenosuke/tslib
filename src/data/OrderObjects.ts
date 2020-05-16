@@ -38,6 +38,10 @@ class OrderObjects<T> implements Iterable<T> {
         return this.keys[index];
     }
 
+    public getIndex(key: string): number {
+        return this.keys.indexOf(key);
+    }
+
     public getKeys(): string[] {
         return this.keys.concat();
     }
