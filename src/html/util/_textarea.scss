@@ -1,16 +1,14 @@
-button {
-  padding: 0;
-  border: none;
-  border-radius: 0.4em;
-  overflow: hidden;
+textarea {
+  background: none;
+  background-color: white;
+  border: solid 0.1em darkgray;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   outline: none;
-  cursor: pointer;
 }
 
-button:focus {
+textarea:focus {
   outline: orange auto 1px;
   outline-offset: -2px;
 }

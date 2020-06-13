@@ -1,3 +1,18 @@
+input {
+  background: none;
+  background-color: white;
+  border: solid 0.1em darkgray;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+input:focus {
+  outline: orange auto 1px;
+  outline-offset: -2px;
+}
+
 label,
 input[type="checkbox"],
 input[type="radio"] {
@@ -11,15 +26,8 @@ input[type="radio"] {
   display: inline-block;
   margin: 0 0.2em 0 0;
   padding: 0;
-  background: none;
-  background-color: white;
-  outline: none;
   position: relative;
   box-sizing: border-box;
-  border: solid 0.1em darkgray;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  /*appearance: none;*/
 
   &:disabled {
     background-color: darkgray;
