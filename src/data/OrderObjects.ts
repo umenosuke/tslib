@@ -70,7 +70,6 @@ class OrderObjects<T> implements Iterable<T> {
     }
 
     public move(targetIndex: number, toIndex: number): void {
-        console.log(targetIndex, toIndex);
         if (targetIndex < 0 || targetIndex >= this.keys.length) {
             console.warn("index out of range", targetIndex);
             return;
@@ -84,14 +83,11 @@ class OrderObjects<T> implements Iterable<T> {
             toIndex--;
         }
 
-        console.log(targetIndex, toIndex);
         if (targetIndex === toIndex) {
             return;
         }
-        console.log(targetIndex, toIndex);
 
         const target = this.keys.splice(targetIndex, 1);
-        console.log(this.keys);
         this.keys.splice(toIndex, 0, ...target);
     }
     public moveByKey(targetKey: string, toIndex: number): void {
