@@ -52,6 +52,8 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
             for (let i = 0, len = this.subTree.length; i < len; i++) {
                 if (route.include(this.subTree[i].route)) {
                     grafted.push(this.subTree.splice(i, 1)[0]);
+                    len--;
+                    i--;
                 }
             }
 
