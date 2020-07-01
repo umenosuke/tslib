@@ -42,6 +42,13 @@ class IP {
         return this._prefix;
     }
 
+    public getSubnet(prefixLen: number): IP {
+        if (!this.isValid()) { return; }
+        if (this._prefix.getPrefixLen() > prefixLen) { return; }
+
+        return IP.createIPFromBigints({ address: this._address, mask: util.prefixNum2Bits(prefixLen) });
+    }
+
     public equal(n: IP): boolean {
         return this.isValid() && n.isValid() && this.getAddress() === n.getAddress() && this._prefix.equal(n._prefix);
     }
