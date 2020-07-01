@@ -88,7 +88,7 @@ class Prefix {
         return util.bits2OctetStr(util.bitsReverse(this._mask));
     }
 
-    public getPrefixLenStr(): string {
+    public getPrefixLen(): number {
         if (!this.isValid()) { return; }
 
         let tmpMask = this._mask;
@@ -99,7 +99,12 @@ class Prefix {
             }
             tmpMask = BigInt.asUintN(32, tmpMask << 1n);
         }
-        return "" + bit;
+        return bit;
+    }
+    public getPrefixLenStr(): string {
+        if (!this.isValid()) { return; }
+
+        return "" + this.getPrefixLen();
     }
 
     public getAddressNum(): number {
