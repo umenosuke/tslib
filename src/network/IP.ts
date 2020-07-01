@@ -20,7 +20,7 @@ class IP {
             return;
         }
         const ip = new IP("", eParseMode.empty);
-        ip._address = BigInt.asUintN(32, data.address & data.mask);
+        ip._address = data.address;
         ip._prefix = Prefix.createPrefixFromBigints(data);
         return ip;
     }
