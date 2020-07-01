@@ -10,18 +10,21 @@ class Prefix {
 
     constructor(ipStr: string, mode: eParseMode) {
         const data = parseIP(ipStr, mode);
-        this._address = BigInt.asUintN(32, data.address & data.mask);
-        this._mask = data.mask;
+        if (data?.address != undefined && data?.mask != undefined) {
+            this._address = BigInt.asUintN(32, data.address & data.mask);
+            this._mask = data.mask;
+        } else {
+            this._address = undefined;
+            this._mask = undefined;
+        }
     }
 
     public static createPrefixFromBigints(data: { address: bigint, mask: bigint }): Prefix {
-        if (data?.address == undefined || data?.mask == undefined) {
-            console.error("invalid value : ", data);
-            return;
-        }
         const prefix = new Prefix("", eParseMode.empty);
-        prefix._address = BigInt.asUintN(32, data.address & data.mask);
-        prefix._mask = data.mask;
+        if (data?.address != undefined && data?.mask != undefined) {
+            prefix._address = BigInt.asUintN(32, data.address & data.mask);
+            prefix._mask = data.mask;
+        }
         return prefix;
     }
 
