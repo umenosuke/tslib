@@ -1,5 +1,4 @@
 import { Route } from "./Route.js";
-import { IP } from "./IP.js";
 import { Prefix } from "./Prefix.js";
 import { eParseMode } from "./parser.js";
 
