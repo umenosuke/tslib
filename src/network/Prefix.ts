@@ -126,4 +126,13 @@ class Prefix {
 
         return ips;
     }
+
+    /*
+    public split(prefixLen: number): Prefix[] {
+        if (!this.isValid()) { return; }
+        if (prefixLen < 0 || 32 < prefixLen) { return; }
+        if (this.getPrefixLen() > prefixLen) { return; }
+
+        return [];
+    }*/
 }
