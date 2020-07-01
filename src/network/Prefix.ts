@@ -15,6 +15,10 @@ class Prefix {
     }
 
     public static createPrefixFromBigints(data: { address: bigint, mask: bigint }): Prefix {
+        if (data?.address == undefined || data?.mask == undefined) {
+            console.error("invalid value : ", data);
+            return;
+        }
         const prefix = new Prefix("", eParseMode.empty);
         prefix._address = BigInt.asUintN(32, data.address & data.mask);
         prefix._mask = data.mask;

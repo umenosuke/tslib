@@ -15,6 +15,10 @@ class IP {
     }
 
     public static createIPFromBigints(data: { address: bigint, mask: bigint }): IP {
+        if (data?.address == undefined || data?.mask == undefined) {
+            console.error("invalid value : ", data);
+            return;
+        }
         const ip = new IP("", eParseMode.empty);
         ip._address = BigInt.asUintN(32, data.address & data.mask);
         ip._prefix = Prefix.createPrefixFromBigints(data);
