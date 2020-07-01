@@ -6,18 +6,21 @@ declare const nRouteMetaWithNexthop: unique symbol;
 class RouteMetaWithNexthop {
     [nRouteMetaWithNexthop]: never;
 
-    private nextHop: IP;
+    private _nextHop: IP;
+    get nextHop(): IP {
+        return this._nextHop;
+    }
 
     constructor(nextHop: IP) {
-        this.nextHop = nextHop;
+        this._nextHop = nextHop.getSubnet(32);
     }
 
     public equal(compVal: RouteMetaWithNexthop): boolean {
-        return !!this.nextHop?.equal(compVal.nextHop);
+        return !!this._nextHop?.equal(compVal._nextHop);
     }
 
     public toString(): string {
-        return this.nextHop?.toString();
+        return this._nextHop?.toString();
     }
 }
 
