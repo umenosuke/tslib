@@ -1,4 +1,4 @@
-export { BITS, octetStr2Bits, bits2OctetStr, bitsReverse, bitsIsLOneRZero, prefixStr2Bits };
+export { BITS, octetStr2Bits, bits2OctetStr, bitsReverse, bitsIsLOneRZero, prefixNum2Bits, prefixStr2Bits };
 
 const BITS: bigint = 4294967295n;
 
@@ -40,15 +40,23 @@ function bitsIsLOneRZero(bi: bigint): boolean {
     return true;
 }
 
-function prefixStr2Bits(prefixStr: string): bigint {
+function prefixNum2Bits(prefixLen: number): bigint {
+    if (prefixLen < 0 || 32 < prefixLen) {
+        console.error("invalid value : " + prefixLen);
+        return;
+    }
+    const input = 32n - BigInt(prefixLen);
+    return BigInt.asUintN(32, (BITS >> input) << input);
+}
+function prefixStr2Bits(prefixLenStr: string): bigint {
     const regExp = /^([1-2]?[0-9]|3[0-2])$/
-    prefixStr = prefixStr.trim();
+    prefixLenStr = prefixLenStr.trim();
 
-    if (!prefixStr.match(regExp)) {
-        console.error("invalid value : " + prefixStr);
+    if (!prefixLenStr.match(regExp)) {
+        console.error("invalid value : " + prefixLenStr);
         return;
     }
 
-    const input = 32n - BigInt(prefixStr);
+    const input = 32n - BigInt(prefixLenStr);
     return BigInt.asUintN(32, (BITS >> input) << input);
 }
