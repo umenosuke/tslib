@@ -1,10 +1,12 @@
 import { Route } from "./Route.js";
 import { IP } from "./IP.js";
+import { Prefix } from "./Prefix.js";
+import { eParseMode } from "./parser.js";
 
 export { RoutingTable, createRoot };
 
 function createRoot<T extends { equal: (compVal: T) => boolean, toString: () => string }>(customOpt: T): RoutingTable<T> {
-    return new RoutingTable<T>(new Route<T>(new IP("0.0.0.0/0"), customOpt));
+    return new RoutingTable<T>(new Route<T>(new Prefix("0.0.0.0/0", eParseMode.prefix), customOpt));
 }
 
 class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => string }>{
@@ -25,12 +27,12 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
             console.warn("route is not valid");
             return true;
         }
-        if (this.route.include(route)) {
+        if (this.route.getPrefix().include(route.getPrefix())) {
             if (this.route.equal(route)) {
                 console.warn("already exists", route);
                 return true;
             }
-            if (this.route.same(route)) {
+            if (this.route.sameNetwork(route.getPrefix())) {
                 for (let i = 0, len = this.redundantRotue.length; i < len; i++) {
                     const r = this.redundantRotue[i];
                     if (r.equal(route)) {
@@ -50,7 +52,7 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
 
             const grafted: RoutingTable<T>[] = [];
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (route.include(this.subTree[i].route)) {
+                if (route.getPrefix().include(this.subTree[i].route.getPrefix())) {
                     grafted.push(this.subTree.splice(i, 1)[0]);
                     len--;
                     i--;
@@ -79,13 +81,13 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return arr;
     }
 
-    public searchRoute(ip: IP): Route<T>[] {
-        if (this.route.contain(ip)) {
+    public search(prefix: Prefix): Route<T>[] {
+        if (this.route.getPrefix().include(prefix)) {
             let result = [this.route].concat(this.redundantRotue);
 
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (this.subTree[i].route.contain(ip)) {
-                    result = result.concat(this.subTree[i].searchRoute(ip));
+                if (this.subTree[i].route.getPrefix().include(prefix)) {
+                    result = result.concat(this.subTree[i].search(prefix));
                 }
             }
 
@@ -95,11 +97,11 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return [];
     }
 
-    public searchRouteLongest(ip: IP): Route<T>[] {
-        if (this.route.contain(ip)) {
+    public searchLongest(prefix: Prefix): Route<T>[] {
+        if (this.route.getPrefix().include(prefix)) {
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (this.subTree[i].route.contain(ip)) {
-                    return this.subTree[i].searchRouteLongest(ip);
+                if (this.subTree[i].route.getPrefix().include(prefix)) {
+                    return this.subTree[i].searchLongest(prefix);
                 }
             }
 
@@ -109,20 +111,20 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         return [];
     }
 
-    public searchRouteLongerPrefixes(route: Route<T>): Route<T>[] {
-        if (route.include(this.route)) {
+    public searchLongerPrefixes(prefix: Prefix): Route<T>[] {
+        if (prefix.include(this.route.getPrefix())) {
             let result = [this.route].concat(this.redundantRotue);
 
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                result = result.concat(this.subTree[i].searchRouteLongerPrefixes(route));
+                result = result.concat(this.subTree[i].searchLongerPrefixes(prefix));
             }
 
             return result;
-        } else if (this.route.include(route)) {
+        } else if (this.route.getPrefix().include(prefix)) {
             let result: Route<T>[] = [];
 
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                result = result.concat(this.subTree[i].searchRouteLongerPrefixes(route));
+                result = result.concat(this.subTree[i].searchLongerPrefixes(prefix));
             }
 
             return result;
@@ -132,7 +134,7 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
     }
 
     public removeRoute(route: Route<T>): RoutingTable<T>[] {
-        if (this.route.same(route)) {
+        if (this.route.sameNetwork(route.getPrefix())) {
             if (this.route.equal(route)) {
                 if (this.redundantRotue.length > 0) {
                     this.route = this.redundantRotue.splice(0, 1)[0];
@@ -166,8 +168,8 @@ class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => s
         }
 
         this.subTree.sort((a, b) => {
-            const aAdd = a.route.getAddress();
-            const bAdd = b.route.getAddress();
+            const aAdd = a.route.getPrefix().getNetworkAddress();
+            const bAdd = b.route.getPrefix().getNetworkAddress();
 
             if (aAdd < bAdd) {
                 return -1;

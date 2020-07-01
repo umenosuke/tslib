@@ -1,126 +1,50 @@
-import { IP } from "./IP.js";
+import { Prefix } from "./Prefix.js";
 
-export { Route, RouteCustomOptEmpty, RouteCustomOptWithNexthop };
+export { Route };
 
-declare const nRouteCustomOptWithNexthop: unique symbol;
-class RouteCustomOptWithNexthop {
-    [nRouteCustomOptWithNexthop]: never;
+class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }> {
+    private _prefix: Prefix;
+    private _meta: T;
 
-    private nextHop: IP;
-
-    constructor(nextHop: IP) {
-        this.nextHop = nextHop;
-    }
-
-    public equal(compVal: RouteCustomOptWithNexthop): boolean {
-        return !!this.nextHop?.equal(compVal.nextHop);
-    }
-
-    public toString(): string {
-        return this.nextHop?.toString();
-    }
-}
-
-declare const nRouteCustomOptEmpty: unique symbol;
-class RouteCustomOptEmpty {
-    [nRouteCustomOptEmpty]: never;
-
-    constructor() {
-    }
-
-    public equal(compVal: RouteCustomOptEmpty): boolean {
-        return true;
-    }
-
-    public toString(): string {
-        return "";
-    }
-}
-
-class Route<T extends { equal(compVal: T): boolean, toString(): string }> {
-    private _network: IP;
-    private _customOpt: T;
-
-    constructor(network: IP, customOpt: T) {
-        if (network?.isValid() && network.getAddress() === network.getNetworkAddress()) {
-            this._network = network;
-            this._customOpt = customOpt;
+    constructor(network: Prefix, customOpt: T) {
+        if (network?.isValid()) {
+            this._prefix = network;
+            this._meta = customOpt;
         } else {
-            console.error("invalid value : ", network?.getAddressStr(), network?.getPrefixStr(), customOpt);
+            console.error("invalid value : ", network, customOpt);
 
-            this._network = undefined;
-            this._customOpt = undefined;
+            this._prefix = undefined;
+            this._meta = undefined;
         }
     }
 
     public isValid(): boolean {
-        return !!(this._network?.isValid() && this._customOpt != undefined);
-    }
-
-    public same(r: Route<T>): boolean {
-        return this.isValid() && r.isValid() && this._network.getAddress() === r._network.getAddress() && this._network.getMask() === r._network.getMask();
+        return !!(this._prefix?.isValid() && this._meta != undefined);
     }
 
     public equal(r: Route<T>): boolean {
-        return this.isValid() && r.isValid() && this.same(r) && this._customOpt.equal(r._customOpt);
+        return this.isValid() && r.isValid() && this.sameNetwork(r._prefix) && this._meta.equal(r._meta);
     }
 
-    public include(r: Route<T>): boolean {
-        return this.isValid() && r.isValid() && this.contain(r._network);
+    public sameNetwork(p: Prefix): boolean {
+        return this.isValid() && p.isValid() && this._prefix.equal(p);
     }
 
-    public exact(n: IP): boolean {
-        return this.isValid() && n.isValid() && this._network.equal(n);
-    }
-
-    public contain(n: IP): boolean {
-        if (!this.isValid() || !n.isValid()) {
-            return false;
-        }
-        if (this._network.getMask() > n.getMask()) {
-            return false;
-        }
-
-        return this._network.getAddress() === BigInt.asUintN(32, n.getAddress() & this._network.getMask());
-    }
-
-    public getAddress(): bigint {
+    public getPrefix(): Prefix {
         if (!this.isValid()) { return; }
 
-        return this._network.getAddress();
-    }
-    public getAddressStr(): string {
-        if (!this.isValid()) { return; }
-
-        return this._network.getAddressStr();
-    }
-
-    public getMask(): bigint {
-        if (!this.isValid()) { return; }
-
-        return this._network.getMask();
-    }
-    public getMaskStr(): string {
-        if (!this.isValid()) { return; }
-
-        return this._network.getMaskStr();
-    }
-
-    public getPrefixStr(): string {
-        if (!this.isValid()) { return; }
-
-        return this._network.getPrefixStr();
+        return this._prefix;
     }
 
     public getCustomOpt(): T {
         if (!this.isValid()) { return; }
 
-        return this._customOpt;
+        return this._meta;
     }
 
     public toString(): string {
         if (!this.isValid()) { return; }
 
-        return this._network.toString() + " " + this._customOpt.toString();
+        return this._prefix.toString() + " " + this._meta.toString();
     }
 }
