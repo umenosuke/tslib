@@ -1,12 +1,12 @@
 select {
   background: none;
   background-color: white;
-  border: solid 0.1em darkgray;
+  border: solid 2px darkgray;
   outline: none;
   cursor: pointer;
 }
 
 select:focus {
   outline: orange auto 1px;
-  outline-offset: -2px;
+  outline-offset: 0;
 }
