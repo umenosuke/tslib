@@ -1,7 +1,7 @@
 input {
   background: none;
   background-color: white;
-  border: solid 0.1em darkgray;
+  border: solid 2px darkgray;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -10,7 +10,7 @@ input {
 
 input:focus {
   outline: orange auto 1px;
-  outline-offset: -2px;
+  outline-offset: 0;
 }
 
 label,
@@ -31,7 +31,7 @@ input[type="radio"] {
 
   &:disabled {
     background-color: darkgray;
-    border: solid 0.1em gray;
+    border: solid 2px gray;
   }
 
   &:checked {
