@@ -1,5 +1,5 @@
 import * as util from "./util.js";
-import { parseIP, eParseMode } from "./parser.js";
+import { parseIP, eParseMode, eStringifyMode } from "./parser.js";
 import { IP } from "./IP.js";
 
 export { Prefix };
@@ -132,6 +132,20 @@ class Prefix {
         }
 
         return ips;
+    }
+
+    public toString(mode: eStringifyMode = eStringifyMode.prefix): string {
+        if (!this.isValid()) { return; }
+
+        switch (mode) {
+            case eStringifyMode.subnetMask:
+                return this.getNetworkAddressStr() + " " + this.getMaskStr();
+            case eStringifyMode.wildcardBit:
+                return this.getNetworkAddressStr() + " " + this.getWildcardStr();
+            case eStringifyMode.prefix:
+            default:
+                return this.getNetworkAddressStr() + "/" + this.getPrefixLenStr();
+        }
     }
 
     /*
