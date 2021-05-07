@@ -48,6 +48,7 @@ function prefixNum2Bits(prefixLen: number): bigint {
     const input = 32n - BigInt(prefixLen);
     return BigInt.asUintN(32, (BITS >> input) << input);
 }
+
 function prefixStr2Bits(prefixLenStr: string): bigint {
     const regExp = /^([1-2]?[0-9]|3[0-2])$/
     prefixLenStr = prefixLenStr.trim();
