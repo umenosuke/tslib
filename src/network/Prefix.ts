@@ -8,7 +8,7 @@ class Prefix {
     private _address: bigint;
     private _mask: bigint;
 
-    constructor(ipStr: string, mode: eParseMode) {
+    constructor(ipStr: string, mode: eParseMode = eParseMode.auto) {
         const data = parseIP(ipStr, mode);
         if (data?.address != undefined && data?.mask != undefined) {
             this._address = BigInt.asUintN(32, data.address & data.mask);
