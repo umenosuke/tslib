@@ -120,15 +120,18 @@ class Prefix {
         return Number(BigInt.asUintN(32, ~this._mask)) + 1;
     }
 
-    public getHosts(): IP[] {
+    public getHosts(range: { seek?: bigint, maxNum?: bigint } = {}): IP[] {
         if (!this.isValid()) { return; }
+
+        const seek = ((range.seek ?? -1n) < 0n) ? 0n : range.seek;
+        const maxNum = range.maxNum ?? util.BITS;
 
         const ips: IP[] = [];
 
-        const netAddr = this.getNetworkAddress();
+        const firstAddr = this.getNetworkAddress() + 1n;
         const mask = this.getMask();
-        for (let i = 1n, len = BigInt(this.getAddressNum()) - 1n; i < len; i++) {
-            ips.push(IP.createIPFromBigints({ address: BigInt.asUintN(32, netAddr + i), mask: mask }));
+        for (let i = seek, len = BigInt(this.getAddressNum()) - 2n; i < len && i < (seek + maxNum); i++) {
+            ips.push(IP.createIPFromBigints({ address: BigInt.asUintN(32, firstAddr + i), mask: mask }));
         }
 
         return ips;
