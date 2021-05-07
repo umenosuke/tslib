@@ -2,6 +2,22 @@ import { IP } from "./IP.js";
 
 export { RouteMetaEmpty, RouteMetaWithNexthop };
 
+declare const nRouteMetaEmpty: unique symbol;
+class RouteMetaEmpty {
+    [nRouteMetaEmpty]: never;
+
+    constructor() {
+    }
+
+    public equal(compVal: RouteMetaEmpty): boolean {
+        return true;
+    }
+
+    public toString(): string {
+        return "";
+    }
+}
+
 declare const nRouteMetaWithNexthop: unique symbol;
 class RouteMetaWithNexthop {
     [nRouteMetaWithNexthop]: never;
@@ -21,21 +37,5 @@ class RouteMetaWithNexthop {
 
     public toString(): string {
         return this._nextHop?.toString();
-    }
-}
-
-declare const nRouteMetaEmpty: unique symbol;
-class RouteMetaEmpty {
-    [nRouteMetaEmpty]: never;
-
-    constructor() {
-    }
-
-    public equal(compVal: RouteMetaEmpty): boolean {
-        return true;
-    }
-
-    public toString(): string {
-        return "";
     }
 }
