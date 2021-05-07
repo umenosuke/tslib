@@ -1,8 +1,9 @@
 import { Prefix } from "./Prefix.js";
+import { RouteMeta } from "./RouteMeta.js";
 
 export { Route };
 
-class Route<T extends { equal: (compVal: T) => boolean, toString: () => string }> {
+class Route<T extends RouteMeta> {
     private _prefix: Prefix;
     private _meta: T;
 

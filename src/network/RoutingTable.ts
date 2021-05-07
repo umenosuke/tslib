@@ -1,14 +1,15 @@
 import { Route } from "./Route.js";
 import { Prefix } from "./Prefix.js";
 import { eParseMode } from "./parser.js";
+import { RouteMeta } from "./RouteMeta.js";
 
 export { RoutingTable, createRoot };
 
-function createRoot<T extends { equal: (compVal: T) => boolean, toString: () => string }>(customOpt: T): RoutingTable<T> {
+function createRoot<T extends RouteMeta>(customOpt: T): RoutingTable<T> {
     return new RoutingTable<T>(new Route<T>(new Prefix("0.0.0.0/0", eParseMode.prefix), customOpt));
 }
 
-class RoutingTable<T extends { equal: (compVal: T) => boolean, toString: () => string }>{
+class RoutingTable<T extends RouteMeta>{
     private route: Route<T>;
     private redundantRotue: Route<T>[];
 
