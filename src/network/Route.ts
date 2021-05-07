@@ -8,7 +8,7 @@ class Route<T extends RouteMeta> {
     private _meta: T;
 
     constructor(network: Prefix, meta: T) {
-        if (network?.isValid()) {
+        if (network?.isValid() && meta != undefined) {
             this._prefix = network;
             this._meta = meta;
         } else {
