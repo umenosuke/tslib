@@ -5,8 +5,8 @@ import { RouteMeta } from "./RouteMeta.js";
 
 export { RoutingTable, createRoot };
 
-function createRoot<T extends RouteMeta>(customOpt: T): RoutingTable<T> {
-    return new RoutingTable<T>(new Route<T>(new Prefix("0.0.0.0/0", eParseMode.prefix), customOpt));
+function createRoot<T extends RouteMeta>(meta: T): RoutingTable<T> {
+    return new RoutingTable<T>(new Route<T>(new Prefix("0.0.0.0/0", eParseMode.prefix), meta));
 }
 
 class RoutingTable<T extends RouteMeta>{

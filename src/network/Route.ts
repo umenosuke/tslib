@@ -7,12 +7,12 @@ class Route<T extends RouteMeta> {
     private _prefix: Prefix;
     private _meta: T;
 
-    constructor(network: Prefix, customOpt: T) {
+    constructor(network: Prefix, meta: T) {
         if (network?.isValid()) {
             this._prefix = network;
-            this._meta = customOpt;
+            this._meta = meta;
         } else {
-            console.error("invalid value : ", network, customOpt);
+            console.error("invalid value : ", network, meta);
 
             this._prefix = undefined;
             this._meta = undefined;
@@ -37,10 +37,15 @@ class Route<T extends RouteMeta> {
         return this._prefix;
     }
 
-    public getCustomOpt(): T {
+    public getMeta(): T {
         if (!this.isValid()) { return; }
 
         return this._meta;
+    }
+
+    public getCustomOpt(): T {
+        console.warn("getCustomOpt is deprecated");
+        return this.getMeta();
     }
 
     public toString(): string {
