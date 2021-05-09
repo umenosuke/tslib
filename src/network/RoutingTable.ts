@@ -22,7 +22,10 @@ class RoutingTable<T extends RouteMeta>{
         this.subTree = [];
     }
 
-    public addRoute(route: Route<T>): boolean {
+    public addRoute(route: Route<T>): void {
+        this._addRoute(route);
+    }
+    public _addRoute(route: Route<T>): boolean {
         if (!route.isValid()) {
             console.warn("route is not valid");
             return true;
@@ -45,7 +48,7 @@ class RoutingTable<T extends RouteMeta>{
             }
 
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (this.subTree[i].addRoute(route)) {
+                if (this.subTree[i]._addRoute(route)) {
                     return true;
                 }
             }
