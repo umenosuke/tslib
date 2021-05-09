@@ -71,6 +71,10 @@ class RoutingTable<T extends RouteMeta>{
         return false;
     }
 
+    public addPrefix(network: Prefix, meta: T): void {
+        this.addRoute(new Route(network, meta));
+    }
+
     public toArray(): Route<T>[] {
         let arr = [this.route].concat(this.redundantRotue);
 
