@@ -10,3 +10,4 @@ function date2Format(date: Date, format = "YYYY-MM-DD hh:mm:ss"): string {
 
     return format;
 }
+//TODO padStartで書き直す
