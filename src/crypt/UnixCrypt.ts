@@ -114,20 +114,27 @@ class UnixCryptConfig {
     public constructor(param: {
         typeName?: tHashTypeList; salt?: string; rounds?: number
     } = {}) {
-        this.setHashType(HASH_TYPE_DEFAULT);
+        this._hashType = undefined;
         if (param.typeName != undefined) {
             this.setHashType(param.typeName);
         }
+        if (this._hashType == undefined) {
+            this.setHashType(HASH_TYPE_DEFAULT);
+        }
 
+        this._salt = undefined;
         if (param.salt != undefined) {
             this.salt = param.salt;
-        } else {
+        }
+        if (this.salt == undefined) {
             this.setSaltRandom();
         }
 
+        this._rounds = undefined;
         if (param.rounds != undefined) {
             this.rounds = param.rounds;
-        } else {
+        }
+        if (this._rounds == undefined) {
             this.rounds = ROUNDS_DEFAULT;
         }
     }
