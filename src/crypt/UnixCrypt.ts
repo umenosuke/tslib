@@ -1,20 +1,14 @@
 import { uint8ArrayConcat } from "../data/uint8ArrayConcat.js";
+import { tHashTypeList, HASH_TYPE_DEFAULT, SALT_NOT_ALLOWED_CHAR, ROUNDS_MAX, ROUNDS_MIN, ROUNDS_DEFAULT } from "./UnixCryptConsts.js";
 
-export { HASH_TYPE_LIST, HASH_TYPE_DEFAULT, UnixCryptConfig, UnixCrypt };
+export { UnixCryptConfig, UnixCrypt };
 
 // https://akkadia.org/drepper/SHA-crypt.txt
 // https://github.com/markusberg/unixcrypt
 // を参考にさせていただきました
 
 const DICTIONARY = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-const NOT_ALLOWED_CHAR = /[^\.\/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]/;
 
-const ROUNDS_DEFAULT = 5000;
-const ROUNDS_MIN = 1000;
-const ROUNDS_MAX = 999999999;
-
-const HASH_TYPE_LIST = ["SHA-512"] as const;
-type tHashTypeList = typeof HASH_TYPE_LIST[number];
 type tHashType = {
     "id": string,
     "name": string,
@@ -53,7 +47,6 @@ const HASH_TYPES: { [key in tHashTypeList]: tHashType } = {
             [63, 64, 64]]
     }
 };
-const HASH_TYPE_DEFAULT = "SHA-512";
 
 class UnixCryptConfig {
     private _hashType: tHashType;
@@ -80,7 +73,7 @@ class UnixCryptConfig {
             return;
         }
 
-        if (salt.match(NOT_ALLOWED_CHAR)) {
+        if (salt.match(SALT_NOT_ALLOWED_CHAR)) {
             console.error("input error, not allowed char : ", salt);
             return;
         }
