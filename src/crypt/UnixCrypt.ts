@@ -211,39 +211,46 @@ class UnixCrypt {
         return UnixCrypt.generateDigest(config, byteListDS);
     }
 
-    private static async generateDigestC(config: UnixCryptConfig, digestA: Uint8Array, byteListP: Uint8Array[], byteListS: Uint8Array[]): Promise<Uint8Array> {
+    private static async generateDigestC(config: UnixCryptConfig, digestA: Uint8Array, byteP: Uint8Array, byteS: Uint8Array): Promise<Uint8Array> {
         // step 21
         let digestC = new Uint8Array(digestA);
+        const byteC = new Uint8Array(byteP.byteLength + digestC.byteLength + byteS.byteLength + byteP.byteLength);
         for (let i = 0; i < config.rounds; i++) {
             // step 21a
-            const byteListC: Uint8Array[] = [];
+            let pos = 0;
 
             // step 21b - 21c
             if (i % 2 !== 0) {
-                byteListC.push(...byteListP);
+                byteC.set(byteP, pos);
+                pos += byteP.byteLength;
             } else {
-                byteListC.push(digestC);
+                byteC.set(digestC, pos);
+                pos += digestC.byteLength;
             }
 
             // step 21d
             if (i % 3 !== 0) {
-                byteListC.push(...byteListS);
+                byteC.set(byteS, pos);
+                pos += byteS.byteLength;
             }
 
             // step 21e
             if (i % 7 !== 0) {
-                byteListC.push(...byteListP);
+                byteC.set(byteP, pos);
+                pos += byteP.byteLength;
             }
 
             // step 21f - 21g
             if (i % 2 !== 0) {
-                byteListC.push(digestC);
+                byteC.set(digestC, pos);
+                pos += digestC.byteLength;
             } else {
-                byteListC.push(...byteListP);
+                byteC.set(byteP, pos);
+                pos += byteP.byteLength;
             }
 
             // step 21h
-            digestC = await UnixCrypt.generateDigest(config, byteListC);
+            digestC.set(new Uint8Array(await crypto.subtle.digest(config.hashType.name, byteC.subarray(0, pos))));
         }
 
         return digestC;
@@ -345,7 +352,7 @@ class UnixCrypt {
         const byteListS = UnixCrypt.generateByteListS(config, saltByte, digestDS);
 
         // step 21
-        const digestC = await UnixCrypt.generateDigestC(config, digestA, byteListP, byteListS);
+        const digestC = await UnixCrypt.generateDigestC(config, digestA, uint8ArrayConcat(byteListP), uint8ArrayConcat(byteListS));
 
         return digestC;
     }
