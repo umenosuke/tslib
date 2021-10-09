@@ -11,7 +11,7 @@ const DICTIONARY = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv
 
 type tHashType = {
     "id": string,
-    "name": string,
+    "name": tHashTypeList,
     "digestLength": number,
     "encodePadding": number,
     "encodeMap": number[][]
