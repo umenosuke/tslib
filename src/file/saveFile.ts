@@ -7,7 +7,9 @@ async function saveFile(fileName: string, data: string | Blob |
     const url = await blob2URI(new Blob([data]));
     const a = document.createElement("a");
     a.style.display = "none";
-    a.target = "_brank";
+    a.target = "_blank";
+    a.relList.add("noopener");
+    a.relList.add("noreferrer");
 
     a.href = url;
     a.setAttribute("download", fileName);
