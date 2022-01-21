@@ -1,6 +1,6 @@
 import { octetStr2Bits } from "../v4/util.js";
 
-export { BITS, normalizeHextetStr, hextetStr2Bits, bits2HextetStr, bitsReverse, prefixNum2Bits, prefixStr2Bits };
+export { BITS, normalizeHextetStr, hextetStr2Bits, bits2HextetStr, bitsReverse, bitsIsLOneRZero, prefixNum2Bits, prefixStr2Bits };
 
 const BITS: bigint = 340282366920938463463374607431768211455n;
 
@@ -111,6 +111,20 @@ function bits2HextetStr(bi: bigint): string {
 
 function bitsReverse(bi: bigint): bigint {
     return BigInt.asUintN(128, ~bi);
+}
+
+function bitsIsLOneRZero(bi: bigint): boolean {
+    for (let i = 0n; i < 128n; i++) {
+        if ((bi & (1n << i)) !== 0n) {
+            for (; i < 128n; i++) {
+                if ((bi & (1n << i)) === 0n) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 function prefixNum2Bits(prefixLen: number): bigint {
