@@ -21,7 +21,7 @@ class Prefix {
 
     public static createPrefixFromBigints(data: { address: bigint, mask: bigint }): Prefix {
         const prefix = new Prefix("", eParseMode.empty);
-        if (data?.address != undefined && data?.mask != undefined) {
+        if (data?.address != undefined && data?.mask != undefined && util.bitsIsLOneRZero(data.mask)) {
             prefix._address = BigInt.asUintN(32, data.address & data.mask);
             prefix._mask = data.mask;
         }
