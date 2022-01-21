@@ -1,4 +1,4 @@
-import * as util from "./util.js";
+import * as util from "./v4/util.js";
 
 export { parseIP, eParseMode, eStringifyMode };
 
