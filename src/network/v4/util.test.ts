@@ -100,11 +100,12 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bitsIsLOneRZero";
 
         for (const data of <{ in: bigint, out: Boolean }[]>[
-            { in: BigInt(0b00000000000000000000000000000000), out: true },
-            { in: BigInt(0b11111111111111111111111111111111), out: true },
-            { in: BigInt(0b11111111111111110000000000000000), out: true },
-            { in: BigInt(0b11111111111111110000000100000000), out: false },
-            { in: BigInt(0b00000000000111111111111111111111), out: false },
+            { in: BigInt("0b00000000000000000000000000000000"), out: true },
+            { in: BigInt("0b11111111111111111111111111111111"), out: true },
+            { in: BigInt("0b11111111111111110000000000000000"), out: true },
+            { in: BigInt("0b11111111111111110000000100000000"), out: false },
+            { in: BigInt("0b11111111111111110000000000000001"), out: false },
+            { in: BigInt("0b00000000000111111111111111111111"), out: false },
         ]) {
             if (bitsIsLOneRZero(data.in) !== data.out) {
                 const msg = msgPrefix + " => 失敗っぽい「" + data.in.toString(2) + "」が「" + bitsIsLOneRZero(data.in) + "」になっている";
