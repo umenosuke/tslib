@@ -19,7 +19,7 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "octetStr2Bits";
 
-        for (const data of [
+        for (const data of <{ str: string }[]>[
             { str: "" },
             { str: "192.168.1.256" },
             { str: "192.168.0.2." },
@@ -37,7 +37,7 @@ async function test(): Promise<string[]> {
             }
         }
 
-        for (const data of [
+        for (const data of <{ str: string, bit: bigint }[]>[
             { str: "0.0.0.0", bit: 0n },
             { str: "0.0.0.255", bit: 255n },
             { str: "0.0.255.0", bit: 65280n },
@@ -59,7 +59,7 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "bits2OctetStr";
 
-        for (const data of [
+        for (const data of <{ str: string, bit: bigint }[]>[
             { str: "255.255.255.255", bit: -1n },
             { str: "0.0.0.0", bit: 4294967296n },
             { str: "0.0.0.0", bit: 0n },
@@ -83,14 +83,14 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "bitsReverse";
 
-        for (const data of [
+        for (const data of <{ in: bigint, out: bigint }[]>[
             { in: BigInt(0b11111111111111111111111111111111), out: 0n },
             { in: 0n, out: BigInt(0b11111111111111111111111111111111) },
             { in: -1n, out: 0n },
             { in: BigInt(0b10101011001110000111101011101101), out: BigInt(0b01010100110001111000010100010010) },
         ]) {
             if (bitsReverse(data.in) !== data.out) {
-                const msg = msgPrefix + " => 失敗っぽい「" + data.in.toString(2) + "」が「" + data.in.toString(2) + "」じゃなくて「" + bitsReverse(data.in).toString(2) + "」になっている";
+                const msg = msgPrefix + " => 失敗っぽい「" + data.in.toString(2) + "」が「" + data.out.toString(2) + "」じゃなくて「" + bitsReverse(data.in).toString(2) + "」になっている";
                 errors.push(msg);
             }
         }
@@ -99,7 +99,7 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "bitsIsLOneRZero";
 
-        for (const data of [
+        for (const data of <{ in: bigint, out: Boolean }[]>[
             { in: BigInt(0b00000000000000000000000000000000), out: true },
             { in: BigInt(0b11111111111111111111111111111111), out: true },
             { in: BigInt(0b11111111111111110000000000000000), out: true },
@@ -115,7 +115,7 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "prefixNum2Bits";
 
-        for (const data of [
+        for (const data of <{ in: number, out: bigint }[]>[
             { in: -1, out: undefined },
             { in: 0, out: BigInt(0b00000000000000000000000000000000) },
             { in: 1, out: BigInt(0b10000000000000000000000000000000) },
@@ -160,9 +160,9 @@ async function test(): Promise<string[]> {
     }
 
     {
-        const msgPrefix = "prefixNum2Bits";
+        const msgPrefix = "prefixStr2Bits";
 
-        for (const data of [
+        for (const data of <{ in: string, out: bigint }[]>[
             { in: "-1", out: undefined },
             { in: "0", out: BigInt(0b00000000000000000000000000000000) },
             { in: "1", out: BigInt(0b10000000000000000000000000000000) },
