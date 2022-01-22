@@ -20,23 +20,17 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "normalizeHextetStr";
 
-        for (const data of <{ input: string }[]>[
-            { input: "z" },
-            { input: "a:" },
-            { input: "a" },
-            { input: "0.0.0.0:" },
-            { input: ":::" },
-            { input: "::a::" },
-            { input: "0:0:0:0:0:0:0:0:0" },
-            { input: "0:0:0:0::0:0:0:0" },
-        ]) {
-            if (normalizeHextetStr(data.input) != undefined) {
-                const msg = msgPrefix + " => 不正なアドレスでなんか帰ってきてる「" + data.input + "」が「" + normalizeHextetStr(data.input) + "」になっている";
-                errors.push(msg);
-            }
-        }
-
         for (const data of <{ input: string, expect: string }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
+            { input: "z", expect: undefined },
+            { input: "a:", expect: undefined },
+            { input: "a", expect: undefined },
+            { input: "0.0.0.0:", expect: undefined },
+            { input: ":::", expect: undefined },
+            { input: "::a::", expect: undefined },
+            { input: "0:0:0:0:0:0:0:0:0", expect: undefined },
+            { input: "0:0:0:0::0:0:0:0", expect: undefined },
             { input: "::", expect: "0:0:0:0:0:0:0:0" },
             { input: "a::", expect: "a:0:0:0:0:0:0:0" },
             { input: "::a", expect: "0:0:0:0:0:0:0:a" },
@@ -60,23 +54,17 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "HextetStr2Bits";
 
-        for (const data of <{ input: string }[]>[
-            { input: "z" },
-            { input: "a:" },
-            { input: "a" },
-            { input: "0.0.0.0:" },
-            { input: ":::" },
-            { input: "::a::" },
-            { input: "0:0:0:0:0:0:0:0:0" },
-            { input: "0:0:0:0::0:0:0:0" },
-        ]) {
-            if (hextetStr2Bits(data.input) != undefined) {
-                const msg = msgPrefix + " => 不正なアドレスでなんか帰ってきてる「" + data.input + "」が「" + hextetStr2Bits(data.input) + "」になっている";
-                errors.push(msg);
-            }
-        }
-
         for (const data of <{ input: string, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
+            { input: "z", expect: undefined },
+            { input: "a:", expect: undefined },
+            { input: "a", expect: undefined },
+            { input: "0.0.0.0:", expect: undefined },
+            { input: ":::", expect: undefined },
+            { input: "::a::", expect: undefined },
+            { input: "0:0:0:0:0:0:0:0:0", expect: undefined },
+            { input: "0:0:0:0::0:0:0:0", expect: undefined },
             { input: "::", expect: 0n },
             { input: "a::", expect: 51922968585348276285304963292200960n },
             { input: "::a", expect: 10n },
@@ -101,6 +89,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bits2HextetStr";
 
         for (const data of <{ expect: string, input: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: 340282366920938463463374607431768211456n, expect: "0:0:0:0:0:0:0:0" },
             { input: 0n, expect: "0:0:0:0:0:0:0:0" },
             { input: 51922968585348276285304963292200960n, expect: "a:0:0:0:0:0:0:0" },
@@ -128,6 +118,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bitsReverse";
 
         for (const data of <{ input: bigint, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: 340282366920938463463374607431768211455n, expect: 0n },
             { input: 0n, expect: 340282366920938463463374607431768211455n },
             { input: -1n, expect: 0n },
@@ -147,6 +139,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bitsIsLOneRZero";
 
         for (const data of <{ input: bigint, expect: Boolean }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: BigInt("0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), expect: true },
             { input: BigInt("0b11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"), expect: true },
             { input: BigInt("0b11111111111111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), expect: true },
@@ -166,6 +160,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "prefixNum2Bits";
 
         for (const data of <{ input: number, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: 128, expect: 340282366920938463463374607431768211455n },
             { input: 127, expect: 340282366920938463463374607431768211454n },
             { input: 126, expect: 340282366920938463463374607431768211452n },
@@ -311,6 +307,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "prefixStr2Bits";
 
         for (const data of <{ input: string, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: "128", expect: 340282366920938463463374607431768211455n },
             { input: "127", expect: 340282366920938463463374607431768211454n },
             { input: "126", expect: 340282366920938463463374607431768211452n },

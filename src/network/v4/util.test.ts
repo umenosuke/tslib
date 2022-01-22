@@ -19,25 +19,19 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "octetStr2Bits";
 
-        for (const data of <{ input: string }[]>[
-            { input: "" },
-            { input: "192.168.1.256" },
-            { input: "192.168.0.2." },
-            { input: "192.168.0.2a" },
-            { input: "a" },
-            { input: "192.0.2..0" },
-            { input: "0.0.0.256" },
-            { input: "0.0.256.0" },
-            { input: "0.256.0.0" },
-            { input: "256.0.0.0" },
-        ]) {
-            if (octetStr2Bits(data.input) != undefined) {
-                const msg = msgPrefix + " => 不正なアドレスでなんか帰ってきてる「" + data.input + "」が「" + octetStr2Bits(data.input) + "」になっている";
-                errors.push(msg);
-            }
-        }
-
         for (const data of <{ input: string, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
+            { input: "", expect: undefined },
+            { input: "192.168.1.256", expect: undefined },
+            { input: "192.168.0.2.", expect: undefined },
+            { input: "192.168.0.2a", expect: undefined },
+            { input: "a", expect: undefined },
+            { input: "192.0.2..0", expect: undefined },
+            { input: "0.0.0.256", expect: undefined },
+            { input: "0.0.256.0", expect: undefined },
+            { input: "0.256.0.0", expect: undefined },
+            { input: "256.0.0.0", expect: undefined },
             { input: "0.0.0.0", expect: 0n },
             { input: "0.0.0.255", expect: 255n },
             { input: "0.0.255.0", expect: 65280n },
@@ -60,6 +54,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bits2OctetStr";
 
         for (const data of <{ expect: string, input: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { expect: "255.255.255.255", input: -1n },
             { expect: "0.0.0.0", input: 4294967296n },
             { expect: "0.0.0.0", input: 0n },
@@ -84,6 +80,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bitsReverse";
 
         for (const data of <{ input: bigint, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: BigInt(0b11111111111111111111111111111111), expect: 0n },
             { input: 0n, expect: BigInt(0b11111111111111111111111111111111) },
             { input: -1n, expect: 0n },
@@ -100,6 +98,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "bitsIsLOneRZero";
 
         for (const data of <{ input: bigint, expect: Boolean }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: BigInt("0b00000000000000000000000000000000"), expect: true },
             { input: BigInt("0b11111111111111111111111111111111"), expect: true },
             { input: BigInt("0b11111111111111110000000000000000"), expect: true },
@@ -118,6 +118,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "prefixNum2Bits";
 
         for (const data of <{ input: number, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: -1, expect: undefined },
             { input: 0, expect: BigInt(0b00000000000000000000000000000000) },
             { input: 1, expect: BigInt(0b10000000000000000000000000000000) },
@@ -165,6 +167,8 @@ async function test(): Promise<string[]> {
         const msgPrefix = "prefixStr2Bits";
 
         for (const data of <{ input: string, expect: bigint }[]>[
+            { input: null, expect: undefined },
+            { input: undefined, expect: undefined },
             { input: "-1", expect: undefined },
             { input: "0", expect: BigInt(0b00000000000000000000000000000000) },
             { input: "1", expect: BigInt(0b10000000000000000000000000000000) },
