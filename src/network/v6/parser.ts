@@ -55,6 +55,5 @@ function subParseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: b
         }
     }
 
-    console.error("invalid value [mode=" + mode + "] : " + ipStr);
     return { address: undefined, mask: undefined };
 }
