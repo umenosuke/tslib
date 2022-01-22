@@ -19,38 +19,38 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "octetStr2Bits";
 
-        for (const data of <{ str: string }[]>[
-            { str: "" },
-            { str: "192.168.1.256" },
-            { str: "192.168.0.2." },
-            { str: "192.168.0.2a" },
-            { str: "a" },
-            { str: "192.0.2..0" },
-            { str: "0.0.0.256" },
-            { str: "0.0.256.0" },
-            { str: "0.256.0.0" },
-            { str: "256.0.0.0" },
+        for (const data of <{ input: string }[]>[
+            { input: "" },
+            { input: "192.168.1.256" },
+            { input: "192.168.0.2." },
+            { input: "192.168.0.2a" },
+            { input: "a" },
+            { input: "192.0.2..0" },
+            { input: "0.0.0.256" },
+            { input: "0.0.256.0" },
+            { input: "0.256.0.0" },
+            { input: "256.0.0.0" },
         ]) {
-            if (octetStr2Bits(data.str) != undefined) {
-                const msg = msgPrefix + " => 不正なアドレスでなんか帰ってきてる「" + data.str + "」が「" + octetStr2Bits(data.str) + "」になっている";
+            if (octetStr2Bits(data.input) != undefined) {
+                const msg = msgPrefix + " => 不正なアドレスでなんか帰ってきてる「" + data.input + "」が「" + octetStr2Bits(data.input) + "」になっている";
                 errors.push(msg);
             }
         }
 
-        for (const data of <{ str: string, bit: bigint }[]>[
-            { str: "0.0.0.0", bit: 0n },
-            { str: "0.0.0.255", bit: 255n },
-            { str: "0.0.255.0", bit: 65280n },
-            { str: "0.255.0.0", bit: 16711680n },
-            { str: "255.0.0.0", bit: 4278190080n },
-            { str: "255.255.255.255", bit: 4294967295n },
-            { str: "10.0.0.0", bit: 167772160n },
-            { str: "10.10.0.0", bit: 168427520n },
-            { str: "10.10.10.0", bit: 168430080n },
-            { str: "10.10.10.10", bit: 168430090n },
+        for (const data of <{ input: string, expect: bigint }[]>[
+            { input: "0.0.0.0", expect: 0n },
+            { input: "0.0.0.255", expect: 255n },
+            { input: "0.0.255.0", expect: 65280n },
+            { input: "0.255.0.0", expect: 16711680n },
+            { input: "255.0.0.0", expect: 4278190080n },
+            { input: "255.255.255.255", expect: 4294967295n },
+            { input: "10.0.0.0", expect: 167772160n },
+            { input: "10.10.0.0", expect: 168427520n },
+            { input: "10.10.10.0", expect: 168430080n },
+            { input: "10.10.10.10", expect: 168430090n },
         ]) {
-            if (octetStr2Bits(data.str) !== data.bit) {
-                const msg = msgPrefix + " => パース失敗っぽい「" + data.str + "」「" + data.bit + "」が「" + octetStr2Bits(data.str) + "」になっている";
+            if (octetStr2Bits(data.input) !== data.expect) {
+                const msg = msgPrefix + " => パース失敗っぽい「" + data.input + "」「" + data.expect + "」が「" + octetStr2Bits(data.input) + "」になっている";
                 errors.push(msg);
             }
         }
@@ -59,22 +59,22 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "bits2OctetStr";
 
-        for (const data of <{ str: string, bit: bigint }[]>[
-            { str: "255.255.255.255", bit: -1n },
-            { str: "0.0.0.0", bit: 4294967296n },
-            { str: "0.0.0.0", bit: 0n },
-            { str: "0.0.0.255", bit: 255n },
-            { str: "0.0.255.0", bit: 65280n },
-            { str: "0.255.0.0", bit: 16711680n },
-            { str: "255.0.0.0", bit: 4278190080n },
-            { str: "255.255.255.255", bit: 4294967295n },
-            { str: "10.0.0.0", bit: 167772160n },
-            { str: "10.10.0.0", bit: 168427520n },
-            { str: "10.10.10.0", bit: 168430080n },
-            { str: "10.10.10.10", bit: 168430090n },
+        for (const data of <{ expect: string, input: bigint }[]>[
+            { expect: "255.255.255.255", input: -1n },
+            { expect: "0.0.0.0", input: 4294967296n },
+            { expect: "0.0.0.0", input: 0n },
+            { expect: "0.0.0.255", input: 255n },
+            { expect: "0.0.255.0", input: 65280n },
+            { expect: "0.255.0.0", input: 16711680n },
+            { expect: "255.0.0.0", input: 4278190080n },
+            { expect: "255.255.255.255", input: 4294967295n },
+            { expect: "10.0.0.0", input: 167772160n },
+            { expect: "10.10.0.0", input: 168427520n },
+            { expect: "10.10.10.0", input: 168430080n },
+            { expect: "10.10.10.10", input: 168430090n },
         ]) {
-            if (bits2OctetStr(data.bit) !== data.str) {
-                const msg = msgPrefix + " => toString失敗っぽい「" + data.str + "」「" + data.bit + "」が「" + bits2OctetStr(data.bit) + "」になっている";
+            if (bits2OctetStr(data.input) !== data.expect) {
+                const msg = msgPrefix + " => toString失敗っぽい「" + data.expect + "」「" + data.input + "」が「" + bits2OctetStr(data.input) + "」になっている";
                 errors.push(msg);
             }
         }
@@ -83,14 +83,14 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "bitsReverse";
 
-        for (const data of <{ in: bigint, out: bigint }[]>[
-            { in: BigInt(0b11111111111111111111111111111111), out: 0n },
-            { in: 0n, out: BigInt(0b11111111111111111111111111111111) },
-            { in: -1n, out: 0n },
-            { in: BigInt(0b10101011001110000111101011101101), out: BigInt(0b01010100110001111000010100010010) },
+        for (const data of <{ input: bigint, expect: bigint }[]>[
+            { input: BigInt(0b11111111111111111111111111111111), expect: 0n },
+            { input: 0n, expect: BigInt(0b11111111111111111111111111111111) },
+            { input: -1n, expect: 0n },
+            { input: BigInt(0b10101011001110000111101011101101), expect: BigInt(0b01010100110001111000010100010010) },
         ]) {
-            if (bitsReverse(data.in) !== data.out) {
-                const msg = msgPrefix + " => 失敗っぽい「" + data.in.toString(2) + "」が「" + data.out.toString(2) + "」じゃなくて「" + bitsReverse(data.in).toString(2) + "」になっている";
+            if (bitsReverse(data.input) !== data.expect) {
+                const msg = msgPrefix + " => 失敗っぽい「" + data.input.toString(2) + "」が「" + data.expect.toString(2) + "」じゃなくて「" + bitsReverse(data.input).toString(2) + "」になっている";
                 errors.push(msg);
             }
         }
@@ -99,16 +99,16 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "bitsIsLOneRZero";
 
-        for (const data of <{ in: bigint, out: Boolean }[]>[
-            { in: BigInt("0b00000000000000000000000000000000"), out: true },
-            { in: BigInt("0b11111111111111111111111111111111"), out: true },
-            { in: BigInt("0b11111111111111110000000000000000"), out: true },
-            { in: BigInt("0b11111111111111110000000100000000"), out: false },
-            { in: BigInt("0b11111111111111110000000000000001"), out: false },
-            { in: BigInt("0b00000000000111111111111111111111"), out: false },
+        for (const data of <{ input: bigint, expect: Boolean }[]>[
+            { input: BigInt("0b00000000000000000000000000000000"), expect: true },
+            { input: BigInt("0b11111111111111111111111111111111"), expect: true },
+            { input: BigInt("0b11111111111111110000000000000000"), expect: true },
+            { input: BigInt("0b11111111111111110000000100000000"), expect: false },
+            { input: BigInt("0b11111111111111110000000000000001"), expect: false },
+            { input: BigInt("0b00000000000111111111111111111111"), expect: false },
         ]) {
-            if (bitsIsLOneRZero(data.in) !== data.out) {
-                const msg = msgPrefix + " => 失敗っぽい「" + data.in.toString(2) + "」が「" + bitsIsLOneRZero(data.in) + "」になっている";
+            if (bitsIsLOneRZero(data.input) !== data.expect) {
+                const msg = msgPrefix + " => 失敗っぽい「" + data.input.toString(2) + "」が「" + bitsIsLOneRZero(data.input) + "」になっている";
                 errors.push(msg);
             }
         }
@@ -117,45 +117,45 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "prefixNum2Bits";
 
-        for (const data of <{ in: number, out: bigint }[]>[
-            { in: -1, out: undefined },
-            { in: 0, out: BigInt(0b00000000000000000000000000000000) },
-            { in: 1, out: BigInt(0b10000000000000000000000000000000) },
-            { in: 2, out: BigInt(0b11000000000000000000000000000000) },
-            { in: 3, out: BigInt(0b11100000000000000000000000000000) },
-            { in: 4, out: BigInt(0b11110000000000000000000000000000) },
-            { in: 5, out: BigInt(0b11111000000000000000000000000000) },
-            { in: 6, out: BigInt(0b11111100000000000000000000000000) },
-            { in: 7, out: BigInt(0b11111110000000000000000000000000) },
-            { in: 8, out: BigInt(0b11111111000000000000000000000000) },
-            { in: 9, out: BigInt(0b11111111100000000000000000000000) },
-            { in: 10, out: BigInt(0b11111111110000000000000000000000) },
-            { in: 11, out: BigInt(0b11111111111000000000000000000000) },
-            { in: 12, out: BigInt(0b11111111111100000000000000000000) },
-            { in: 13, out: BigInt(0b11111111111110000000000000000000) },
-            { in: 14, out: BigInt(0b11111111111111000000000000000000) },
-            { in: 15, out: BigInt(0b11111111111111100000000000000000) },
-            { in: 16, out: BigInt(0b11111111111111110000000000000000) },
-            { in: 17, out: BigInt(0b11111111111111111000000000000000) },
-            { in: 18, out: BigInt(0b11111111111111111100000000000000) },
-            { in: 19, out: BigInt(0b11111111111111111110000000000000) },
-            { in: 20, out: BigInt(0b11111111111111111111000000000000) },
-            { in: 21, out: BigInt(0b11111111111111111111100000000000) },
-            { in: 22, out: BigInt(0b11111111111111111111110000000000) },
-            { in: 23, out: BigInt(0b11111111111111111111111000000000) },
-            { in: 24, out: BigInt(0b11111111111111111111111100000000) },
-            { in: 25, out: BigInt(0b11111111111111111111111110000000) },
-            { in: 26, out: BigInt(0b11111111111111111111111111000000) },
-            { in: 27, out: BigInt(0b11111111111111111111111111100000) },
-            { in: 28, out: BigInt(0b11111111111111111111111111110000) },
-            { in: 29, out: BigInt(0b11111111111111111111111111111000) },
-            { in: 30, out: BigInt(0b11111111111111111111111111111100) },
-            { in: 31, out: BigInt(0b11111111111111111111111111111110) },
-            { in: 32, out: BigInt(0b11111111111111111111111111111111) },
-            { in: 33, out: undefined },
+        for (const data of <{ input: number, expect: bigint }[]>[
+            { input: -1, expect: undefined },
+            { input: 0, expect: BigInt(0b00000000000000000000000000000000) },
+            { input: 1, expect: BigInt(0b10000000000000000000000000000000) },
+            { input: 2, expect: BigInt(0b11000000000000000000000000000000) },
+            { input: 3, expect: BigInt(0b11100000000000000000000000000000) },
+            { input: 4, expect: BigInt(0b11110000000000000000000000000000) },
+            { input: 5, expect: BigInt(0b11111000000000000000000000000000) },
+            { input: 6, expect: BigInt(0b11111100000000000000000000000000) },
+            { input: 7, expect: BigInt(0b11111110000000000000000000000000) },
+            { input: 8, expect: BigInt(0b11111111000000000000000000000000) },
+            { input: 9, expect: BigInt(0b11111111100000000000000000000000) },
+            { input: 10, expect: BigInt(0b11111111110000000000000000000000) },
+            { input: 11, expect: BigInt(0b11111111111000000000000000000000) },
+            { input: 12, expect: BigInt(0b11111111111100000000000000000000) },
+            { input: 13, expect: BigInt(0b11111111111110000000000000000000) },
+            { input: 14, expect: BigInt(0b11111111111111000000000000000000) },
+            { input: 15, expect: BigInt(0b11111111111111100000000000000000) },
+            { input: 16, expect: BigInt(0b11111111111111110000000000000000) },
+            { input: 17, expect: BigInt(0b11111111111111111000000000000000) },
+            { input: 18, expect: BigInt(0b11111111111111111100000000000000) },
+            { input: 19, expect: BigInt(0b11111111111111111110000000000000) },
+            { input: 20, expect: BigInt(0b11111111111111111111000000000000) },
+            { input: 21, expect: BigInt(0b11111111111111111111100000000000) },
+            { input: 22, expect: BigInt(0b11111111111111111111110000000000) },
+            { input: 23, expect: BigInt(0b11111111111111111111111000000000) },
+            { input: 24, expect: BigInt(0b11111111111111111111111100000000) },
+            { input: 25, expect: BigInt(0b11111111111111111111111110000000) },
+            { input: 26, expect: BigInt(0b11111111111111111111111111000000) },
+            { input: 27, expect: BigInt(0b11111111111111111111111111100000) },
+            { input: 28, expect: BigInt(0b11111111111111111111111111110000) },
+            { input: 29, expect: BigInt(0b11111111111111111111111111111000) },
+            { input: 30, expect: BigInt(0b11111111111111111111111111111100) },
+            { input: 31, expect: BigInt(0b11111111111111111111111111111110) },
+            { input: 32, expect: BigInt(0b11111111111111111111111111111111) },
+            { input: 33, expect: undefined },
         ]) {
-            if (prefixNum2Bits(data.in) !== data.out) {
-                const msg = msgPrefix + " => 失敗っぽい「" + data.in + "」が「" + data.out + "」じゃなく「" + prefixNum2Bits(data.in) + "」になっている";
+            if (prefixNum2Bits(data.input) !== data.expect) {
+                const msg = msgPrefix + " => 失敗っぽい「" + data.input + "」が「" + data.expect + "」じゃなく「" + prefixNum2Bits(data.input) + "」になっている";
                 errors.push(msg);
             }
         }
@@ -164,49 +164,49 @@ async function test(): Promise<string[]> {
     {
         const msgPrefix = "prefixStr2Bits";
 
-        for (const data of <{ in: string, out: bigint }[]>[
-            { in: "-1", out: undefined },
-            { in: "0", out: BigInt(0b00000000000000000000000000000000) },
-            { in: "1", out: BigInt(0b10000000000000000000000000000000) },
-            { in: "2", out: BigInt(0b11000000000000000000000000000000) },
-            { in: "3", out: BigInt(0b11100000000000000000000000000000) },
-            { in: "4", out: BigInt(0b11110000000000000000000000000000) },
-            { in: "5", out: BigInt(0b11111000000000000000000000000000) },
-            { in: "6", out: BigInt(0b11111100000000000000000000000000) },
-            { in: "7", out: BigInt(0b11111110000000000000000000000000) },
-            { in: "8", out: BigInt(0b11111111000000000000000000000000) },
-            { in: "9", out: BigInt(0b11111111100000000000000000000000) },
-            { in: "10", out: BigInt(0b11111111110000000000000000000000) },
-            { in: "11", out: BigInt(0b11111111111000000000000000000000) },
-            { in: "12", out: BigInt(0b11111111111100000000000000000000) },
-            { in: "13", out: BigInt(0b11111111111110000000000000000000) },
-            { in: "14", out: BigInt(0b11111111111111000000000000000000) },
-            { in: "15", out: BigInt(0b11111111111111100000000000000000) },
-            { in: "16", out: BigInt(0b11111111111111110000000000000000) },
-            { in: "17", out: BigInt(0b11111111111111111000000000000000) },
-            { in: "18", out: BigInt(0b11111111111111111100000000000000) },
-            { in: "19", out: BigInt(0b11111111111111111110000000000000) },
-            { in: "20", out: BigInt(0b11111111111111111111000000000000) },
-            { in: "21", out: BigInt(0b11111111111111111111100000000000) },
-            { in: "22", out: BigInt(0b11111111111111111111110000000000) },
-            { in: "23", out: BigInt(0b11111111111111111111111000000000) },
-            { in: "24", out: BigInt(0b11111111111111111111111100000000) },
-            { in: "25", out: BigInt(0b11111111111111111111111110000000) },
-            { in: "26", out: BigInt(0b11111111111111111111111111000000) },
-            { in: "27", out: BigInt(0b11111111111111111111111111100000) },
-            { in: "28", out: BigInt(0b11111111111111111111111111110000) },
-            { in: "29", out: BigInt(0b11111111111111111111111111111000) },
-            { in: "30", out: BigInt(0b11111111111111111111111111111100) },
-            { in: "31", out: BigInt(0b11111111111111111111111111111110) },
-            { in: "32", out: BigInt(0b11111111111111111111111111111111) },
-            { in: "33", out: undefined },
-            { in: "aaa", out: undefined },
-            { in: "11a", out: undefined },
-            { in: "a11", out: undefined },
-            { in: "1a1", out: undefined },
+        for (const data of <{ input: string, expect: bigint }[]>[
+            { input: "-1", expect: undefined },
+            { input: "0", expect: BigInt(0b00000000000000000000000000000000) },
+            { input: "1", expect: BigInt(0b10000000000000000000000000000000) },
+            { input: "2", expect: BigInt(0b11000000000000000000000000000000) },
+            { input: "3", expect: BigInt(0b11100000000000000000000000000000) },
+            { input: "4", expect: BigInt(0b11110000000000000000000000000000) },
+            { input: "5", expect: BigInt(0b11111000000000000000000000000000) },
+            { input: "6", expect: BigInt(0b11111100000000000000000000000000) },
+            { input: "7", expect: BigInt(0b11111110000000000000000000000000) },
+            { input: "8", expect: BigInt(0b11111111000000000000000000000000) },
+            { input: "9", expect: BigInt(0b11111111100000000000000000000000) },
+            { input: "10", expect: BigInt(0b11111111110000000000000000000000) },
+            { input: "11", expect: BigInt(0b11111111111000000000000000000000) },
+            { input: "12", expect: BigInt(0b11111111111100000000000000000000) },
+            { input: "13", expect: BigInt(0b11111111111110000000000000000000) },
+            { input: "14", expect: BigInt(0b11111111111111000000000000000000) },
+            { input: "15", expect: BigInt(0b11111111111111100000000000000000) },
+            { input: "16", expect: BigInt(0b11111111111111110000000000000000) },
+            { input: "17", expect: BigInt(0b11111111111111111000000000000000) },
+            { input: "18", expect: BigInt(0b11111111111111111100000000000000) },
+            { input: "19", expect: BigInt(0b11111111111111111110000000000000) },
+            { input: "20", expect: BigInt(0b11111111111111111111000000000000) },
+            { input: "21", expect: BigInt(0b11111111111111111111100000000000) },
+            { input: "22", expect: BigInt(0b11111111111111111111110000000000) },
+            { input: "23", expect: BigInt(0b11111111111111111111111000000000) },
+            { input: "24", expect: BigInt(0b11111111111111111111111100000000) },
+            { input: "25", expect: BigInt(0b11111111111111111111111110000000) },
+            { input: "26", expect: BigInt(0b11111111111111111111111111000000) },
+            { input: "27", expect: BigInt(0b11111111111111111111111111100000) },
+            { input: "28", expect: BigInt(0b11111111111111111111111111110000) },
+            { input: "29", expect: BigInt(0b11111111111111111111111111111000) },
+            { input: "30", expect: BigInt(0b11111111111111111111111111111100) },
+            { input: "31", expect: BigInt(0b11111111111111111111111111111110) },
+            { input: "32", expect: BigInt(0b11111111111111111111111111111111) },
+            { input: "33", expect: undefined },
+            { input: "aaa", expect: undefined },
+            { input: "11a", expect: undefined },
+            { input: "a11", expect: undefined },
+            { input: "1a1", expect: undefined },
         ]) {
-            if (prefixStr2Bits(data.in) !== data.out) {
-                const msg = msgPrefix + " => 失敗っぽい「" + data.in + "」が「" + data.out + "」じゃなく「" + prefixStr2Bits(data.in) + "」になっている";
+            if (prefixStr2Bits(data.input) !== data.expect) {
+                const msg = msgPrefix + " => 失敗っぽい「" + data.input + "」が「" + data.expect + "」じゃなく「" + prefixStr2Bits(data.input) + "」になっている";
                 errors.push(msg);
             }
         }
