@@ -1,4 +1,10 @@
-export { eParseMode, eStringifyMode };
+export { eAddressFamily, eParseMode, eStringifyMode };
+
+enum eAddressFamily {
+    unknown = "unknown",
+    v4 = "v4",
+    v6 = "v6",
+};
 
 enum eParseMode {
     auto = "auto",
