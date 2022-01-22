@@ -3,9 +3,13 @@ import * as util from "./util.js";
 
 export { parseIP };
 
-
 function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigint } {
     if (mode === eParseMode.empty) {
+        return { address: undefined, mask: undefined };
+    }
+
+    if (ipStr == undefined || mode == undefined) {
+        console.error("invalid value [mode=" + mode + "] : " + ipStr);
         return { address: undefined, mask: undefined };
     }
 
