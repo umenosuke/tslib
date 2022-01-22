@@ -1,7 +1,7 @@
 import { Route } from "./Route.js";
 import { Prefix } from "./Prefix.js";
-import { eParseMode } from "./parser.js";
 import { RouteMeta } from "./RouteMeta.js";
+import { eParseMode } from "./enum.js";
 
 export { RoutingTable, createRoot };
 

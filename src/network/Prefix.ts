@@ -1,5 +1,6 @@
 import * as util from "./v4/util.js";
-import { parseIP, eParseMode, eStringifyMode } from "./parser.js";
+import { parseIP } from "./parser.js";
+import { eParseMode, eStringifyMode } from "./enum.js";
 import { IP } from "./IP.js";
 
 export { Prefix };

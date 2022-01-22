@@ -1,21 +1,7 @@
+import { eParseMode } from "./enum.js";
 import * as util from "./v4/util.js";
 
-export { parseIP, eParseMode, eStringifyMode };
-
-enum eParseMode {
-    auto = "auto",
-    host = "host",
-    subnetMask = "subnetMask",
-    wildcardBit = "wildcardBit",
-    prefix = "prefix",
-    empty = "empty"
-};
-
-enum eStringifyMode {
-    subnetMask = "subnetMask",
-    wildcardBit = "wildcardBit",
-    prefix = "prefix"
-};
+export { parseIP };
 
 function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigint } {
     if (mode === eParseMode.empty) {
