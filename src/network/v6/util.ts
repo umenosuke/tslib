@@ -106,7 +106,7 @@ function hextetStr2Bits(hextetStr: string): bigint {
     for (const hextet of normalizedHextetStr.split(":")) {
         bits = (bits << 16n) + BigInt("0x" + hextet);
     }
-    return BigInt.asUintN(128, bits);
+    return BigInt.asUintN(BITS_LENGTH, bits);
 }
 
 function bits2HextetStr(bi: bigint): string {
@@ -131,7 +131,7 @@ function bitsReverse(bi: bigint): bigint {
         return;
     }
 
-    return BigInt.asUintN(128, ~bi);
+    return BigInt.asUintN(BITS_LENGTH, ~bi);
 }
 
 function bitsIsLOneRZero(bi: bigint): boolean {
@@ -140,9 +140,9 @@ function bitsIsLOneRZero(bi: bigint): boolean {
         return;
     }
 
-    for (let i = 0n; i < 128n; i++) {
+    for (let i = 0n; i < BigInt(BITS_LENGTH); i++) {
         if ((bi & (1n << i)) !== 0n) {
-            for (; i < 128n; i++) {
+            for (; i < BigInt(BITS_LENGTH); i++) {
                 if ((bi & (1n << i)) === 0n) {
                     return false;
                 }
@@ -159,12 +159,12 @@ function prefixNum2Bits(prefixLen: number): bigint {
         return;
     }
 
-    if (prefixLen < 0 || 128 < prefixLen) {
+    if (prefixLen < 0 || BITS_LENGTH < prefixLen) {
         console.error("invalid value : " + prefixLen);
         return;
     }
-    const input = 128n - BigInt(prefixLen);
-    return BigInt.asUintN(128, (BITS >> input) << input);
+    const input = BigInt(BITS_LENGTH) - BigInt(prefixLen);
+    return BigInt.asUintN(BITS_LENGTH, (BITS >> input) << input);
 }
 
 function prefixStr2Bits(prefixLenStr: string): bigint {

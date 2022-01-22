@@ -12,7 +12,7 @@ class Prefix {
     constructor(ipStr: string, mode: eParseMode = eParseMode.auto) {
         const data = parseIP(ipStr, mode);
         if (data?.address != undefined && data?.mask != undefined) {
-            this._address = BigInt.asUintN(32, data.address & data.mask);
+            this._address = BigInt.asUintN(util.BITS_LENGTH, data.address & data.mask);
             this._mask = data.mask;
         } else {
             this._address = undefined;
@@ -23,7 +23,7 @@ class Prefix {
     public static createPrefixFromBigints(data: { address: bigint, mask: bigint }): Prefix {
         const prefix = new Prefix("", eParseMode.empty);
         if (data?.address != undefined && data?.mask != undefined && util.bitsIsLOneRZero(data.mask)) {
-            prefix._address = BigInt.asUintN(32, data.address & data.mask);
+            prefix._address = BigInt.asUintN(util.BITS_LENGTH, data.address & data.mask);
             prefix._mask = data.mask;
         }
         return prefix;
@@ -49,7 +49,7 @@ class Prefix {
             return false;
         }
 
-        return this._address === BigInt.asUintN(32, p._address & this._mask);
+        return this._address === BigInt.asUintN(util.BITS_LENGTH, p._address & this._mask);
     }
 
     public getNetworkAddress(): bigint {
@@ -66,7 +66,7 @@ class Prefix {
     public getBroadcastAddress(): bigint {
         if (!this.isValid()) { return; }
 
-        return BigInt.asUintN(32, (this._address & this._mask) + BigInt.asUintN(32, ~this._mask));
+        return BigInt.asUintN(util.BITS_LENGTH, (this._address & this._mask) + BigInt.asUintN(util.BITS_LENGTH, ~this._mask));
     }
     public getBroadcastAddressStr(): string {
         if (!this.isValid()) { return; }
@@ -101,11 +101,11 @@ class Prefix {
 
         let tmpMask = this._mask;
         let bit = 0;
-        for (bit = 0; bit < 32; bit++) {
+        for (bit = 0; bit < util.BITS_LENGTH; bit++) {
             if (tmpMask === 0n) {
                 break;
             }
-            tmpMask = BigInt.asUintN(32, tmpMask << 1n);
+            tmpMask = BigInt.asUintN(util.BITS_LENGTH, tmpMask << 1n);
         }
         return bit;
     }
@@ -118,7 +118,7 @@ class Prefix {
     public getAddressNum(): number {
         if (!this.isValid()) { return; }
 
-        return Number(BigInt.asUintN(32, ~this._mask)) + 1;
+        return Number(BigInt.asUintN(util.BITS_LENGTH, ~this._mask)) + 1;
     }
 
     public getHosts(range: { seek?: bigint, maxNum?: bigint } = {}): IP[] {
@@ -132,7 +132,7 @@ class Prefix {
         const firstAddr = this.getNetworkAddress() + 1n;
         const mask = this.getMask();
         for (let i = seek, len = BigInt(this.getAddressNum()) - 2n; i < len && i < (seek + maxNum); i++) {
-            ips.push(IP.createIPFromBigints({ address: BigInt.asUintN(32, firstAddr + i), mask: mask }));
+            ips.push(IP.createIPFromBigints({ address: BigInt.asUintN(util.BITS_LENGTH, firstAddr + i), mask: mask }));
         }
 
         return ips;
