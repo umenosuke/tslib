@@ -6,8 +6,17 @@ export { test };
 async function test(): Promise<string[]> {
     const errors: string[] = [];
 
-    errors.push(...(await utilTest()));
-    errors.push(...(await parserTest()));
+    try {
+        errors.push(...(await utilTest()));
+    } catch (e) {
+        errors.push("utilTest => " + e);
+    }
+
+    try {
+        errors.push(...(await parserTest()));
+    } catch (e) {
+        errors.push("parserTest => " + e);
+    }
 
     return errors;
 }

@@ -5,7 +5,11 @@ export { test };
 async function test(): Promise<string[]> {
     const errors: string[] = [];
 
-    errors.push(...(await utilTest()));
+    try {
+        errors.push(...(await utilTest()));
+    } catch (e) {
+        errors.push("utilTest => " + e);
+    }
 
     return errors;
 }
