@@ -5,6 +5,11 @@ export { BITS, normalizeHextetStr, hextetStr2Bits, bits2HextetStr, bitsReverse, 
 const BITS: bigint = 340282366920938463463374607431768211455n;
 
 function normalizeHextetStr(hextetStr: string): string {
+    if (hextetStr == undefined) {
+        console.error("invalid value : " + hextetStr);
+        return;
+    }
+
     const regExpHextet = /^[0-9a-f]{1,4}$/
 
     const inHextetList = hextetStr.trim().toLowerCase().split("::");
@@ -85,6 +90,11 @@ function normalizeHextetStr(hextetStr: string): string {
 }
 
 function hextetStr2Bits(hextetStr: string): bigint {
+    if (hextetStr == undefined) {
+        console.error("invalid value : " + hextetStr);
+        return;
+    }
+
     const normalizedHextetStr = normalizeHextetStr(hextetStr);
     if (normalizedHextetStr == undefined) {
         console.error("invalid value : " + hextetStr);
@@ -99,6 +109,11 @@ function hextetStr2Bits(hextetStr: string): bigint {
 }
 
 function bits2HextetStr(bi: bigint): string {
+    if (bi == undefined) {
+        console.error("invalid value : " + bi);
+        return;
+    }
+
     return BigInt.asUintN(16, bi >> 112n).toString(16)
         + ":" + BigInt.asUintN(16, bi >> 96n).toString(16)
         + ":" + BigInt.asUintN(16, bi >> 80n).toString(16)
@@ -110,10 +125,20 @@ function bits2HextetStr(bi: bigint): string {
 }
 
 function bitsReverse(bi: bigint): bigint {
+    if (bi == undefined) {
+        console.error("invalid value : " + bi);
+        return;
+    }
+
     return BigInt.asUintN(128, ~bi);
 }
 
 function bitsIsLOneRZero(bi: bigint): boolean {
+    if (bi == undefined) {
+        console.error("invalid value : " + bi);
+        return;
+    }
+
     for (let i = 0n; i < 128n; i++) {
         if ((bi & (1n << i)) !== 0n) {
             for (; i < 128n; i++) {
@@ -128,6 +153,11 @@ function bitsIsLOneRZero(bi: bigint): boolean {
 }
 
 function prefixNum2Bits(prefixLen: number): bigint {
+    if (prefixLen == undefined) {
+        console.error("invalid value : " + prefixLen);
+        return;
+    }
+
     if (prefixLen < 0 || 128 < prefixLen) {
         console.error("invalid value : " + prefixLen);
         return;
@@ -137,6 +167,11 @@ function prefixNum2Bits(prefixLen: number): bigint {
 }
 
 function prefixStr2Bits(prefixLenStr: string): bigint {
+    if (prefixLenStr == undefined) {
+        console.error("invalid value : " + prefixLenStr);
+        return;
+    }
+
     const regExp = /^[0-9]{1,3}$/
     prefixLenStr = prefixLenStr.trim();
 
