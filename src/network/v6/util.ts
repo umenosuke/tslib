@@ -1,8 +1,9 @@
 import { octetStr2Bits } from "../v4/util.js";
 
-export { BITS, normalizeHextetStr, hextetStr2Bits, bits2HextetStr, bitsReverse, bitsIsLOneRZero, prefixNum2Bits, prefixStr2Bits };
+export { BITS, BITS_LENGTH, normalizeHextetStr, hextetStr2Bits, bits2HextetStr, bitsReverse, bitsIsLOneRZero, prefixNum2Bits, prefixStr2Bits };
 
 const BITS: bigint = 340282366920938463463374607431768211455n;
+const BITS_LENGTH = 128;
 
 function normalizeHextetStr(hextetStr: string): string {
     if (hextetStr == undefined) {
