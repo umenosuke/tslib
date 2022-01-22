@@ -37,7 +37,7 @@ function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigi
     }
 
     if (mode === eParseMode.auto || mode === eParseMode.prefix) {
-        const regExpAddressWithPrefix = /^[^ \/]+\/[^ \/]+$/
+        const regExpAddressWithPrefix = /^[^ \/]+\/[0-9]{1,3}$/
         if (ipStr.match(regExpAddressWithPrefix)) {
             const input = ipStr.split("/");
             return { address: util.hextetStr2Bits(input[0]), mask: util.prefixStr2Bits(input[1]) };
