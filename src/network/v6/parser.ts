@@ -13,6 +13,17 @@ function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigi
         return { address: undefined, mask: undefined };
     }
 
+    const res = subParseIP(ipStr, mode);
+
+    if (res.address == undefined || res.mask == undefined) {
+        console.error("invalid value [mode=" + mode + "] : " + ipStr);
+        return { address: undefined, mask: undefined };
+    }
+
+    return res;
+}
+
+function subParseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigint } {
     ipStr = ipStr.trim();
 
     if (mode === eParseMode.auto || mode === eParseMode.host) {
