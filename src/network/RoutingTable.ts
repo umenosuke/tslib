@@ -88,6 +88,20 @@ class RoutingTable<T extends RouteMeta>{
         return arr;
     }
 
+    public toNestArray(): tNestRoute<T> {
+        const arr: tNestRoute<T> = {
+            route: this.route,
+            redundantRotue: [].concat(this.redundantRotue),
+            subRoute: []
+        };
+
+        for (const sub of this.subTree) {
+            arr.subRoute.push(sub.toNestArray());
+        }
+
+        return arr;
+    }
+
     public search(prefix: Prefix): Route<T>[] {
         if (this.route.getPrefix().include(prefix)) {
             let result = [this.route].concat(this.redundantRotue);
@@ -203,3 +217,9 @@ class RoutingTable<T extends RouteMeta>{
         console.groupEnd();
     }
 }
+
+type tNestRoute<T extends RouteMeta> = {
+    route: Route<T>,
+    redundantRotue: Route<T>[],
+    subRoute: tNestRoute<T>[]
+};
