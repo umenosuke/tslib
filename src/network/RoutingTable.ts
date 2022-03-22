@@ -3,7 +3,7 @@ import { Prefix } from "./Prefix.js";
 import { RouteMeta } from "./RouteMeta.js";
 import { eParseMode } from "./enum.js";
 
-export { RoutingTable, createRoot };
+export { RoutingTable, createRoot, tNestRoute };
 
 function createRoot<T extends RouteMeta>(meta: T): RoutingTable<T> {
     return new RoutingTable<T>(new Route<T>(new Prefix("0.0.0.0/0", eParseMode.prefix), meta));
