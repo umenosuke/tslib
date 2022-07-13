@@ -138,6 +138,36 @@ class Prefix {
         return ips;
     }
 
+    public split(prefixLength: number): Prefix[] {
+        if (prefixLength < this.getPrefixLen()) {
+            console.error("invalid value : " + prefixLength);
+            return;
+        }
+        if (prefixLength === this.getPrefixLen()) {
+            return [Prefix.createPrefixFromBigints({ address: this.getNetworkAddress(), mask: this.getMask() })];
+        }
+
+        const netmask = util.prefixNum2Bits(prefixLength);
+        if (netmask == undefined) {
+            console.error("invalid value : " + prefixLength);
+            return;
+        }
+
+        const shift = BigInt(util.BITS_LENGTH - prefixLength);
+        const max = (netmask & util.bitsReverse(this.getMask()));
+
+        const subPrefix: Prefix[] = [];
+
+        for (let sub = 0n; (sub << shift) <= max; sub++) {
+            subPrefix.push(Prefix.createPrefixFromBigints({
+                address: this.getNetworkAddress() + (sub << shift),
+                mask: netmask
+            }));
+        }
+
+        return subPrefix;
+    }
+
     public toString(mode: eStringifyMode = eStringifyMode.prefix): string {
         if (!this.isValid()) { return; }
 
