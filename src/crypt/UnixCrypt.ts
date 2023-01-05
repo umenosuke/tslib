@@ -50,16 +50,7 @@ const HASH_TYPES: { [key in tHashTypeList]: tHashType } = {
 
 class UnixCryptConfig {
     private _hashType: tHashType;
-    public setHashType(name: tHashTypeList) {
-        if (name == undefined) {
-            console.error("input error : ", name);
-            return;
-        }
-        if (HASH_TYPES[name] == undefined) {
-            console.error("invalid name : ", name);
-            return;
-        }
-
+    public setHashTypeFromName(name: tHashTypeList) {
         this._hashType = HASH_TYPES[name];
     }
     public get hashType(): tHashType {
@@ -68,21 +59,7 @@ class UnixCryptConfig {
 
     private _salt: string;
     public set salt(salt: string) {
-        if (salt == undefined) {
-            console.error("input error : ", salt);
-            return;
-        }
-
-        if (salt.match(SALT_NOT_ALLOWED_CHAR)) {
-            console.error("input error, not allowed char : ", salt);
-            return;
-        }
-
-        if (salt.length > 16) {
-            console.warn("truncated becouse too long : ", salt);
-            salt = salt.slice(0, 16);
-        }
-
+        UnixCryptConfig.assertSalt(salt);
         this._salt = salt;
     }
     public get salt(): string {
@@ -92,54 +69,34 @@ class UnixCryptConfig {
 
     private _rounds: number;
     public set rounds(rounds: number) {
-        if (rounds == undefined) {
-            console.error("input error : ", rounds);
-            return;
-        }
-
-        if (rounds > ROUNDS_MAX) {
-            console.warn("clamp within range : ", rounds);
-            rounds = ROUNDS_MAX;
-        } else if (rounds < ROUNDS_MIN) {
-            console.warn("clamp within range : ", rounds);
-            rounds = ROUNDS_MIN;
-        }
-
+        UnixCryptConfig.assertRounds(rounds);
         this._rounds = rounds;
     }
     public get rounds(): number {
         return this._rounds;
     }
 
-    public constructor(param: {
-        typeName?: tHashTypeList; salt?: string; rounds?: number
-    } = {}) {
-        this._hashType = undefined;
-        if (param.typeName != undefined) {
-            this.setHashType(param.typeName);
-        }
-        if (this._hashType == undefined) {
-            this.setHashType(HASH_TYPE_DEFAULT);
-        }
+    public constructor(param: { typeName: tHashTypeList, salt: string, rounds: number }) {
+        this._hashType = HASH_TYPES[param.typeName];
 
-        this._salt = undefined;
-        if (param.salt != undefined) {
-            this.salt = param.salt;
-        }
-        if (this.salt == undefined) {
-            this.setSaltRandom();
-        }
+        UnixCryptConfig.assertSalt(param.salt);
+        this._salt = param.salt;
 
-        this._rounds = undefined;
-        if (param.rounds != undefined) {
-            this.rounds = param.rounds;
-        }
-        if (this._rounds == undefined) {
-            this.rounds = ROUNDS_DEFAULT;
-        }
+        UnixCryptConfig.assertRounds(param.rounds);
+        this._rounds = param.rounds;
     }
 
-    public setSaltRandom(): void {
+    public static from(param: { typeName?: tHashTypeList, salt?: string, rounds?: number }): UnixCryptConfig {
+        return new UnixCryptConfig(
+            {
+                typeName: param.typeName ?? HASH_TYPE_DEFAULT,
+                salt: param.salt ?? UnixCryptConfig.getRandomSalt(),
+                rounds: param.rounds ?? ROUNDS_DEFAULT
+            }
+        );
+    }
+
+    public static getRandomSalt(): string {
         let randSalt = "";
 
         const rand = crypto.getRandomValues(new Uint8Array(16));
@@ -147,7 +104,22 @@ class UnixCryptConfig {
             randSalt += DICTIONARY.charAt(num & 0b00111111);
         }
 
-        this.salt = randSalt;
+        return randSalt;
+    }
+
+    public static assertSalt(salt: string): void {
+        if (salt.match(SALT_NOT_ALLOWED_CHAR)) {
+            throw new Error("input error, not allowed char : " + salt);
+        }
+        if (salt.length > 16) {
+            throw new Error("input error, too long : " + salt);
+        }
+    }
+
+    public static assertRounds(rounds: number): void {
+        if (rounds < ROUNDS_MIN || ROUNDS_MAX < rounds) {
+            throw new Error("out of range " + ROUNDS_MIN + " < rounds <" + ROUNDS_MAX + ": " + rounds);
+        }
     }
 }
 
@@ -203,6 +175,7 @@ class UnixCrypt {
         const byteListDS: Uint8Array[] = [];
 
         // step 18
+        if (digestA[0] == undefined) { throw new Error("よくわからんエラー"); }
         for (let i = 0, range = 16 + digestA[0]; i < range; i++) {
             byteListDS.push(saltByte);
         }
@@ -286,7 +259,7 @@ class UnixCrypt {
         return byteListS;
     }
 
-    public static async generateMCF(password: string, config = new UnixCryptConfig): Promise<string> {
+    public static async generateMCF(password: string, config = UnixCryptConfig.from({})): Promise<string> {
         // step 1 - 21
         const digest = await UnixCrypt.getDigest(password, config)
 
@@ -315,7 +288,12 @@ class UnixCrypt {
                 for (let index of config.hashType.encodeMap) {
                     const MASK = 63n;
 
-                    const byte = (BigInt(raw[index[2]]) << 16n) + (BigInt(raw[index[1]]) << 8n) + (BigInt(raw[index[0]]));
+                    if (index[0] == undefined || index[1] == undefined || index[2] == undefined) { throw new Error("よくわからんエラー"); }
+                    const raw0 = raw[index[0]];
+                    const raw1 = raw[index[1]];
+                    const raw2 = raw[index[2]];
+                    if (raw0 == undefined || raw1 == undefined || raw2 == undefined) { throw new Error("よくわからんエラー"); }
+                    const byte = (BigInt(raw2) << 16n) + (BigInt(raw1) << 8n) + (BigInt(raw0));
 
                     resStr += DICTIONARY.charAt(Number(byte & MASK))
                         + DICTIONARY.charAt(Number(byte >> 6n & MASK))

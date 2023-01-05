@@ -6,31 +6,20 @@ const BITS: bigint = 340282366920938463463374607431768211455n;
 const BITS_LENGTH = 128;
 
 function normalizeHextetStr(hextetStr: string): string {
-    if (hextetStr == undefined) {
-        console.error("invalid value : " + hextetStr);
-        return;
-    }
-
     const regExpHextet = /^[0-9a-f]{1,4}$/
 
     const inHextetList = hextetStr.trim().toLowerCase().split("::");
     if (inHextetList.length > 2) {
-        console.error("invalid value : " + hextetStr);
-        return;
+        throw new Error("invalid value : " + hextetStr);
     }
 
     const tempHextetStrListLeft: string[] = [];
-    if (inHextetList[0] !== "") {
+    if (inHextetList[0] != undefined && inHextetList[0] !== "") {
         for (const hextet of inHextetList[0].split(":")) {
             if (hextet === "") {
-                console.error("invalid value : " + hextetStr);
-                return;
+                throw new Error("invalid value : " + hextetStr);
             } else if (!hextet.match(regExpHextet)) {
                 const bits = octetStr2Bits(hextet);
-                if (bits == undefined) {
-                    console.error("invalid value : " + hextetStr);
-                    return;
-                }
 
                 tempHextetStrListLeft.push(BigInt.asUintN(16, bits >> 16n).toString(16));
                 tempHextetStrListLeft.push(BigInt.asUintN(16, bits).toString(16));
@@ -40,22 +29,16 @@ function normalizeHextetStr(hextetStr: string): string {
         }
     }
     if (inHextetList.length === 1 && tempHextetStrListLeft.length !== 8) {
-        console.error("invalid value : " + hextetStr);
-        return;
+        throw new Error("invalid value : " + hextetStr);
     }
 
     const tempHextetStrListRight: string[] = [];
     if (inHextetList[1] != undefined && inHextetList[1] !== "") {
         for (const hextet of inHextetList[1].split(":")) {
             if (hextet === "") {
-                console.error("invalid value : " + hextetStr);
-                return;
+                throw new Error("invalid value : " + hextetStr);
             } else if (!hextet.match(regExpHextet)) {
                 const bits = octetStr2Bits(hextet);
-                if (bits == undefined) {
-                    console.error("invalid value : " + hextetStr);
-                    return;
-                }
 
                 tempHextetStrListRight.push(BigInt.asUintN(16, bits >> 16n).toString(16));
                 tempHextetStrListRight.push(BigInt.asUintN(16, bits).toString(16));
@@ -66,11 +49,9 @@ function normalizeHextetStr(hextetStr: string): string {
     }
 
     if (inHextetList.length === 1 && (tempHextetStrListLeft.length + tempHextetStrListRight.length) > 8) {
-        console.error("invalid value : " + hextetStr);
-        return;
+        throw new Error("invalid value : " + hextetStr);
     } else if (inHextetList.length === 2 && (tempHextetStrListLeft.length + tempHextetStrListRight.length) > 7) {
-        console.error("invalid value : " + hextetStr);
-        return;
+        throw new Error("invalid value : " + hextetStr);
     }
 
 
@@ -83,24 +64,14 @@ function normalizeHextetStr(hextetStr: string): string {
     outHextetStrList.push(...tempHextetStrListRight);
 
     if (outHextetStrList.length !== 8) {
-        console.error("invalid value : " + hextetStr);
-        return;
+        throw new Error("invalid value : " + hextetStr);
     }
 
     return outHextetStrList.join(":");
 }
 
 function hextetStr2Bits(hextetStr: string): bigint {
-    if (hextetStr == undefined) {
-        console.error("invalid value : " + hextetStr);
-        return;
-    }
-
     const normalizedHextetStr = normalizeHextetStr(hextetStr);
-    if (normalizedHextetStr == undefined) {
-        console.error("invalid value : " + hextetStr);
-        return;
-    }
 
     let bits: bigint = 0n;
     for (const hextet of normalizedHextetStr.split(":")) {
@@ -110,11 +81,6 @@ function hextetStr2Bits(hextetStr: string): bigint {
 }
 
 function bits2HextetStr(bi: bigint): string {
-    if (bi == undefined) {
-        console.error("invalid value : " + bi);
-        return;
-    }
-
     return BigInt.asUintN(16, bi >> 112n).toString(16)
         + ":" + BigInt.asUintN(16, bi >> 96n).toString(16)
         + ":" + BigInt.asUintN(16, bi >> 80n).toString(16)
@@ -126,20 +92,10 @@ function bits2HextetStr(bi: bigint): string {
 }
 
 function bitsReverse(bi: bigint): bigint {
-    if (bi == undefined) {
-        console.error("invalid value : " + bi);
-        return;
-    }
-
     return BigInt.asUintN(BITS_LENGTH, ~bi);
 }
 
 function bitsIsLOneRZero(bi: bigint): boolean {
-    if (bi == undefined) {
-        console.error("invalid value : " + bi);
-        return;
-    }
-
     for (let i = 0n; i < BigInt(BITS_LENGTH); i++) {
         if ((bi & (1n << i)) !== 0n) {
             for (; i < BigInt(BITS_LENGTH); i++) {
@@ -154,31 +110,19 @@ function bitsIsLOneRZero(bi: bigint): boolean {
 }
 
 function prefixNum2Bits(prefixLen: number): bigint {
-    if (prefixLen == undefined) {
-        console.error("invalid value : " + prefixLen);
-        return;
-    }
-
     if (prefixLen < 0 || BITS_LENGTH < prefixLen) {
-        console.error("invalid value : " + prefixLen);
-        return;
+        throw new Error("invalid value : " + prefixLen);
     }
     const input = BigInt(BITS_LENGTH) - BigInt(prefixLen);
     return BigInt.asUintN(BITS_LENGTH, (BITS >> input) << input);
 }
 
 function prefixStr2Bits(prefixLenStr: string): bigint {
-    if (prefixLenStr == undefined) {
-        console.error("invalid value : " + prefixLenStr);
-        return;
-    }
-
     const regExp = /^[0-9]{1,3}$/
     prefixLenStr = prefixLenStr.trim();
 
     if (!prefixLenStr.match(regExp)) {
-        console.error("invalid value : " + prefixLenStr);
-        return;
+        throw new Error("invalid value : " + prefixLenStr);
     }
 
     return prefixNum2Bits(Number.parseInt(prefixLenStr));

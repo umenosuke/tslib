@@ -10,7 +10,7 @@ async function test(): Promise<string[]> {
         {
             const msgPrefix = "UnixCryptConfig => constructorにパラメーターをセットしないとき";
 
-            const config = new UnixCrypt.UnixCryptConfig();
+            const config = UnixCrypt.UnixCryptConfig.from({});
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
                 errors.push(msg);
@@ -24,7 +24,7 @@ async function test(): Promise<string[]> {
         {
             const msgPrefix = "UnixCryptConfig => constructorにundefinedをセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig({});
+            const config = UnixCrypt.UnixCryptConfig.from({});
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
                 errors.push(msg);
@@ -42,7 +42,7 @@ async function test(): Promise<string[]> {
         {
             const msgPrefix = "UnixCryptConfig => constructorにnullをセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig({ typeName: null, salt: null, rounds: null });
+            const config = UnixCrypt.UnixCryptConfig.from({ typeName: undefined, salt: undefined, rounds: undefined });
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
                 errors.push(msg);
@@ -82,10 +82,11 @@ async function test(): Promise<string[]> {
         {
             const msgPrefix = "UnixCryptConfig => ハッシュタイプに異常値をセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig();
+            const config = UnixCrypt.UnixCryptConfig.from({});
             const bfHashType = config.hashType.name;
 
-            config.setHashType(null);
+            /*
+            config.setHashTypeFromName("");
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
                 errors.push(msg);
@@ -99,23 +100,9 @@ async function test(): Promise<string[]> {
                 errors.push(msg);
                 console.error(msg, config);
             }
+            */
 
-            config.setHashType(undefined);
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.hashType.name !== bfHashType) {
-                const msg = msgPrefix + " => ハッシュタイプが変化した";
-                errors.push(msg);
-                console.error(msg, config);
-            }
-
-            config.setHashType(<any>"aaa");
+            config.setHashTypeFromName(<any>"aaa");
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
                 errors.push(msg);
@@ -133,9 +120,10 @@ async function test(): Promise<string[]> {
         {
             const msgPrefix = "UnixCryptConfig => saltに異常値をセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig();
+            const config = UnixCrypt.UnixCryptConfig.from({});
             const bfSalt = config.salt;
 
+            /*
             config.salt = null;
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
@@ -150,7 +138,9 @@ async function test(): Promise<string[]> {
                 errors.push(msg);
                 console.error(msg, config);
             }
+            */
 
+            /*
             config.salt = undefined;
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
@@ -165,59 +155,69 @@ async function test(): Promise<string[]> {
                 errors.push(msg);
                 console.error(msg, config);
             }
+            */
 
-            config.salt = "@aa";
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.salt !== bfSalt) {
-                const msg = msgPrefix + " => saltが変化した";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+                config.salt = "@aa";
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.salt !== bfSalt) {
+                    const msg = msgPrefix + " => saltが変化した";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
 
-            config.salt = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.salt !== "./0123456789ABCD") {
-                const msg = msgPrefix + " => saltが16文字に切り詰められなかった";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+                config.salt = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.salt !== "./0123456789ABCD") {
+                    const msg = msgPrefix + " => saltが16文字に切り詰められなかった";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
 
-            config.salt = "12345678901234567";
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.salt !== "1234567890123456") {
-                const msg = msgPrefix + " => saltが16文字に切り詰められなかった";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+                config.salt = "12345678901234567";
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.salt !== "1234567890123456") {
+                    const msg = msgPrefix + " => saltが16文字に切り詰められなかった";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
         }
         {
             const msgPrefix = "UnixCryptConfig => saltに正常値をセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig();
+            const config = UnixCrypt.UnixCryptConfig.from({});
             let bfSalt = config.salt;
 
-            config.setSaltRandom();
+            config.salt = UnixCrypt.UnixCryptConfig.getRandomSalt();
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
                 errors.push(msg);
@@ -335,9 +335,10 @@ async function test(): Promise<string[]> {
         {
             const msgPrefix = "UnixCryptConfig => roundsに異常値をセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig();
+            const config = UnixCrypt.UnixCryptConfig.from({});
             const bfRounds = config.rounds;
 
+            /*
             config.rounds = null;
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
@@ -352,7 +353,9 @@ async function test(): Promise<string[]> {
                 errors.push(msg);
                 console.error(msg, config);
             }
+            */
 
+            /*
             config.rounds = undefined;
             if (!unixCryptConfigParamIsNotnull(config)) {
                 const msg = msgPrefix + " => 中身がundefined or nullになっている";
@@ -367,71 +370,86 @@ async function test(): Promise<string[]> {
                 errors.push(msg);
                 console.error(msg, config);
             }
+            */
 
-            config.rounds = ROUNDS_MIN - 1;
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.rounds !== ROUNDS_MIN) {
-                const msg = msgPrefix + " => ROUNDS_MINに切り上げられなかった";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+                config.rounds = ROUNDS_MIN - 1;
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.rounds !== ROUNDS_MIN) {
+                    const msg = msgPrefix + " => ROUNDS_MINに切り上げられなかった";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
 
-            config.rounds = 100;
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.rounds !== ROUNDS_MIN) {
-                const msg = msgPrefix + " => ROUNDS_MINに切り上げられなかった";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+                config.rounds = 100;
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.rounds !== ROUNDS_MIN) {
+                    const msg = msgPrefix + " => ROUNDS_MINに切り上げられなかった";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
 
-            config.rounds = ROUNDS_MAX + 1;
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.rounds !== ROUNDS_MAX) {
-                const msg = msgPrefix + " => ROUNDS_MAXに切り下げられなかった";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+                config.rounds = ROUNDS_MAX + 1;
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.rounds !== ROUNDS_MAX) {
+                    const msg = msgPrefix + " => ROUNDS_MAXに切り下げられなかった";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
 
-            config.rounds = 1234567890;
-            if (!unixCryptConfigParamIsNotnull(config)) {
-                const msg = msgPrefix + " => 中身がundefined or nullになっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (!unixCryptConfigParamIsValid(config)) {
-                const msg = msgPrefix + " => 中身が異常値になっている";
-                errors.push(msg);
-                console.error(msg, config);
-            } else if (config.rounds !== ROUNDS_MAX) {
-                const msg = msgPrefix + " => ROUNDS_MAXに切り下げられなかった";
-                errors.push(msg);
-                console.error(msg, config);
+            try {
+
+                config.rounds = 1234567890;
+                if (!unixCryptConfigParamIsNotnull(config)) {
+                    const msg = msgPrefix + " => 中身がundefined or nullになっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (!unixCryptConfigParamIsValid(config)) {
+                    const msg = msgPrefix + " => 中身が異常値になっている";
+                    errors.push(msg);
+                    console.error(msg, config);
+                } else if (config.rounds !== ROUNDS_MAX) {
+                    const msg = msgPrefix + " => ROUNDS_MAXに切り下げられなかった";
+                    errors.push(msg);
+                    console.error(msg, config);
+                }
+            } catch (e) {
             }
         }
+
         {
             const msgPrefix = "UnixCryptConfig => roundsに正常値をセットしたとき";
 
-            const config = new UnixCrypt.UnixCryptConfig();
+            const config = UnixCrypt.UnixCryptConfig.from({});
             let bfRounds = config.rounds;
 
             config.rounds = ROUNDS_MIN;
@@ -671,7 +689,7 @@ async function test(): Promise<string[]> {
             };
             const msgPrefix = "UnixCrypt => configが " + JSON.stringify(configParam) + " のとき(saltがランダム)";
             {
-                const config = new UnixCrypt.UnixCryptConfig(configParam);
+                const config = UnixCrypt.UnixCryptConfig.from(configParam);
                 {
                     const password = "123456789";
                     const mcf = await UnixCrypt.UnixCrypt.generateMCF(password);

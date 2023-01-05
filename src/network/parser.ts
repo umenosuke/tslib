@@ -1,13 +1,13 @@
 import { eParseMode } from "./enum.js";
 import * as util from "./v4/util.js";
 
-export { parseIP };
+export { parseIP, getEmptyIP };
+
+function getEmptyIP(): { address: undefined, mask: undefined } {
+    return { address: undefined, mask: undefined };
+}
 
 function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigint } {
-    if (mode === eParseMode.empty) {
-        return { address: undefined, mask: undefined };
-    }
-
     ipStr = ipStr.trim();
 
     if (mode === eParseMode.auto || mode === eParseMode.host) {
@@ -22,11 +22,11 @@ function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigi
         if (ipStr.match(regExpAddressWithMask)) {
             const input = ipStr.split(/ +/);
 
-            const tempMask = util.octetStr2Bits(input[1]);
+            const tempMask = util.octetStr2Bits(input[1]!);
             if ((mode === eParseMode.auto || mode === eParseMode.subnetMask) && util.bitsIsLOneRZero(tempMask)) {
-                return { address: util.octetStr2Bits(input[0]), mask: tempMask };
+                return { address: util.octetStr2Bits(input[0]!), mask: tempMask };
             } else if ((mode === eParseMode.auto || mode === eParseMode.wildcardBit) && util.bitsIsLOneRZero(util.bitsReverse(tempMask))) {
-                return { address: util.octetStr2Bits(input[0]), mask: util.bitsReverse(tempMask) };
+                return { address: util.octetStr2Bits(input[0]!), mask: util.bitsReverse(tempMask) };
             }
         }
     }
@@ -35,10 +35,9 @@ function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigi
         const regExpAddressWithPrefix = /^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-2]?[0-9]|3[0-2])$/
         if (ipStr.match(regExpAddressWithPrefix)) {
             const input = ipStr.split("/");
-            return { address: util.octetStr2Bits(input[0]), mask: util.prefixStr2Bits(input[1]) };
+            return { address: util.octetStr2Bits(input[0]!), mask: util.prefixStr2Bits(input[1]!) };
         }
     }
 
-    console.error("invalid value [mode=" + mode + "] : " + ipStr);
-    return { address: undefined, mask: undefined };
+    throw new Error("invalid value [mode=" + mode + "] : " + ipStr);
 }

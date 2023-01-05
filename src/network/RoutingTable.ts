@@ -1,12 +1,12 @@
 import { Route } from "./Route.js";
 import { Prefix } from "./Prefix.js";
-import { RouteMeta } from "./RouteMeta.js";
+import type { RouteMeta } from "./RouteMeta.js";
 import { eParseMode } from "./enum.js";
 
 export { RoutingTable, createRoot, tNestRoute };
 
 function createRoot<T extends RouteMeta>(meta: T): RoutingTable<T> {
-    return new RoutingTable<T>(new Route<T>(new Prefix("0.0.0.0/0", eParseMode.prefix), meta));
+    return new RoutingTable<T>(new Route<T>(Prefix.fromString("0.0.0.0/0", eParseMode.prefix), meta));
 }
 
 class RoutingTable<T extends RouteMeta>{
@@ -26,18 +26,13 @@ class RoutingTable<T extends RouteMeta>{
         this._addRoute(route);
     }
     public _addRoute(route: Route<T>): boolean {
-        if (!route.isValid()) {
-            console.warn("route is not valid");
-            return true;
-        }
         if (this.route.getPrefix().include(route.getPrefix())) {
             if (this.route.equal(route)) {
                 console.warn("already exists", route);
                 return true;
             }
             if (this.route.sameNetwork(route.getPrefix())) {
-                for (let i = 0, len = this.redundantRotue.length; i < len; i++) {
-                    const r = this.redundantRotue[i];
+                for (const r of this.redundantRotue) {
                     if (r.equal(route)) {
                         console.warn("already exists", route);
                         return true;
@@ -47,24 +42,24 @@ class RoutingTable<T extends RouteMeta>{
                 return true;
             }
 
-            for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (this.subTree[i]._addRoute(route)) {
+            for (const sub of this.subTree) {
+                if (sub._addRoute(route)) {
                     return true;
                 }
             }
 
             const grafted: RoutingTable<T>[] = [];
             for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (route.getPrefix().include(this.subTree[i].route.getPrefix())) {
-                    grafted.push(this.subTree.splice(i, 1)[0]);
+                if (route.getPrefix().include(this.subTree[i]!.route.getPrefix())) {
+                    grafted.push(this.subTree.splice(i, 1)[0]!);
                     len--;
                     i--;
                 }
             }
 
             const newTree = new RoutingTable(route);
-            for (let i = 0, len = grafted.length; i < len; i++) {
-                newTree.subTree.push(grafted[i]);
+            for (const g of grafted) {
+                newTree.subTree.push(g);
             }
 
             this.subTree.push(newTree);
@@ -81,8 +76,8 @@ class RoutingTable<T extends RouteMeta>{
     public toArray(): Route<T>[] {
         let arr = [this.route].concat(this.redundantRotue);
 
-        for (let i = 0, len = this.subTree.length; i < len; i++) {
-            arr = arr.concat(this.subTree[i].toArray());
+        for (const sub of this.subTree) {
+            arr = arr.concat(sub.toArray());
         }
 
         return arr;
@@ -91,7 +86,7 @@ class RoutingTable<T extends RouteMeta>{
     public toNestArray(): tNestRoute<T> {
         const arr: tNestRoute<T> = {
             route: this.route,
-            redundantRotue: [].concat(this.redundantRotue),
+            redundantRotue: (<Route<T>[]>[]).concat(this.redundantRotue),
             subRoute: []
         };
 
@@ -106,9 +101,9 @@ class RoutingTable<T extends RouteMeta>{
         if (this.route.getPrefix().include(prefix)) {
             let result = [this.route].concat(this.redundantRotue);
 
-            for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (this.subTree[i].route.getPrefix().include(prefix)) {
-                    result = result.concat(this.subTree[i].search(prefix));
+            for (const sub of this.subTree) {
+                if (sub.route.getPrefix().include(prefix)) {
+                    result = result.concat(sub.search(prefix));
                 }
             }
 
@@ -120,9 +115,9 @@ class RoutingTable<T extends RouteMeta>{
 
     public searchLongest(prefix: Prefix): Route<T>[] {
         if (this.route.getPrefix().include(prefix)) {
-            for (let i = 0, len = this.subTree.length; i < len; i++) {
-                if (this.subTree[i].route.getPrefix().include(prefix)) {
-                    return this.subTree[i].searchLongest(prefix);
+            for (const sub of this.subTree) {
+                if (sub.route.getPrefix().include(prefix)) {
+                    return sub.searchLongest(prefix);
                 }
             }
 
@@ -136,16 +131,16 @@ class RoutingTable<T extends RouteMeta>{
         if (prefix.include(this.route.getPrefix())) {
             let result = [this.route].concat(this.redundantRotue);
 
-            for (let i = 0, len = this.subTree.length; i < len; i++) {
-                result = result.concat(this.subTree[i].searchLongerPrefixes(prefix));
+            for (const sub of this.subTree) {
+                result = result.concat(sub.searchLongerPrefixes(prefix));
             }
 
             return result;
         } else if (this.route.getPrefix().include(prefix)) {
             let result: Route<T>[] = [];
 
-            for (let i = 0, len = this.subTree.length; i < len; i++) {
-                result = result.concat(this.subTree[i].searchLongerPrefixes(prefix));
+            for (const sub of this.subTree) {
+                result = result.concat(sub.searchLongerPrefixes(prefix));
             }
 
             return result;
@@ -158,7 +153,7 @@ class RoutingTable<T extends RouteMeta>{
         if (this.route.sameNetwork(route.getPrefix())) {
             if (this.route.equal(route)) {
                 if (this.redundantRotue.length > 0) {
-                    this.route = this.redundantRotue.splice(0, 1)[0];
+                    this.route = this.redundantRotue.splice(0, 1)[0]!;
                     return [this];
                 }
 
@@ -166,7 +161,7 @@ class RoutingTable<T extends RouteMeta>{
             }
 
             for (let i = 0, len = this.redundantRotue.length; i < len; i++) {
-                if (this.redundantRotue[i].equal(route)) {
+                if (this.redundantRotue[i]!.equal(route)) {
                     this.redundantRotue.splice(i, 1);
                     break;
                 }
@@ -175,8 +170,8 @@ class RoutingTable<T extends RouteMeta>{
         }
 
         let tmpSubTree: RoutingTable<T>[] = [];
-        for (let i = 0, len = this.subTree.length; i < len; i++) {
-            tmpSubTree = tmpSubTree.concat(this.subTree[i].removeRoute(route));
+        for (const sub of this.subTree) {
+            tmpSubTree = tmpSubTree.concat(sub.removeRoute(route));
         }
         this.subTree = tmpSubTree;
 
@@ -184,8 +179,8 @@ class RoutingTable<T extends RouteMeta>{
     }
 
     public sort(): void {
-        for (let i = 0, len = this.subTree.length; i < len; i++) {
-            this.subTree[i].sort();
+        for (const sub of this.subTree) {
+            sub.sort();
         }
 
         this.subTree.sort((a, b) => {

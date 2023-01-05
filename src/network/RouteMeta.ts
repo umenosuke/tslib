@@ -1,4 +1,4 @@
-import { IP } from "./IP.js";
+import type { IP } from "./IP.js";
 
 export { RouteMeta, RouteMetaEmpty, RouteMetaWithNexthop };
 
@@ -9,7 +9,7 @@ interface RouteMeta {
 
 declare const nRouteMetaEmpty: unique symbol;
 class RouteMetaEmpty implements RouteMeta {
-    [nRouteMetaEmpty]: never;
+    [nRouteMetaEmpty]!: never;
 
     constructor() {
     }
@@ -25,7 +25,7 @@ class RouteMetaEmpty implements RouteMeta {
 
 declare const nRouteMetaWithNexthop: unique symbol;
 class RouteMetaWithNexthop implements RouteMeta {
-    [nRouteMetaWithNexthop]: never;
+    [nRouteMetaWithNexthop]!: never;
 
     private _nextHop: IP;
     get nextHop(): IP {
@@ -33,7 +33,7 @@ class RouteMetaWithNexthop implements RouteMeta {
     }
 
     constructor(nextHop: IP) {
-        this._nextHop = nextHop.getSubnet(32);
+        this._nextHop = nextHop.getSubnet(32)!;
     }
 
     public equal(compVal: RouteMetaWithNexthop): boolean {

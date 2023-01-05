@@ -1,13 +1,17 @@
 export { blob2URI, revokeURI };
 
 function blob2URI(data: Blob): Promise<string> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         if (!!window.URL) {
             resolve(URL.createObjectURL(data));
         } else {
             const reader = new FileReader();
             reader.addEventListener("load", () => {
-                resolve(reader.result.toString());
+                if (reader.result != null) {
+                    resolve(reader.result.toString());
+                } else {
+                    reject("data load fail");
+                }
             })
             reader.readAsDataURL(data);
         }

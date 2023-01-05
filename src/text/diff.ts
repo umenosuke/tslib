@@ -112,9 +112,9 @@ class Diff {
                 diffRes.push({
                     state: tDiffResultState.same,
                     oldLineNum: oldSeek,
-                    oldLine: oldLinesOrig[oldSeek],
+                    oldLine: oldLinesOrig[oldSeek]!,
                     newLineNum: newSeek,
-                    newLine: newLinesOrig[newSeek]
+                    newLine: newLinesOrig[newSeek]!
                 });
                 oldSeek++;
                 newSeek++;
@@ -141,16 +141,16 @@ class Diff {
                         tmpDiffStr.push({
                             state: tDiffResultState.same,
                             oldLineNum: oldSeek,
-                            oldLine: oldLinesOrig[oldSeek],
+                            oldLine: oldLinesOrig[oldSeek]!,
                             newLineNum: newSeek + tmpSeek,
-                            newLine: newLinesOrig[newSeek + tmpSeek]
+                            newLine: newLinesOrig[newSeek + tmpSeek]!
                         });
                         break;
                     } else {
                         tmpDiffStr.push({
                             state: tDiffResultState.add,
                             newLineNum: newSeek + tmpSeek,
-                            newLine: newLinesOrig[newSeek + tmpSeek]
+                            newLine: newLinesOrig[newSeek + tmpSeek]!
                         });
                         tmpSeek++;
                     }
@@ -160,7 +160,7 @@ class Diff {
                     diffRes.push({
                         state: tDiffResultState.del,
                         oldLineNum: oldSeek,
-                        oldLine: oldLinesOrig[oldSeek]
+                        oldLine: oldLinesOrig[oldSeek]!
                     });
                     oldSeek++;
                 } else {
@@ -184,7 +184,7 @@ class Diff {
                 diffRes.push({
                     state: tDiffResultState.add,
                     newLineNum: newSeek,
-                    newLine: newLinesOrig[newSeek]
+                    newLine: newLinesOrig[newSeek]!
                 });
             }
             newSeek++;
@@ -203,7 +203,7 @@ class Diff {
                 diffRes.push({
                     state: tDiffResultState.del,
                     oldLineNum: oldSeek,
-                    oldLine: oldLinesOrig[oldSeek]
+                    oldLine: oldLinesOrig[oldSeek]!
                 });
             }
             oldSeek++;

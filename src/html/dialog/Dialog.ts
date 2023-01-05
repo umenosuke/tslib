@@ -1,4 +1,4 @@
-import { exMouseEvent } from "../exEvents.js";
+import type { exMouseEvent } from "../exEvents.js";
 
 export { Dialog, eDialogMode, eDialogState };
 

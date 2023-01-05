@@ -11,8 +11,7 @@ enum eParseMode {
     host = "host",
     subnetMask = "subnetMask",
     wildcardBit = "wildcardBit",
-    prefix = "prefix",
-    empty = "empty"
+    prefix = "prefix"
 };
 
 enum eStringifyMode {

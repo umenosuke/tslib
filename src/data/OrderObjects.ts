@@ -26,15 +26,17 @@ class OrderObjects<T> implements Iterable<T> {
         this.validateFunc = validateFunc;
     }
 
-    public getValue(key: string): T {
+    public getValue(key: string): T | undefined {
         return this.values[key];
     }
 
-    public item(index: number): T {
-        return this.values[this.keys[index]];
+    public item(index: number): T | undefined {
+        const key = this.keys[index];
+        if (key == undefined) { return undefined; }
+        return this.values[key];
     }
 
-    public getKey(index: number): string {
+    public getKey(index: number): string | undefined {
         return this.keys[index];
     }
 
@@ -48,9 +50,12 @@ class OrderObjects<T> implements Iterable<T> {
     public getMatchedKeys(discriminantFunction = function (a: T): boolean { return true; }): string[] {
         const matchKeys: string[] = [];
 
-        for (let i = 0, len = this.keys.length; i < len; i++) {
-            if (discriminantFunction(this.item(i))) {
-                matchKeys.push(this.getKey(i));
+        for (const key of this.keys) {
+            const value = this.getValue(key);
+            if (value == undefined) { throw new Error("internal error"); }
+
+            if (discriminantFunction(value)) {
+                matchKeys.push(key);
             }
         }
 
@@ -104,31 +109,43 @@ class OrderObjects<T> implements Iterable<T> {
         this.values[key] = val;
     }
 
-    public pop(index: number): T {
+    public pop(index: number): T | undefined {
         if (index < 0 || index >= this.keys.length) {
-            return null;
+            return undefined;
         }
-        const val = this.values[this.keys[index]];
-        delete this.values[this.keys[index]];
+        const key = this.keys[index];
+        if (key == undefined) { return undefined; }
+
+        const val = this.values[key];
+        delete this.values[key];
 
         this.keys.splice(index, 1);
 
         return val;
     }
 
-    public delete(key: string): T {
+    public delete(key: string): T | undefined {
         return this.pop(this.keys.indexOf(key));
     }
 
     public sort(compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): void {
         arrayStableSort(this.keys, (keyA, keyB) => {
-            return compareIfMoveBehindFunc(this.getValue(keyA), this.getValue(keyB))
+            const valueA = this.getValue(keyA);
+            if (valueA == undefined) { throw new Error("internal error"); }
+
+            const valueB = this.getValue(keyB);
+            if (valueB == undefined) { throw new Error("internal error"); }
+
+            return compareIfMoveBehindFunc(valueA, valueB)
         });
     }
 
     public forEach(func: (val: T) => void): void {
         this.keys.forEach((key) => {
-            func(this.values[key]);
+            const value = this.getValue(key);
+            if (value == undefined) { throw new Error("internal error"); }
+
+            func(value);
         });
     }
 
@@ -140,9 +157,15 @@ class OrderObjects<T> implements Iterable<T> {
         return {
             next(): IteratorResult<T> {
                 if (pointer < keys.length) {
+                    const key = keys[pointer++];
+                    if (key == undefined) { throw new Error("internal error"); }
+
+                    const value = values[key];
+                    if (value == undefined) { throw new Error("internal error"); }
+
                     return {
                         done: false,
-                        value: values[keys[pointer++]]
+                        value: value
                     };
                 } else {
                     return {
@@ -160,7 +183,12 @@ class OrderObjects<T> implements Iterable<T> {
         if (!!data.keys) {
             for (let i = 0, len = data.keys.length; i < len; i++) {
                 const key = data.keys[i];
-                this.push(key, data.values[key]);
+                if (key == undefined) { throw new Error("internal error"); }
+
+                const value = data.values[key];
+                if (value == undefined) { throw new Error("internal error"); }
+
+                this.push(key, value);
             }
         }
     }

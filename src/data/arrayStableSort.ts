@@ -15,7 +15,7 @@ function shakerSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T)
 
         swapInx = topInx;
         for (let i = topInx; i < btmInx; i++) {
-            if (compareIfMoveBehindFunc(ary[i], ary[i + 1])) {
+            if (compareIfMoveBehindFunc(ary[i]!, ary[i + 1]!)) {
                 arraySwap(ary, i, i + 1);
                 swapInx = i;
             }
@@ -25,7 +25,7 @@ function shakerSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T)
 
         swapInx = btmInx;
         for (let i = btmInx; i > topInx; i--) {
-            if (compareIfMoveBehindFunc(ary[i - 1], ary[i])) {
+            if (compareIfMoveBehindFunc(ary[i - 1]!, ary[i]!)) {
                 arraySwap(ary, i - 1, i);
                 swapInx = i;
             }
@@ -57,12 +57,12 @@ function mergeSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T) 
         let workSeek = 0;
 
         while (upperSeek < midInx && lowerSeek < btmInx) {
-            if (!compareIfMoveBehindFunc(ary[upperSeek], ary[lowerSeek])) {
-                aryWork[workSeek] = ary[upperSeek];
+            if (!compareIfMoveBehindFunc(ary[upperSeek]!, ary[lowerSeek]!)) {
+                aryWork[workSeek] = ary[upperSeek]!;
                 workSeek++;
                 upperSeek++;
             } else {
-                aryWork[workSeek] = ary[lowerSeek];
+                aryWork[workSeek] = ary[lowerSeek]!;
                 workSeek++;
                 lowerSeek++;
             }
@@ -70,20 +70,20 @@ function mergeSort<T>(ary: T[], compareIfMoveBehindFunc = function (a: T, b: T) 
 
         if (lowerSeek === btmInx) {
             while (upperSeek < midInx) {
-                aryWork[workSeek] = ary[upperSeek];
+                aryWork[workSeek] = ary[upperSeek]!;
                 workSeek++;
                 upperSeek++;
             }
         } else {
             while (lowerSeek < btmInx) {
-                aryWork[workSeek] = ary[lowerSeek];
+                aryWork[workSeek] = ary[lowerSeek]!;
                 workSeek++;
                 lowerSeek++;
             }
         }
 
         for (let i = 0; i < workSeek; i++) {
-            ary[topInx + i] = aryWork[i];
+            ary[topInx + i] = aryWork[i]!;
         }
     };
 

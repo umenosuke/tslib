@@ -9,62 +9,42 @@ class IP {
     private _address: bigint;
     private _prefix: Prefix;
 
-    constructor(ipStr: string, mode: eParseMode = eParseMode.auto) {
-        const data = parseIP(ipStr, mode);
+    constructor(data: { address: bigint, mask: bigint }) {
         this._address = data.address;
-        this._prefix = Prefix.createPrefixFromBigints(data);
+        this._prefix = Prefix.fromBigints(data);
     }
 
-    public static createIPFromBigints(data: { address: bigint, mask: bigint }): IP {
-        if (data?.address == undefined || data?.mask == undefined) {
-            console.error("invalid value : ", data);
-            return;
-        }
-        const ip = new IP("", eParseMode.empty);
-        ip._address = data.address;
-        ip._prefix = Prefix.createPrefixFromBigints(data);
-        return ip;
-    }
-
-    public isValid(): boolean {
-        return this._address != undefined && this._prefix.isValid();
+    public static fromString(ipStr: string, mode: eParseMode = eParseMode.auto): IP {
+        const data = parseIP(ipStr, mode);
+        return new IP(data);
     }
 
     public getAddress(): bigint {
-        if (!this.isValid()) { return; }
-
         return this._address;
     }
     public getAddressStr(): string {
-        if (!this.isValid()) { return; }
-
         return util.bits2OctetStr(this._address);
     }
 
     public getPrefix(): Prefix {
-        if (!this.isValid()) { return; }
-
         return this._prefix;
     }
 
-    public getSubnet(prefixLen: number): IP {
-        if (!this.isValid()) { return; }
+    public getSubnet(prefixLen: number): IP | undefined {
         if (this._prefix.getPrefixLen() > prefixLen) { return; }
 
-        return IP.createIPFromBigints({ address: this._address, mask: util.prefixNum2Bits(prefixLen) });
+        return new IP({ address: this._address, mask: util.prefixNum2Bits(prefixLen) });
     }
 
     public equal(n: IP): boolean {
-        return this.isValid() && n.isValid() && this.getAddress() === n.getAddress() && this._prefix.equal(n._prefix);
+        return this.getAddress() === n.getAddress() && this._prefix.equal(n._prefix);
     }
 
     public sameNetwork(n: IP): boolean {
-        return this.isValid() && n.isValid() && this._prefix.equal(n._prefix);
+        return this._prefix.equal(n._prefix);
     }
 
     public toString(mode: eStringifyMode = eStringifyMode.prefix): string {
-        if (!this.isValid()) { return; }
-
         switch (mode) {
             case eStringifyMode.subnetMask:
                 return this.getAddressStr() + " " + this._prefix.getMaskStr();
