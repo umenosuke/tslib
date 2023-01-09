@@ -2,16 +2,19 @@ import * as util from "./util.js";
 import { parseIP } from "./parser.js";
 import { eAddressFamily, eParseMode, eStringifyMode } from "../enum.js";
 import { IP } from "./IP.js";
+import { PrefixSuper } from "../PrefixSuper.js";
 
-export { Prefix };
+export { Prefix, Prefix as PrefixIPv6 };
 
-class Prefix {
+class Prefix extends PrefixSuper {
     public readonly adressFamily = eAddressFamily.v6;
 
     private _address: bigint;
     private _mask: bigint;
 
     private constructor() {
+        super();
+
         this._address = -0n;
         this._mask = -0n;
     }
