@@ -1,4 +1,4 @@
-import type { PrefixSuper } from "./PrefixSuper";
+import type { PrefixSuper } from "./PrefixSuper.js";
 import { eParseMode } from "./enum.js";
 import { PrefixIPv4 } from "./v4/Prefix.js";
 import { PrefixIPv6 } from "./v6/Prefix.js";

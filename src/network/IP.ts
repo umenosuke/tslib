@@ -1,4 +1,4 @@
-import type { IPSuper } from "./IPSuper";
+import type { IPSuper } from "./IPSuper.js";
 import { eParseMode } from "./enum.js";
 import { IPv4 } from "./v4/IP.js";
 import { IPv6 } from "./v6/IP.js";

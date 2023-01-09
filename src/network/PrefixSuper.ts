@@ -1,4 +1,4 @@
-import type { IP } from "./IP.js";
+import type { IPSuper } from "./IPSuper.js";
 import type { eAddressFamily, eStringifyMode } from "./enum.js";
 
 export { PrefixSuper };
@@ -28,7 +28,7 @@ abstract class PrefixSuper {
 
     public abstract getAddressNum(): number;
 
-    public abstract getHosts(range: { seek?: bigint, maxNum?: bigint }): IP[];
+    public abstract getHosts(range: { seek?: bigint, maxNum?: bigint }): IPSuper[];
 
     public abstract split(prefixLength: number): PrefixSuper[];
 

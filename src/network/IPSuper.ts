@@ -1,4 +1,4 @@
-import type { Prefix } from "./Prefix.js";
+import type { PrefixSuper } from "./PrefixSuper.js";
 import type { eAddressFamily, eStringifyMode } from "./enum.js";
 
 export { IPSuper };
@@ -11,7 +11,7 @@ abstract class IPSuper {
     public abstract getAddress(): bigint;
     public abstract getAddressStr(): string;
 
-    public abstract getPrefix(): Prefix;
+    public abstract getPrefix(): PrefixSuper;
 
     public abstract getSubnet(prefixLen: number): IPSuper | undefined;
 
