@@ -1,11 +1,13 @@
-import * as util from "./v4/util.js";
+import * as util from "./util.js";
 import { parseIP } from "./parser.js";
-import { eParseMode, eStringifyMode } from "./enum.js";
+import { eAddressFamily, eParseMode, eStringifyMode } from "../enum.js";
 import { IP } from "./IP.js";
 
 export { Prefix };
 
 class Prefix {
+    public readonly adressFamily = eAddressFamily.v4;
+
     private _address: bigint;
     private _mask: bigint;
 

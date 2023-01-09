@@ -1,7 +1,7 @@
 import { Route } from "./Route.js";
 import { Prefix } from "./Prefix.js";
 import type { RouteMeta } from "./RouteMeta.js";
-import { eParseMode } from "./enum.js";
+import { eParseMode } from "../enum.js";
 
 export { RoutingTable, createRoot, tNestRoute };
 

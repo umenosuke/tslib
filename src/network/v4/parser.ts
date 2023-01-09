@@ -1,5 +1,5 @@
-import { eParseMode } from "./enum.js";
-import * as util from "./v4/util.js";
+import { eParseMode } from "../enum.js";
+import * as util from "./util.js";
 
 export { parseIP, getEmptyIP };
 

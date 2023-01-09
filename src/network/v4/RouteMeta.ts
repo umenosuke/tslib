@@ -1,6 +1,6 @@
 import type { IP } from "./IP.js";
 
-export { RouteMeta, RouteMetaEmpty, RouteMetaWithNexthop };
+export { RouteMeta, RouteMetaEmpty, RouteMetaWithNexthop, RouteMetaWithString };
 
 interface RouteMeta {
     equal(compVal: RouteMeta): boolean;
@@ -37,10 +37,32 @@ class RouteMetaWithNexthop implements RouteMeta {
     }
 
     public equal(compVal: RouteMetaWithNexthop): boolean {
-        return !!this._nextHop?.equal(compVal._nextHop);
+        return this._nextHop.equal(compVal._nextHop);
     }
 
     public toString(): string {
-        return this._nextHop?.toString();
+        return this._nextHop.toString();
+    }
+}
+
+declare const nRouteMetaWithString: unique symbol;
+class RouteMetaWithString implements RouteMeta {
+    [nRouteMetaWithString]!: never;
+
+    private _str: string;
+    get str(): string {
+        return this._str;
+    }
+
+    constructor(str: string) {
+        this._str = str;
+    }
+
+    public equal(compVal: RouteMetaWithString): boolean {
+        return this._str === compVal._str;
+    }
+
+    public toString(): string {
+        return this._str;
     }
 }
