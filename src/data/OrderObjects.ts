@@ -19,6 +19,14 @@ class OrderObjects<T> implements Iterable<T> {
         }
     }
 
+    get first(): T | undefined {
+        return this.item(0);
+    }
+
+    get last(): T | undefined {
+        return this.item(this.length - 1);
+    }
+
     constructor(validateFunc: (value: T) => boolean = () => { return true; }) {
         this.keys = [];
         this.values = {};
