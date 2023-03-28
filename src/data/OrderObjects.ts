@@ -15,7 +15,7 @@ class OrderObjects<T> implements Iterable<T> {
         len = (len >= 0) ? len : 0;
 
         while (this.length > len) {
-            this.pop(this.length - 1);
+            this.pop();
         }
     }
 
@@ -145,7 +145,7 @@ class OrderObjects<T> implements Iterable<T> {
     }
 
     public delete(key: string): T | undefined {
-        return this.pop(this.keys.indexOf(key));
+        return this.deleteWithIndex(this.keys.indexOf(key));
     }
 
     public sort(compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): void {
