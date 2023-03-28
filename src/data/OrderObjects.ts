@@ -109,7 +109,27 @@ class OrderObjects<T> implements Iterable<T> {
         this.values[key] = val;
     }
 
-    public pop(index: number): T | undefined {
+    public pop(): T | undefined {
+        const key = this.keys.pop();
+        if (key == undefined) { return undefined; }
+
+        const val = this.values[key];
+        delete this.values[key];
+
+        return val;
+    }
+
+    public shift(): T | undefined {
+        const key = this.keys.shift();
+        if (key == undefined) { return undefined; }
+
+        const val = this.values[key];
+        delete this.values[key];
+
+        return val;
+    }
+
+    public deleteWithIndex(index: number): T | undefined {
         if (index < 0 || index >= this.keys.length) {
             return undefined;
         }
