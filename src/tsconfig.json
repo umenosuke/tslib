@@ -5,7 +5,6 @@
         "rootDir": "./",
         "outDir": "../build/",
         "sourceMap": true,
-        "watch": false,
         "declaration": true,
         "removeComments": true,
         "forceConsistentCasingInFileNames": true,
@@ -18,7 +17,6 @@
         "noImplicitReturns": true,
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
-        "importsNotUsedAsValues": "error",
         "noPropertyAccessFromIndexSignature": true
     }
 }
