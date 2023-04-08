@@ -1,4 +1,4 @@
-export { exEvent, exMouseEvent, exPointerEvent };
+export type { exEvent, exMouseEvent, exPointerEvent };
 
 interface exEvent<T extends EventTarget> extends Event {
     currentTarget: T;

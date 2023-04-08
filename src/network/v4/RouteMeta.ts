@@ -1,6 +1,7 @@
 import type { IP } from "./IP.js";
 
-export { RouteMeta, RouteMetaEmpty, RouteMetaWithNexthop, RouteMetaWithString };
+export type { RouteMeta };
+export { RouteMetaEmpty, RouteMetaWithNexthop, RouteMetaWithString };
 
 interface RouteMeta {
     equal(compVal: RouteMeta): boolean;

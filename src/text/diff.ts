@@ -1,4 +1,5 @@
-export { Diff, Option, tDiffResult, tDiffResultState };
+export type { tDiffResult };
+export { Diff, Option, tDiffResultState };
 
 type tDiffResult = {
     state: tDiffResultState.same,
