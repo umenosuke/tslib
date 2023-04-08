@@ -1,22 +1,23 @@
 {
     "compilerOptions": {
-        "target": "ES2022",
-        "module": "ES2022",
-        "rootDir": "./",
-        "outDir": "../build/",
-        "sourceMap": true,
-        "declaration": true,
-        "removeComments": true,
-        "forceConsistentCasingInFileNames": true,
         "alwaysStrict": true,
-        "strictNullChecks": true,
-        "strictBindCallApply": true,
-        "strictPropertyInitialization": true,
+        "declaration": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ES2022",
         "noImplicitAny": true,
-        "noImplicitThis": true,
-        "noImplicitReturns": true,
-        "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
-        "noPropertyAccessFromIndexSignature": true
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUncheckedIndexedAccess": true,
+        "outDir": "../build/",
+        "removeComments": true,
+        "rootDir": "./",
+        "sourceMap": true,
+        "strictBindCallApply": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "target": "ES2022",
+        "verbatimModuleSyntax": true
     }
 }
