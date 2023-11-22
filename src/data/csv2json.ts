@@ -3,9 +3,11 @@ export { csv2json };
 function csv2json(csv: string, {
     keyColumIndex = -1,
     separator = ",",
+    emptyColumIsUndefined = true,
 }: {
     keyColumIndex?: number,
     separator?: string | RegExp,
+    emptyColumIsUndefined?: boolean,
 } = {}): {
     header: string[],
     items: {
@@ -34,7 +36,7 @@ function csv2json(csv: string, {
 
         const data: { [name: string]: string } = {};
         for (let j = 0; j < fieldNames.length && j < csvCols.length; j++) {
-            if (csvCols[j] !== "") {
+            if (!emptyColumIsUndefined || csvCols[j] !== "") {
                 data[fieldNames[j]!] = csvCols[j]!;
             }
         }
