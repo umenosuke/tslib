@@ -1,6 +1,12 @@
 export { csv2json };
 
-function csv2json(csv: string, keyColumIndex: number = -1, separator: string | RegExp = ","): {
+function csv2json(csv: string, {
+    keyColumIndex = -1,
+    separator = ",",
+}: {
+    keyColumIndex?: number,
+    separator?: string | RegExp,
+} = {}): {
     header: string[],
     items: {
         key: string,
