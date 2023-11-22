@@ -37,6 +37,13 @@ class OrderObjects<T> implements Iterable<T> {
     public getValue(key: string): T | undefined {
         return this.values[key];
     }
+    public getValueNotUndefined(key: string): T {
+        const v = this.getValue(key);
+        if (v == undefined) {
+            throw new Error("key [" + key + "] is undefined");
+        }
+        return v;
+    }
 
     public item(index: number): T | undefined {
         const key = this.keys[index];
