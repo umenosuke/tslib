@@ -8,6 +8,6 @@ function search<T extends HTMLElement>(query: string, elem: Document | Element =
 
 function searchAll<T extends HTMLElement>(query: string, elem: Document | Element = document): NodeListOf<T> {
     const e = elem.querySelectorAll<T>(query);
-    if (e == null) { throw new Error("not found : \"" + query + "\""); }
+    if (e.length === 0) { throw new Error("not found : \"" + query + "\""); }
     return e;
 };
