@@ -1,10 +1,10 @@
 import type { IPSuper } from "./IPSuper.js";
-import type { eAddressFamily, eStringifyMode } from "./enum.js";
+import type { tAddressFamily, tStringifyMode } from "./types.js";
 
 export { PrefixSuper };
 
 abstract class PrefixSuper {
-    public abstract readonly adressFamily: eAddressFamily;
+    public abstract readonly adressFamily: tAddressFamily;
 
     constructor() { }
 
@@ -32,5 +32,5 @@ abstract class PrefixSuper {
 
     public abstract split(prefixLength: number): PrefixSuper[];
 
-    public abstract toString(mode: eStringifyMode): string;
+    public abstract toString(mode?: tStringifyMode): string;
 }

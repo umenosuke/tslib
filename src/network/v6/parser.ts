@@ -1,9 +1,9 @@
-import { eParseMode } from "../enum.js";
+import type { tParseMode } from "../types.js";
 import * as util from "./util.js";
 
 export { parseIP };
 
-function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigint } {
+function parseIP(ipStr: string, mode: tParseMode): { address: bigint, mask: bigint } {
     const res = subParseIP(ipStr, mode);
 
     if (res.address == undefined || res.mask == undefined) {
@@ -13,31 +13,31 @@ function parseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigi
     return res;
 }
 
-function subParseIP(ipStr: string, mode: eParseMode): { address: bigint, mask: bigint } {
+function subParseIP(ipStr: string, mode: tParseMode): { address: bigint, mask: bigint } {
     ipStr = ipStr.trim();
 
-    if (mode === eParseMode.auto || mode === eParseMode.host) {
+    if (mode === "auto" || mode === "host") {
         const regExpAddress = /^[^ \/]+$/
         if (ipStr.match(regExpAddress)) {
             return { address: util.hextetStr2Bits(ipStr), mask: util.BITS };
         }
     }
 
-    if (mode === eParseMode.auto || mode === eParseMode.subnetMask || mode === eParseMode.wildcardBit) {
+    if (mode === "auto" || mode === "subnetMask" || mode === "wildcardBit") {
         const regExpAddressWithMask = /^[^ \/]+ +[^ \/]+$/
         if (ipStr.match(regExpAddressWithMask)) {
             const input = ipStr.split(/ +/);
 
             const tempMask = util.hextetStr2Bits(input[1]!);
-            if ((mode === eParseMode.auto || mode === eParseMode.subnetMask) && util.bitsIsLOneRZero(tempMask)) {
+            if ((mode === "auto" || mode === "subnetMask") && util.bitsIsLOneRZero(tempMask)) {
                 return { address: util.hextetStr2Bits(input[0]!), mask: tempMask };
-            } else if ((mode === eParseMode.auto || mode === eParseMode.wildcardBit) && util.bitsIsLOneRZero(util.bitsReverse(tempMask))) {
+            } else if ((mode === "auto" || mode === "wildcardBit") && util.bitsIsLOneRZero(util.bitsReverse(tempMask))) {
                 return { address: util.hextetStr2Bits(input[0]!), mask: util.bitsReverse(tempMask) };
             }
         }
     }
 
-    if (mode === eParseMode.auto || mode === eParseMode.prefix) {
+    if (mode === "auto" || mode === "prefix") {
         const regExpAddressWithPrefix = /^[^ \/]+\/[0-9]{1,3}$/
         if (ipStr.match(regExpAddressWithPrefix)) {
             const input = ipStr.split("/");

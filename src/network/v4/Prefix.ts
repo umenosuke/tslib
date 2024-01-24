@@ -1,13 +1,13 @@
 import * as util from "./util.js";
 import { parseIP } from "./parser.js";
-import { eAddressFamily, eParseMode, eStringifyMode } from "../enum.js";
+import type { tParseMode, tStringifyMode } from "../types.js";
 import { IP } from "./IP.js";
 import { PrefixSuper } from "../PrefixSuper.js";
 
 export { Prefix, Prefix as PrefixIPv4 };
 
 class Prefix extends PrefixSuper {
-    public readonly adressFamily = eAddressFamily.v4;
+    public override readonly adressFamily = "v4";
 
     private _address: bigint;
     private _mask: bigint;
@@ -19,7 +19,7 @@ class Prefix extends PrefixSuper {
         this._mask = -0n;
     }
 
-    public static fromString(ipStr: string, mode: eParseMode = eParseMode.auto): Prefix {
+    public static fromString(ipStr: string, mode: tParseMode = "auto"): Prefix {
         return Prefix.fromBigints(parseIP(ipStr, mode));
     }
 
@@ -133,13 +133,13 @@ class Prefix extends PrefixSuper {
         return subPrefix;
     }
 
-    public toString(mode: eStringifyMode = eStringifyMode.prefix): string {
+    public toString(mode: tStringifyMode = "prefix"): string {
         switch (mode) {
-            case eStringifyMode.subnetMask:
+            case "subnetMask":
                 return this.getNetworkAddressStr() + " " + this.getMaskStr();
-            case eStringifyMode.wildcardBit:
+            case "wildcardBit":
                 return this.getNetworkAddressStr() + " " + this.getWildcardStr();
-            case eStringifyMode.prefix:
+            case "prefix":
             default:
                 return this.getNetworkAddressStr() + "/" + this.getPrefixLenStr();
         }

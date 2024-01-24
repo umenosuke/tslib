@@ -1,13 +1,13 @@
 import * as util from "./util.js";
 import { parseIP } from "./parser.js";
 import { Prefix } from "./Prefix.js";
-import { eAddressFamily, eParseMode, eStringifyMode } from "../enum.js";
+import type { tParseMode, tStringifyMode } from "../types.js";
 import { IPSuper } from "../IPSuper.js";
 
 export { IP, IP as IPv6 };
 
 class IP extends IPSuper {
-    public readonly adressFamily = eAddressFamily.v6;
+    public override readonly adressFamily = "v6";
 
     private _address: bigint;
     private _prefix: Prefix;
@@ -19,43 +19,43 @@ class IP extends IPSuper {
         this._prefix = Prefix.fromBigints(data);
     }
 
-    public static fromString(ipStr: string, mode: eParseMode = eParseMode.auto): IP {
+    public static fromString(ipStr: string, mode: tParseMode = "auto"): IP {
         const data = parseIP(ipStr, mode);
         return new IP(data);
     }
 
-    public getAddress(): bigint {
+    public override getAddress(): bigint {
         return this._address;
     }
-    public getAddressStr(): string {
+    public override getAddressStr(): string {
         return util.bits2HextetStr(this._address);
     }
 
-    public getPrefix(): Prefix {
+    public override  getPrefix(): Prefix {
         return this._prefix;
     }
 
-    public getSubnet(prefixLen: number): IP | undefined {
+    public override getSubnet(prefixLen: number): IP | undefined {
         if (this._prefix.getPrefixLen() > prefixLen) { return; }
 
         return new IP({ address: this._address, mask: util.prefixNum2Bits(prefixLen) });
     }
 
-    public equal(n: IP): boolean {
+    public override equal(n: IP): boolean {
         return this.getAddress() === n.getAddress() && this._prefix.equal(n._prefix);
     }
 
-    public sameNetwork(n: IP): boolean {
+    public override sameNetwork(n: IP): boolean {
         return this._prefix.equal(n._prefix);
     }
 
-    public toString(mode: eStringifyMode = eStringifyMode.prefix): string {
+    public override toString(mode: tStringifyMode = "prefix"): string {
         switch (mode) {
-            case eStringifyMode.subnetMask:
+            case "subnetMask":
                 return this.getAddressStr() + " " + this._prefix.getMaskStr();
-            case eStringifyMode.wildcardBit:
+            case "wildcardBit":
                 return this.getAddressStr() + " " + this._prefix.getWildcardStr();
-            case eStringifyMode.prefix:
+            case "prefix":
             default:
                 return this.getAddressStr() + "/" + this._prefix.getPrefixLenStr();
         }
