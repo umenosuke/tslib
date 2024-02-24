@@ -84,7 +84,7 @@ class Dialog {
         this.callbackFunc.hide = func;
     }
 
-    public async show(title: string, contentElem: HTMLElement, mode: Set<tDialogButtonType> = new Set(["ok"])): Promise<tDialogState> {
+    public async show(title: string, contentElem: Element | DocumentFragment, mode: Set<tDialogButtonType> = new Set(["ok"])): Promise<tDialogState> {
         if (this.active || this.waitingResolver != undefined) {
             return new Promise((resolve) => {
                 resolve("alreadyActive");
