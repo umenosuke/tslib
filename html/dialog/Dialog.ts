@@ -1,33 +1,33 @@
-import type { exMouseEvent } from "../exEvents.js";
+import type { exEvent } from "../exEvents.js";
 
-export { Dialog, eDialogMode, eDialogState };
+export { Dialog, type tDialogState, isDialogState, type tDialogButtonType, isDialogButtonType };
 
 class Dialog {
-    private _isActive: boolean;
-    public get isActive(): boolean {
-        return this._isActive;
-    }
+    private active: boolean;
 
     private coverElem: HTMLElement;
     private contentWrapElem: HTMLElement;
     private contentWrapHeader: HTMLElement;
     private contentWrapHeaderTitleElem: HTMLElement;
     private contentWrapMainElem: HTMLElement;
-    private contentWrapFooterlem: HTMLElement;
-    private okBtnElem: HTMLButtonElement;
-    private cancelBtnElem: HTMLButtonElement;
-    private yesBtnElem: HTMLButtonElement;
-    private noBtnElem: HTMLButtonElement;
+    private contentWrapFooterElem: HTMLElement;
 
-    private showCallbackFunc: () => void;
-    private hideCallbackFunc: (state: eDialogState) => void;
+    private buttonList: { [key in tDialogButtonType]: HTMLButtonElement };
 
-    constructor(targetElem: HTMLElement, callbackFunc = { show: () => { }, hide: (state: eDialogState) => { } }) {
-        this._isActive = false;
+    private callbackFunc: {
+        show: () => void,
+        hide: (state: tDialogState) => void,
+    };
+    private waitingResolver?: (state: tDialogState) => void | undefined;
+
+    constructor(parentElem: HTMLElement) {
+        this.active = false;
 
         this.coverElem = document.createElement("div");
         this.coverElem.classList.add("dialog-cover", "dilog-hidaden");
-        targetElem.appendChild(this.coverElem);
+        this.coverElem.addEventListener("click", (e: exEvent<HTMLElement>) => { this.showCallbackFunc(e) });
+
+        parentElem.appendChild(this.coverElem);
 
         this.contentWrapElem = document.createElement("div");
         this.contentWrapElem.classList.add("dialog");
@@ -41,155 +41,171 @@ class Dialog {
         this.contentWrapMainElem = document.createElement("main");
         this.contentWrapElem.appendChild(this.contentWrapMainElem);
 
-        this.contentWrapFooterlem = document.createElement("footer");
-        this.contentWrapElem.appendChild(this.contentWrapFooterlem);
+        this.contentWrapFooterElem = document.createElement("footer");
+        this.contentWrapElem.appendChild(this.contentWrapFooterElem);
 
-        this.okBtnElem = document.createElement("button");
-        this.okBtnElem.classList.add("ok");
-        this.okBtnElem.textContent = "OK";
-        this.cancelBtnElem = document.createElement("button");
-        this.cancelBtnElem.classList.add("cancel");
-        this.cancelBtnElem.textContent = "キャンセル";
-        this.yesBtnElem = document.createElement("button");
-        this.yesBtnElem.classList.add("yes");
-        this.yesBtnElem.textContent = "はい";
-        this.noBtnElem = document.createElement("button");
-        this.noBtnElem.classList.add("no");
-        this.noBtnElem.textContent = "いいえ";
+        this.buttonList = (() => {
+            const list: { [key in tDialogButtonType]?: HTMLButtonElement } = {};
+            for (const key of dialogButtonTypeList) {
+                const btn = document.createElement("button");
+                btn.classList.add(key);
+                btn.textContent = dialogButtonDataList[key].name;
+                btn.dataset["state"] = dialogButtonDataList[key].state;
 
-        this.showCallbackFunc = callbackFunc.show;
-        this.hideCallbackFunc = callbackFunc.hide;
+                btn.addEventListener("click", (e: exEvent<HTMLElement>) => { this.showCallbackFunc(e) });
+
+                list[key] = btn;
+            }
+
+            if (!((l: { [key in tDialogButtonType]?: HTMLButtonElement }): l is { [key in tDialogButtonType]: HTMLButtonElement } => {
+                for (const key of dialogButtonTypeList) {
+                    if (list[key] == undefined) {
+                        return false;
+                    }
+                }
+                return true;
+            })(list)) {
+                throw new Error("dialogの初期化エラー");
+            }
+
+            return list;
+        })();
+
+        this.callbackFunc = {
+            show: () => { },
+            hide: () => { },
+        };
     }
 
-    public setShowCallbackFunc(setShowCallbackFunc: () => void) {
-        this.showCallbackFunc = setShowCallbackFunc;
+    public setShowCallbackFunc(func: () => void) {
+        this.callbackFunc.show = func;
     }
-    public setHideCallbackFunc(hideCallbackFunc: (state: eDialogState) => void) {
-        this.hideCallbackFunc = hideCallbackFunc;
+    public setHideCallbackFunc(func: (state: tDialogState) => void) {
+        this.callbackFunc.hide = func;
     }
 
-    public show(title: string, contentElem: HTMLElement, mode: eDialogMode = eDialogMode.ok): Promise<eDialogState> {
-        if (this._isActive) {
+    public async show(title: string, contentElem: HTMLElement, mode: Set<tDialogButtonType> = new Set(["ok"])): Promise<tDialogState> {
+        if (this.active || this.waitingResolver != undefined) {
             return new Promise((resolve) => {
-                resolve(eDialogState.alreadyActive);
+                resolve("alreadyActive");
             });
         }
-        this._isActive = true;
-        this.showCallbackFunc();
+        this.active = true;
+        this.callbackFunc.show();
+
+        this.contentWrapHeaderTitleElem.textContent = title;
+        this.contentWrapMainElem.textContent = "";
+        this.contentWrapMainElem.appendChild(contentElem);
+        this.contentWrapFooterElem.textContent = "";
+        this.coverElem.classList.remove("dilog-hidaden");
+
+        for (const key of mode) {
+            const btn = this.buttonList[key];
+            this.contentWrapFooterElem.appendChild(btn);
+            btn.disabled = false;
+        }
 
         return new Promise((resolve) => {
-            this.contentWrapHeaderTitleElem.textContent = title;
-            this.contentWrapMainElem.textContent = "";
-            this.contentWrapMainElem.appendChild(contentElem);
-            this.contentWrapFooterlem.textContent = "";
-            this.coverElem.classList.remove("dilog-hidaden");
-
-            const callbackFunc = (e: exMouseEvent<HTMLElement>) => {
-                e.stopPropagation();
-                const elem = e.currentTarget;
-
-                if (elem !== e.target) {
-                    return;
-                }
-
-                this.coverElem.classList.add("dilog-hidaden");
-                this.contentWrapHeaderTitleElem.textContent = "";
-                this.contentWrapMainElem.textContent = "";
-                this.contentWrapFooterlem.textContent = "";
-
-                this.coverElem.removeEventListener("click", callbackFunc);
-                this.okBtnElem.removeEventListener("click", callbackFunc);
-                this.okBtnElem.disabled = true;
-                this.cancelBtnElem.removeEventListener("click", callbackFunc);
-                this.cancelBtnElem.disabled = true;
-                this.yesBtnElem.removeEventListener("click", callbackFunc);
-                this.yesBtnElem.disabled = true;
-                this.noBtnElem.removeEventListener("click", callbackFunc);
-                this.noBtnElem.disabled = true;
-
-                this._isActive = false;
-
-                switch (elem) {
-                    case this.coverElem:
-                        this.hideCallbackFunc(eDialogState.abort);
-                        resolve(eDialogState.abort);
-                        break;
-                    case this.okBtnElem:
-                        this.hideCallbackFunc(eDialogState.ok);
-                        resolve(eDialogState.ok);
-                        break;
-                    case this.cancelBtnElem:
-                        this.hideCallbackFunc(eDialogState.cancel);
-                        resolve(eDialogState.cancel);
-                        break;
-                    case this.yesBtnElem:
-                        this.hideCallbackFunc(eDialogState.yes);
-                        resolve(eDialogState.yes);
-                        break;
-                    case this.noBtnElem:
-                        this.hideCallbackFunc(eDialogState.no);
-                        resolve(eDialogState.no);
-                        break;
-                    default:
-                        this.hideCallbackFunc(eDialogState.unknown);
-                        resolve(eDialogState.unknown);
-                        break;
-                }
-            };
-
-
-            this.coverElem.addEventListener("click", callbackFunc);
-            switch (mode) {
-                case eDialogMode.ok:
-                    this.okBtnElem.addEventListener("click", callbackFunc);
-                    this.okBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.okBtnElem);
-                    break;
-                case eDialogMode.okcancel:
-                    this.okBtnElem.addEventListener("click", callbackFunc);
-                    this.okBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.okBtnElem);
-                    this.cancelBtnElem.addEventListener("click", callbackFunc);
-                    this.cancelBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.cancelBtnElem);
-                    break;
-                case eDialogMode.yesno:
-                    this.yesBtnElem.addEventListener("click", callbackFunc);
-                    this.yesBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.yesBtnElem);
-                    this.noBtnElem.addEventListener("click", callbackFunc);
-                    this.noBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.noBtnElem);
-                    break;
-                case eDialogMode.yesnocancel:
-                    this.yesBtnElem.addEventListener("click", callbackFunc);
-                    this.yesBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.yesBtnElem);
-                    this.noBtnElem.addEventListener("click", callbackFunc);
-                    this.noBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.noBtnElem);
-                    this.cancelBtnElem.addEventListener("click", callbackFunc);
-                    this.cancelBtnElem.disabled = false;
-                    this.contentWrapFooterlem.appendChild(this.cancelBtnElem);
-                    break;
-            }
+            this.waitingResolver = resolve;
         });
+    }
+
+    private showCallbackFunc(e: exEvent<HTMLElement>) {
+        e.stopPropagation();
+        const elem = e.currentTarget;
+
+        if (elem !== e.target) {
+            return;
+        }
+
+        this.coverElem.classList.add("dilog-hidaden");
+        this.contentWrapHeaderTitleElem.textContent = "";
+        this.contentWrapMainElem.textContent = "";
+        this.contentWrapFooterElem.textContent = "";
+
+        for (const key of dialogButtonTypeList) {
+            this.buttonList[key].disabled = true;
+        }
+
+        if (this.waitingResolver == undefined) {
+            return;
+        }
+
+        const state = ((): tDialogState => {
+            if (elem === this.coverElem) {
+                return "abort";
+            }
+
+            for (const key of dialogButtonTypeList) {
+                if (elem === this.buttonList[key]) {
+                    const state = this.buttonList[key].dataset["state"];
+                    if (state != undefined && isDialogState(state)) {
+                        return state;
+                    }
+                    break;
+                }
+            }
+
+            return "unknown";
+        })();
+
+        this.callbackFunc.hide(state);
+        this.waitingResolver(state);
+
+        this.active = false;
+        this.waitingResolver = undefined;
     }
 }
 
-enum eDialogMode {
-    ok = "ok",
-    okcancel = "okcancel",
-    yesno = "yesno",
-    yesnocancel = "yesnocancel"
+const dialogStateList = [
+    "unknown",
+    "alreadyActive",
+    "abort",
+    "ok",
+    "cancel",
+    "yes",
+    "no",
+] as const;
+type tDialogState = typeof dialogStateList[number];
+function isDialogState(str: string): str is tDialogState {
+    for (const s of dialogStateList) {
+        if (str === s) {
+            return true;
+        }
+    }
+    return false;
 }
 
-enum eDialogState {
-    unknown = "unknown",
-    alreadyActive = "alreadyActive",
-    abort = "abort",
-    ok = "ok",
-    cancel = "cancel",
-    yes = "yes",
-    no = "no"
+const dialogButtonTypeList = [
+    "ok",
+    "cancel",
+    "yes",
+    "no",
+] as const;
+const dialogButtonDataList: { [key in tDialogButtonType]: { name: string, state: tDialogState } } = {
+    ok: {
+        name: "OK",
+        state: "ok",
+    },
+    cancel: {
+        name: "キャンセル",
+        state: "cancel",
+    },
+    yes: {
+        name: "はい",
+        state: "yes",
+    },
+    no: {
+        name: "いいえ",
+        state: "no",
+    },
+};
+type tDialogButtonType = typeof dialogButtonTypeList[number];
+function isDialogButtonType(str: string): str is tDialogButtonType {
+    for (const t of dialogButtonTypeList) {
+        if (str === t) {
+            return true;
+        }
+    }
+    return false;
 }
