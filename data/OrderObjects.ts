@@ -77,6 +77,21 @@ class OrderObjects<T> implements Iterable<T> {
         return matchKeys;
     }
 
+    public search(discriminantFunction = function (a: T): boolean { return true; }): T[] {
+        const matchValues: T[] = [];
+
+        for (const key of this.keys) {
+            const value = this.getValue(key);
+            if (value == undefined) { throw new Error("internal error"); }
+
+            if (discriminantFunction(value)) {
+                matchValues.push(value);
+            }
+        }
+
+        return matchValues;
+    }
+
     public hasKey(key: string): boolean {
         return this.keys.indexOf(key) !== -1;
     }
