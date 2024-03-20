@@ -1,6 +1,5 @@
 export { type tJson };
 
-type tJsonPrimitive = string | number | boolean | null;
-type tJsonArray = (tJsonPrimitive | tJsonObject)[];
-type tJsonObject = { [key: string]: tJsonPrimitive | tJsonArray | tJsonObject };
-type tJson = tJsonArray | tJsonObject;
+type tJsonArray = tJson[];
+type tJsonObject = { [key: string]: tJson };
+type tJson = string | number | boolean | null | tJsonArray | tJsonObject;
