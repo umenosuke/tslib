@@ -1,5 +1,10 @@
-export { getSelected, getSelectedAll };
+export { getSelected };
 
+/**
+ * @deprecated
+ * 
+ * select.selectedOptions[0]?.value で十分
+ */
 function getSelected(select: HTMLSelectElement): string | undefined {
     for (const opt of select.options) {
         if (opt.selected) {
@@ -8,16 +13,4 @@ function getSelected(select: HTMLSelectElement): string | undefined {
     }
 
     return;
-}
-
-function getSelectedAll(select: HTMLSelectElement): string[] {
-    const res: string[] = [];
-
-    for (const opt of select.options) {
-        if (opt.selected) {
-            res.push(opt.value);
-        }
-    }
-
-    return res;
 }
