@@ -36,7 +36,7 @@ class IP extends IPSuper {
     }
 
     public override getSubnet(prefixLen: number): IP | undefined {
-        if (this._prefix.getPrefixLen() > prefixLen) { return; }
+        if (this._prefix.getPrefixLen() > prefixLen) { return undefined; }
 
         return new IP({ address: this._address, mask: util.prefixNum2Bits(prefixLen) });
     }
