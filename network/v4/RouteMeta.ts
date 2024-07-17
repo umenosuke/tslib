@@ -8,7 +8,7 @@ interface RouteMeta {
     toString(): string;
 }
 
-declare const nRouteMetaEmpty: unique symbol;
+const nRouteMetaEmpty: unique symbol = Symbol();
 class RouteMetaEmpty implements RouteMeta {
     [nRouteMetaEmpty]!: never;
 
@@ -24,7 +24,7 @@ class RouteMetaEmpty implements RouteMeta {
     }
 }
 
-declare const nRouteMetaWithNexthop: unique symbol;
+const nRouteMetaWithNexthop: unique symbol = Symbol();
 class RouteMetaWithNexthop implements RouteMeta {
     [nRouteMetaWithNexthop]!: never;
 
@@ -46,7 +46,7 @@ class RouteMetaWithNexthop implements RouteMeta {
     }
 }
 
-declare const nRouteMetaWithString: unique symbol;
+const nRouteMetaWithString: unique symbol = Symbol();
 class RouteMetaWithString implements RouteMeta {
     [nRouteMetaWithString]!: never;
 
