@@ -133,21 +133,21 @@ class TextSearch<ID> {
                             continue;
                         }
 
-                        if (searchTextIndex > orderCurrentSearchIndexLast + 3) {
-                            continue;
-                        }
+                        //if (searchTextIndex > orderCurrentSearchIndexLast + 3) {
+                        //    continue;
+                        //}
                         const tempSearchGap = orderCurrent.searchText.gap + (searchTextIndex - orderCurrentSearchIndexLast - 1);
-                        if (tempSearchGap > 6) {
-                            continue;
-                        }
+                        //if (tempSearchGap > 6) {
+                        //    continue;
+                        //}
 
-                        if (targetTextIndex > orderCurrentTargetIndexLast + 3) {
-                            continue;
-                        }
+                        //if (targetTextIndex > orderCurrentTargetIndexLast + 3) {
+                        //    continue;
+                        //}
                         const tempTargetGap = orderCurrent.targetText.gap + (targetTextIndex - orderCurrentTargetIndexLast - 1);
-                        if (tempTargetGap > 6) {
-                            continue;
-                        }
+                        //if (tempTargetGap > 6) {
+                        //    continue;
+                        //}
 
                         const tempSearchIndexList: number[] = [];
                         for (const t of orderCurrent.searchText.indexList) {
@@ -173,7 +173,11 @@ class TextSearch<ID> {
                         });
                     }
 
-                    tempUniOrderList.push({
+                    for (const temp of tempUniOrderList) {
+                        entry.order.list.push(temp);
+                    }
+
+                    entry.order.list.push({
                         searchText: {
                             indexList: [searchTextIndex],
                             gap: 0,
@@ -183,10 +187,6 @@ class TextSearch<ID> {
                             gap: 0,
                         }
                     });
-
-                    for (const temp of tempUniOrderList) {
-                        entry.order.list.push(temp);
-                    }
                 }
 
                 for (const tempOrder of entry.order.list) {
