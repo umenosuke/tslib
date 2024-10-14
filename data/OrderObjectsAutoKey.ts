@@ -32,19 +32,19 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     }
 
     /** @deprecated keyが競合する可能性があります、代わりにreplaceAutoを利用してください */
-    public override replace(key: KEY, val: VALUE): "success" | "not exists" | "invalid value" {
+    public override replace(key: KEY, val: VALUE): ({ status: "success", old: VALUE } | { status: "not exists" } | { status: "invalid value" }) {
         return super.replace(key, val);
     }
-    public replaceAuto(val: VALUE): "success" | "not exists" | "invalid value" {
+    public replaceAuto(val: VALUE): ({ status: "success", old: VALUE } | { status: "not exists" } | { status: "invalid value" }) {
         const key = this.keyGeneratefunc(val, this);
         return super.replace(key, val);
     }
 
     /** @deprecated keyが競合する可能性があります、代わりにsetAutoを利用してください */
-    public override set(key: KEY, val: VALUE): "success push" | "success replace" | "invalid value" | "fail" {
+    public override set(key: KEY, val: VALUE): ({ status: "success push" } | { status: "success replace", old: VALUE } | { status: "invalid value" } | { status: "fail" }) {
         return super.set(key, val);
     }
-    public setAuto(val: VALUE): "success push" | "success replace" | "invalid value" | "fail" {
+    public setAuto(val: VALUE): ({ status: "success push" } | { status: "success replace", old: VALUE } | { status: "invalid value" } | { status: "fail" }) {
         const key = this.keyGeneratefunc(val, this);
         return super.set(key, val);
     }

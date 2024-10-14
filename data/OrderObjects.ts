@@ -139,38 +139,41 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
     }
 
-    public replace(key: KEY, val: VALUE): "success" | "not exists" | "invalid value" {
-        if (!this.hasKey(key)) { return "not exists"; }
-        if (!this.validateFunc(val)) { return "invalid value"; }
+    public replace(key: KEY, val: VALUE): ({ status: "success", old: VALUE } | { status: "not exists" } | { status: "invalid value" }) {
+        if (!this.hasKey(key)) { return { status: "not exists" }; }
+        if (!this.validateFunc(val)) { return { status: "invalid value" }; }
 
+        const old = this.getValueNotUndefined(key);
         this.values.set(key, val);
-        return "success";
+        return { status: "success", old: old };
     }
 
-    public set(key: KEY, val: VALUE): "success push" | "success replace" | "invalid value" | "fail" {
+    public set(key: KEY, val: VALUE): ({ status: "success push" } | { status: "success replace", old: VALUE } | { status: "invalid value" } | { status: "fail" }) {
         if (!this.hasKey(key)) {
-            switch (this.push(key, val)) {
+            const res = this.push(key, val);
+            switch (res) {
                 case "success":
-                    return "success push";
+                    return { status: "success push" };
 
                 case "invalid value":
-                    return "invalid value";
+                    return { status: "invalid value" };
 
                 case "already exists":
                 default:
-                    return "fail";
+                    return { status: "fail" };
             }
         } else {
-            switch (this.replace(key, val)) {
+            const res = this.replace(key, val);
+            switch (res.status) {
                 case "success":
-                    return "success replace";
+                    return { status: "success replace", old: res.old };
 
                 case "invalid value":
-                    return "invalid value";
+                    return { status: "invalid value" };
 
                 case "not exists":
                 default:
-                    return "fail";
+                    return { status: "fail" };
             }
         }
     }
