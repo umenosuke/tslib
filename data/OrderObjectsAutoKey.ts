@@ -39,6 +39,15 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
         const key = this.keyGeneratefunc(this, val);
         return super.replace(key, val);
     }
+
+    /** @deprecated keyが競合する可能性があります、代わりにsetAutoを利用してください */
+    public override set(key: KEY, val: VALUE): boolean {
+        return super.set(key, val);
+    }
+    public setAuto(val: VALUE): boolean {
+        const key = this.keyGeneratefunc(this, val);
+        return super.set(key, val);
+    }
 }
 
 function keyGenerateFromLength<VALUE>(arr: OrderObjectsAutoKey<number, VALUE>): number {

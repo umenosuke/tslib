@@ -148,6 +148,14 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return true;
     }
 
+    public set(key: KEY, val: VALUE): boolean {
+        if (this.hasKey(key)) {
+            return this.replace(key, val);
+        } else {
+            return this.push(key, val);
+        }
+    }
+
     public pop(): VALUE | undefined {
         const key = this.keys.pop();
         if (key == undefined) { return undefined; }
