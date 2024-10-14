@@ -102,19 +102,18 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return this.keys.includes(key);
     }
 
-    public push(key: KEY, val: VALUE): boolean {
-        if (this.hasKey(key)) { console.warn("key[" + key + "] already exists"); return false; }
-        if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
+    public push(key: KEY, val: VALUE): "success" | "already exists" | "invalid value" {
+        if (this.hasKey(key)) { return "already exists"; }
+        if (!this.validateFunc(val)) { return "invalid value"; }
 
         this.keys.push(key);
         this.values.set(key, val);
-        return true;
+        return "success";
     }
 
-    public move(targetIndex: number, toIndex: number): boolean {
+    public move(targetIndex: number, toIndex: number): "success" | "not affected" | "index out of range" {
         if (targetIndex < 0 || targetIndex >= this.keys.length) {
-            console.warn("index out of range", targetIndex);
-            return false;
+            return "index out of range";
         }
 
         if (toIndex < 0) {
@@ -126,33 +125,53 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         }
 
         if (targetIndex === toIndex) {
-            return false;
+            return "not affected";
         }
 
         const target = this.keys.splice(targetIndex, 1);
         this.keys.splice(toIndex, 0, ...target);
-        return true;
+        return "success";
     }
-    public moveByKey(targetKey: KEY, toIndex: number): boolean {
+    public moveByKey(targetKey: KEY, toIndex: number): "success" | "not affected" | "index out of range" {
         return this.move(this.getIndex(targetKey), toIndex);
     }
-    public moveTo(targetKey: KEY, toKey: KEY, offset: number = 0): boolean {
+    public moveTo(targetKey: KEY, toKey: KEY, offset: number = 0): "success" | "not affected" | "index out of range" {
         return this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
     }
 
-    public replace(key: KEY, val: VALUE): boolean {
-        if (!this.hasKey(key)) { console.warn("key[" + key + "] not exists"); return false; }
-        if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
+    public replace(key: KEY, val: VALUE): "success" | "not exists" | "invalid value" {
+        if (!this.hasKey(key)) { return "not exists"; }
+        if (!this.validateFunc(val)) { return "invalid value"; }
 
         this.values.set(key, val);
-        return true;
+        return "success";
     }
 
-    public set(key: KEY, val: VALUE): boolean {
-        if (this.hasKey(key)) {
-            return this.replace(key, val);
+    public set(key: KEY, val: VALUE): "success push" | "success replace" | "invalid value" | "fail" {
+        if (!this.hasKey(key)) {
+            switch (this.push(key, val)) {
+                case "success":
+                    return "success push";
+
+                case "invalid value":
+                    return "invalid value";
+
+                case "already exists":
+                default:
+                    return "fail";
+            }
         } else {
-            return this.push(key, val);
+            switch (this.replace(key, val)) {
+                case "success":
+                    return "success replace";
+
+                case "invalid value":
+                    return "invalid value";
+
+                case "not exists":
+                default:
+                    return "fail";
+            }
         }
     }
 

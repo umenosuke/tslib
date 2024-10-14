@@ -12,10 +12,10 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     }
 
     /** @deprecated keyが競合する可能性があります、代わりにpushAutoを利用してください */
-    public override push(key: KEY, val: VALUE): boolean {
+    public override push(key: KEY, val: VALUE): "success" | "already exists" | "invalid value" {
         return super.push(key, val);
     }
-    public pushAuto(val: VALUE): boolean {
+    public pushAuto(val: VALUE): "success" | "already exists" | "invalid value" {
         const key = this.keyGeneratefunc(val, this);
         return super.push(key, val);
     }
@@ -32,19 +32,19 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     }
 
     /** @deprecated keyが競合する可能性があります、代わりにreplaceAutoを利用してください */
-    public override replace(key: KEY, val: VALUE): boolean {
+    public override replace(key: KEY, val: VALUE): "success" | "not exists" | "invalid value" {
         return super.replace(key, val);
     }
-    public replaceAuto(val: VALUE): boolean {
+    public replaceAuto(val: VALUE): "success" | "not exists" | "invalid value" {
         const key = this.keyGeneratefunc(val, this);
         return super.replace(key, val);
     }
 
     /** @deprecated keyが競合する可能性があります、代わりにsetAutoを利用してください */
-    public override set(key: KEY, val: VALUE): boolean {
+    public override set(key: KEY, val: VALUE): "success push" | "success replace" | "invalid value" | "fail" {
         return super.set(key, val);
     }
-    public setAuto(val: VALUE): boolean {
+    public setAuto(val: VALUE): "success push" | "success replace" | "invalid value" | "fail" {
         const key = this.keyGeneratefunc(val, this);
         return super.set(key, val);
     }
