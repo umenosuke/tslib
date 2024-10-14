@@ -11,17 +11,17 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
         this.keyGeneratefunc = keyGeneratefunc;
     }
 
-    /** @deprecated idが競合する可能性があります、代わりにpushAutoを利用してください */
-    public override push(id: KEY, val: VALUE): boolean {
-        return super.push(id, val);
+    /** @deprecated keyが競合する可能性があります、代わりにpushAutoを利用してください */
+    public override push(key: KEY, val: VALUE): boolean {
+        return super.push(key, val);
     }
-    public pushAuto(val: VALUE): { id: KEY, success: boolean } {
-        const id = this.keyGeneratefunc(this, val);
-        const success = super.push(id, val);
-        return { id, success, };
+    public pushAuto(val: VALUE): { key: KEY, success: boolean } {
+        const key = this.keyGeneratefunc(this, val);
+        const success = super.push(key, val);
+        return { key, success, };
     }
 
-    /** @deprecated idが競合する可能性があります、代わりにgetValueWithPushAutoDefaultを利用してください */
+    /** @deprecated keyが競合する可能性があります、代わりにgetValueWithPushAutoDefaultを利用してください */
     public override getValueWithPushDefault(key: KEY, defaultValueGenerateFunc: (key: KEY) => VALUE): VALUE {
         return super.getValueWithPushDefault(key, defaultValueGenerateFunc);
     }
