@@ -1,11 +1,11 @@
 import { OrderObjects } from "./OrderObjects.js";
 
-export { OrderObjectsAutoKey };
+export { OrderObjectsAutoKey, keyGenerateFromLength };
 
 class OrderObjectsAutoKey<V> extends OrderObjects<V> {
     private keyGeneratefunc: (arr: OrderObjectsAutoKey<V>, value: V) => string;
 
-    constructor(keyGeneratefunc: (arr: OrderObjectsAutoKey<V>, value: V) => string = (arr => String(arr.length))) {
+    constructor(keyGeneratefunc: (arr: OrderObjectsAutoKey<V>, value: V) => string) {
         super();
 
         this.keyGeneratefunc = keyGeneratefunc;
@@ -21,4 +21,8 @@ class OrderObjectsAutoKey<V> extends OrderObjects<V> {
         const success = super.push(id, val);
         return { id, success, };
     }
+}
+
+function keyGenerateFromLength<V>(arr: OrderObjectsAutoKey<V>) {
+    return String(arr.length);
 }
