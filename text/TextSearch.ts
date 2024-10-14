@@ -63,12 +63,15 @@ class TextSearch<ID> {
             return res;
         }
 
-        for (const e of this.searchUni(text)) {
-            const eID = e[0];
-            const eInxListMap = e[1];
+        for (const searchResult of this.searchUni(text)) {
+            const searchResultID = searchResult[0];
+            const searchResultMap = searchResult[1];
+            if (searchResultID === "hogehoge") {
+                console.log(searchResultMap);
+            }
 
-            if (!res.data.has(eID)) {
-                res.data.set(eID, {
+            if (!res.data.has(searchResultID)) {
+                res.data.set(searchResultID, {
                     uni: {
                         kind: 0,
                         count: 0,
@@ -82,7 +85,7 @@ class TextSearch<ID> {
                     },
                 });
             }
-            const entry = res.data.get(eID);
+            const entry = res.data.get(searchResultID);
             if (entry == undefined) {
                 throw new Error("entry == undefined");
             }
@@ -90,89 +93,112 @@ class TextSearch<ID> {
             let kind = 0;
             let count = 0;
 
-            for (const eInxList of eInxListMap) {
-                kind++;
-                count += eInxList[1].length;
+            for (const searchResult of searchResultMap) {
+                const searchTextIndex = searchResult[0];
+                const targetTextIndexList = searchResult[1];
 
-                const tempUniOrderList: {
-                    search: {
-                        indexList: number[],
-                        gap: number,
-                    },
-                    target: {
-                        indexList: number[],
-                        gap: number,
-                    },
-                }[] = [];
-                for (const eInx of eInxList[1]) {
-                    for (const iList of entry.order.list) {
-                        const iSearchLast = iList.search.indexList.at(-1);
-                        const iTargetLast = iList.target.indexList.at(-1);
-                        if (iSearchLast == undefined || iTargetLast == undefined) {
+                kind++;
+                count += targetTextIndexList.length;
+
+                if (searchResultID === "hogehoge") {
+                    console.log({ searchTextIndex, targetTextIndexList });
+                }
+                for (const targetTextIndex of targetTextIndexList) {
+                    const tempUniOrderList: {
+                        searchText: {
+                            indexList: number[],
+                            gap: number,
+                        },
+                        targetText: {
+                            indexList: number[],
+                            gap: number,
+                        },
+                    }[] = [];
+
+                    for (const orderCurrent of entry.order.list) {
+                        if (searchResultID === "hogehoge") {
+                            console.log(targetTextIndex, orderCurrent.searchText.indexList, orderCurrent.targetText.indexList);
+                        }
+
+                        const orderCurrentSearchIndexLast = orderCurrent.searchText.indexList.at(-1);
+                        const orderCurrentTargetIndexLast = orderCurrent.targetText.indexList.at(-1);
+                        if (orderCurrentSearchIndexLast == undefined || orderCurrentTargetIndexLast == undefined) {
                             throw new Error("iSearchLast == undefined || iTargetLast == undefined");
                         }
-                        if (iTargetLast < eInx) {
-                            const searchGap = iList.search.gap + (eInxList[0] - iSearchLast - 1);
-                            if (searchGap > Infinity) {
-                                continue;
-                            }
-                            const targetGap = iList.target.gap + (eInx - iTargetLast - 1);
-                            if (targetGap > Infinity) {
-                                continue;
-                            }
 
-                            const searchIndexList: number[] = [];
-                            for (const t of iList.search.indexList) {
-                                searchIndexList.push(t);
-                            }
-                            searchIndexList.push(eInxList[0]);
-
-                            const targetIndexList: number[] = [];
-                            for (const t of iList.target.indexList) {
-                                targetIndexList.push(t);
-                            }
-                            targetIndexList.push(eInx);
-
-                            tempUniOrderList.push({
-                                search: {
-                                    indexList: searchIndexList,
-                                    gap: searchGap,
-                                },
-                                target: {
-                                    indexList: targetIndexList,
-                                    gap: targetGap,
-                                }
-                            });
+                        if (orderCurrentSearchIndexLast >= searchTextIndex) {
+                            continue;
                         }
+                        if (orderCurrentTargetIndexLast >= targetTextIndex) {
+                            continue;
+                        }
+
+                        if (searchTextIndex > orderCurrentSearchIndexLast + 3) {
+                            continue;
+                        }
+                        const tempSearchGap = orderCurrent.searchText.gap + (searchTextIndex - orderCurrentSearchIndexLast - 1);
+                        if (tempSearchGap > 6) {
+                            continue;
+                        }
+
+                        if (targetTextIndex > orderCurrentTargetIndexLast + 3) {
+                            continue;
+                        }
+                        const tempTargetGap = orderCurrent.targetText.gap + (targetTextIndex - orderCurrentTargetIndexLast - 1);
+                        if (tempTargetGap > 6) {
+                            continue;
+                        }
+
+                        const tempSearchIndexList: number[] = [];
+                        for (const t of orderCurrent.searchText.indexList) {
+                            tempSearchIndexList.push(t);
+                        }
+                        tempSearchIndexList.push(searchTextIndex);
+
+                        const tempTargetIndexList: number[] = [];
+                        for (const t of orderCurrent.targetText.indexList) {
+                            tempTargetIndexList.push(t);
+                        }
+                        tempTargetIndexList.push(targetTextIndex);
+
+                        tempUniOrderList.push({
+                            searchText: {
+                                indexList: tempSearchIndexList,
+                                gap: tempSearchGap,
+                            },
+                            targetText: {
+                                indexList: tempTargetIndexList,
+                                gap: tempTargetGap,
+                            }
+                        });
                     }
 
                     tempUniOrderList.push({
-                        search: {
-                            indexList: [eInxList[0]],
+                        searchText: {
+                            indexList: [searchTextIndex],
                             gap: 0,
                         },
-                        target: {
-                            indexList: [eInx],
+                        targetText: {
+                            indexList: [targetTextIndex],
                             gap: 0,
                         }
                     });
+
+                    for (const temp of tempUniOrderList) {
+                        entry.order.list.push(temp);
+                    }
                 }
 
-                entry.order.list.length = 0;
-                for (const temp of tempUniOrderList) {
-                    entry.order.list.push(temp);
-                }
-
-                for (const tempUniOrder of tempUniOrderList) {
-                    if (tempUniOrder.search.gap !== 0 || tempUniOrder.target.gap !== 0) {
+                for (const tempOrder of entry.order.list) {
+                    if (tempOrder.searchText.gap !== 0 || tempOrder.targetText.gap !== 0) {
                         continue;
                     }
 
-                    if (tempUniOrder.target.indexList.length < entry.order.maxContinuous.length) {
+                    if (tempOrder.targetText.indexList.length < entry.order.maxContinuous.length) {
                         continue;
                     }
-                    if (tempUniOrder.target.indexList.length > entry.order.maxContinuous.length) {
-                        entry.order.maxContinuous.length = tempUniOrder.target.indexList.length;
+                    if (tempOrder.targetText.indexList.length > entry.order.maxContinuous.length) {
+                        entry.order.maxContinuous.length = tempOrder.targetText.indexList.length;
                         entry.order.maxContinuous.count = 0;
                     }
                     entry.order.maxContinuous.count++;
@@ -241,11 +267,11 @@ type tSearchResultData = {
     },
     order: {
         list: {
-            search: {
+            searchText: {
                 indexList: number[],
                 gap: number,
             },
-            target: {
+            targetText: {
                 indexList: number[],
                 gap: number,
             },
