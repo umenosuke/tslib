@@ -37,6 +37,12 @@ class OrderObjects<V> implements Iterable<V> {
     public getValue(key: string): V | undefined {
         return this.values[key];
     }
+    public getValueWithPushDefault(key: string, defaultValueGenerateFunc: (key: string) => V): V {
+        if (!this.hasKey(key)) {
+            this.push(key, defaultValueGenerateFunc(key));
+        }
+        return this.getValueNotUndefined(key);
+    }
     public getValueNotUndefined(key: string): V {
         const v = this.getValue(key);
         if (v == undefined) {
