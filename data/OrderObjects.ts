@@ -2,11 +2,11 @@ import { arrayStableSort } from "./arrayStableSort.js";
 
 export { OrderObjects };
 
-class OrderObjects<T> implements Iterable<T> {
+class OrderObjects<V> implements Iterable<V> {
     private keys: string[];
-    private values: { [key: string]: T };
+    private values: { [key: string]: V };
 
-    private validateFunc: (value: T) => boolean;
+    private validateFunc: (value: V) => boolean;
 
     get length(): number {
         return this.keys.length;
@@ -19,25 +19,25 @@ class OrderObjects<T> implements Iterable<T> {
         }
     }
 
-    get first(): T | undefined {
+    get first(): V | undefined {
         return this.item(0);
     }
 
-    get last(): T | undefined {
+    get last(): V | undefined {
         return this.item(this.length - 1);
     }
 
-    constructor(validateFunc: (value: T) => boolean = () => { return true; }) {
+    constructor(validateFunc: (value: V) => boolean = () => { return true; }) {
         this.keys = [];
         this.values = {};
 
         this.validateFunc = validateFunc;
     }
 
-    public getValue(key: string): T | undefined {
+    public getValue(key: string): V | undefined {
         return this.values[key];
     }
-    public getValueNotUndefined(key: string): T {
+    public getValueNotUndefined(key: string): V {
         const v = this.getValue(key);
         if (v == undefined) {
             throw new Error("key [" + key + "] is undefined");
@@ -45,7 +45,7 @@ class OrderObjects<T> implements Iterable<T> {
         return v;
     }
 
-    public item(index: number): T | undefined {
+    public item(index: number): V | undefined {
         const key = this.keys[index];
         if (key == undefined) { return undefined; }
         return this.values[key];
@@ -62,7 +62,7 @@ class OrderObjects<T> implements Iterable<T> {
     public getKeys(): string[] {
         return this.keys.concat();
     }
-    public getMatchedKeys(discriminantFunction = function (a: T): boolean { return true; }): string[] {
+    public getMatchedKeys(discriminantFunction = function (a: V): boolean { return true; }): string[] {
         const matchKeys: string[] = [];
 
         for (const key of this.keys) {
@@ -77,8 +77,8 @@ class OrderObjects<T> implements Iterable<T> {
         return matchKeys;
     }
 
-    public search(discriminantFunction = function (a: T): boolean { return true; }): T[] {
-        const matchValues: T[] = [];
+    public search(discriminantFunction = function (a: V): boolean { return true; }): V[] {
+        const matchValues: V[] = [];
 
         for (const key of this.keys) {
             const value = this.getValue(key);
@@ -96,7 +96,7 @@ class OrderObjects<T> implements Iterable<T> {
         return this.keys.indexOf(key) !== -1;
     }
 
-    public push(key: string, val: T): boolean {
+    public push(key: string, val: V): boolean {
         if (this.hasKey(key)) { console.warn("key[" + key + "] already exists"); return false; }
         if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
 
@@ -134,7 +134,7 @@ class OrderObjects<T> implements Iterable<T> {
         return this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
     }
 
-    public replace(key: string, val: T): boolean {
+    public replace(key: string, val: V): boolean {
         if (!this.hasKey(key)) { console.warn("key[" + key + "] not exists"); return false; }
         if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
 
@@ -142,7 +142,7 @@ class OrderObjects<T> implements Iterable<T> {
         return true;
     }
 
-    public pop(): T | undefined {
+    public pop(): V | undefined {
         const key = this.keys.pop();
         if (key == undefined) { return undefined; }
 
@@ -152,7 +152,7 @@ class OrderObjects<T> implements Iterable<T> {
         return val;
     }
 
-    public shift(): T | undefined {
+    public shift(): V | undefined {
         const key = this.keys.shift();
         if (key == undefined) { return undefined; }
 
@@ -162,7 +162,7 @@ class OrderObjects<T> implements Iterable<T> {
         return val;
     }
 
-    public deleteWithIndex(index: number): T | undefined {
+    public deleteWithIndex(index: number): V | undefined {
         if (index < 0 || index >= this.keys.length) {
             return undefined;
         }
@@ -177,11 +177,11 @@ class OrderObjects<T> implements Iterable<T> {
         return val;
     }
 
-    public delete(key: string): T | undefined {
+    public delete(key: string): V | undefined {
         return this.deleteWithIndex(this.keys.indexOf(key));
     }
 
-    public sort(compareIfMoveBehindFunc = function (a: T, b: T) { return a > b; }): void {
+    public sort(compareIfMoveBehindFunc = function (a: V, b: V) { return a > b; }): void {
         arrayStableSort(this.keys, (keyA, keyB) => {
             const valueA = this.getValue(keyA);
             if (valueA == undefined) { throw new Error("internal error"); }
@@ -193,7 +193,7 @@ class OrderObjects<T> implements Iterable<T> {
         });
     }
 
-    public forEach(func: (val: T) => void): void {
+    public forEach(func: (val: V) => void): void {
         this.keys.forEach((key) => {
             const value = this.getValue(key);
             if (value == undefined) { throw new Error("internal error"); }
@@ -202,13 +202,13 @@ class OrderObjects<T> implements Iterable<T> {
         });
     }
 
-    public [Symbol.iterator](): Iterator<T> {
+    public [Symbol.iterator](): Iterator<V> {
         let pointer = 0;
         let keys = this.keys;
         let values = this.values;
 
         return {
-            next(): IteratorResult<T> {
+            next(): IteratorResult<V> {
                 if (pointer < keys.length) {
                     const key = keys[pointer++];
                     if (key == undefined) { throw new Error("internal error"); }
@@ -230,7 +230,7 @@ class OrderObjects<T> implements Iterable<T> {
         };
     }
 
-    public setInternalData(data: { keys: string[], values: { [key: string]: T } }): void {
+    public setInternalData(data: { keys: string[], values: { [key: string]: V } }): void {
         this.clear();
 
         if (!!data.keys) {
