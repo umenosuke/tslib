@@ -11,7 +11,9 @@ class OrderObjectsAutoKey<V> extends OrderObjects<V> {
         this.keyGeneratefunc = keyGeneratefunc;
     }
 
-    public pushAuto(val: V): boolean {
-        return super.push(this.keyGeneratefunc(this, val), val);
+    public pushAuto(val: V): { id: string, success: boolean } {
+        const id = this.keyGeneratefunc(this, val);
+        const success = super.push(id, val);
+        return { id, success, };
     }
 }
