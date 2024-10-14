@@ -15,10 +15,9 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     public override push(key: KEY, val: VALUE): boolean {
         return super.push(key, val);
     }
-    public pushAuto(val: VALUE): { key: KEY, success: boolean } {
+    public pushAuto(val: VALUE): boolean {
         const key = this.keyGeneratefunc(this, val);
-        const success = super.push(key, val);
-        return { key, success, };
+        return super.push(key, val);
     }
 
     /** @deprecated keyが競合する可能性があります、代わりにgetValueWithPushAutoDefaultを利用してください */
@@ -30,6 +29,15 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
             this.pushAuto(defaultValueGenerateFunc(key));
         }
         return this.getValueNotUndefined(key);
+    }
+
+    /** @deprecated keyが競合する可能性があります、代わりにreplaceAutoを利用してください */
+    public override replace(key: KEY, val: VALUE): boolean {
+        return super.replace(key, val);
+    }
+    public replaceAuto(val: VALUE): boolean {
+        const key = this.keyGeneratefunc(this, val);
+        return super.replace(key, val);
     }
 }
 
