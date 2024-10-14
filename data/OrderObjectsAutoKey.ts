@@ -13,6 +13,7 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
 
     /** @deprecated keyが競合する可能性があります、代わりにpushAutoを利用してください */
     public override push(key: KEY, val: VALUE): "success" | "already exists" | "invalid value" {
+        console.warn("push is deprecated");
         return super.push(key, val);
     }
     public pushAuto(val: VALUE): "success" | "already exists" | "invalid value" {
@@ -22,6 +23,7 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
 
     /** @deprecated keyが競合する可能性があります、代わりにgetValueWithPushAutoDefaultを利用してください */
     public override getValueWithPushDefault(key: KEY, defaultValueGenerateFunc: (key: KEY) => VALUE): VALUE {
+        console.warn("getValueWithPushDefault is deprecated");
         return super.getValueWithPushDefault(key, defaultValueGenerateFunc);
     }
     public getValueWithPushAutoDefault(key: KEY, defaultValueGenerateFunc: (key: KEY) => VALUE): VALUE {
@@ -33,6 +35,7 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
 
     /** @deprecated keyが競合する可能性があります、代わりにreplaceAutoを利用してください */
     public override replace(key: KEY, val: VALUE): ({ status: "success", old: VALUE } | { status: "not exists" } | { status: "invalid value" }) {
+        console.warn("replace is deprecated");
         return super.replace(key, val);
     }
     public replaceAuto(val: VALUE): ({ status: "success", old: VALUE } | { status: "not exists" } | { status: "invalid value" }) {
@@ -42,6 +45,7 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
 
     /** @deprecated keyが競合する可能性があります、代わりにsetAutoを利用してください */
     public override set(key: KEY, val: VALUE): ({ status: "success push" } | { status: "success replace", old: VALUE } | { status: "invalid value" } | { status: "fail" }) {
+        console.warn("set is deprecated");
         return super.set(key, val);
     }
     public setAuto(val: VALUE): ({ status: "success push" } | { status: "success replace", old: VALUE } | { status: "invalid value" } | { status: "fail" }) {
