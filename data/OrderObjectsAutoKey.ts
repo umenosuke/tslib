@@ -3,9 +3,9 @@ import { OrderObjects } from "./OrderObjects.js";
 export { OrderObjectsAutoKey, keyGenerateFromLength };
 
 class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
-    private keyGeneratefunc: (arr: OrderObjectsAutoKey<KEY, VALUE>, value: VALUE) => KEY;
+    private keyGeneratefunc: (value: VALUE, arr: OrderObjectsAutoKey<KEY, VALUE>) => KEY;
 
-    constructor(keyGeneratefunc: (arr: OrderObjectsAutoKey<KEY, VALUE>, value: VALUE) => KEY) {
+    constructor(keyGeneratefunc: (value: VALUE, arr: OrderObjectsAutoKey<KEY, VALUE>) => KEY) {
         super();
 
         this.keyGeneratefunc = keyGeneratefunc;
@@ -16,7 +16,7 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
         return super.push(key, val);
     }
     public pushAuto(val: VALUE): boolean {
-        const key = this.keyGeneratefunc(this, val);
+        const key = this.keyGeneratefunc(val, this);
         return super.push(key, val);
     }
 
@@ -36,7 +36,7 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
         return super.replace(key, val);
     }
     public replaceAuto(val: VALUE): boolean {
-        const key = this.keyGeneratefunc(this, val);
+        const key = this.keyGeneratefunc(val, this);
         return super.replace(key, val);
     }
 
@@ -45,11 +45,11 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
         return super.set(key, val);
     }
     public setAuto(val: VALUE): boolean {
-        const key = this.keyGeneratefunc(this, val);
+        const key = this.keyGeneratefunc(val, this);
         return super.set(key, val);
     }
 }
 
-function keyGenerateFromLength<VALUE>(arr: OrderObjectsAutoKey<number, VALUE>): number {
+function keyGenerateFromLength(_: unknown, arr: OrderObjectsAutoKey<number, unknown>): number {
     return arr.length;
 }
