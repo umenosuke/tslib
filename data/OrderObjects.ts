@@ -2,11 +2,11 @@ import { arrayStableSort } from "./arrayStableSort.js";
 
 export { OrderObjects };
 
-class OrderObjects<V> implements Iterable<V> {
-    private keys: string[];
-    private values: { [key: string]: V };
+class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
+    private keys: KEY[];
+    private values: Map<KEY, VALUE>;
 
-    private validateFunc: (value: V) => boolean;
+    private validateFunc: (value: VALUE) => boolean;
 
     get length(): number {
         return this.keys.length;
@@ -19,31 +19,31 @@ class OrderObjects<V> implements Iterable<V> {
         }
     }
 
-    get first(): V | undefined {
+    get first(): VALUE | undefined {
         return this.item(0);
     }
 
-    get last(): V | undefined {
+    get last(): VALUE | undefined {
         return this.item(this.length - 1);
     }
 
-    constructor(validateFunc: (value: V) => boolean = () => { return true; }) {
+    constructor(validateFunc: (value: VALUE) => boolean = () => { return true; }) {
         this.keys = [];
-        this.values = {};
+        this.values = new Map();
 
         this.validateFunc = validateFunc;
     }
 
-    public getValue(key: string): V | undefined {
-        return this.values[key];
+    public getValue(key: KEY): VALUE | undefined {
+        return this.values.get(key);
     }
-    public getValueWithPushDefault(key: string, defaultValueGenerateFunc: (key: string) => V): V {
+    public getValueWithPushDefault(key: KEY, defaultValueGenerateFunc: (key: KEY) => VALUE): VALUE {
         if (!this.hasKey(key)) {
             this.push(key, defaultValueGenerateFunc(key));
         }
         return this.getValueNotUndefined(key);
     }
-    public getValueNotUndefined(key: string): V {
+    public getValueNotUndefined(key: KEY): VALUE {
         const v = this.getValue(key);
         if (v == undefined) {
             throw new Error("key [" + key + "] is undefined");
@@ -51,25 +51,25 @@ class OrderObjects<V> implements Iterable<V> {
         return v;
     }
 
-    public item(index: number): V | undefined {
+    public item(index: number): VALUE | undefined {
         const key = this.keys[index];
         if (key == undefined) { return undefined; }
-        return this.values[key];
+        return this.values.get(key);
     }
 
-    public getKey(index: number): string | undefined {
+    public getKey(index: number): KEY | undefined {
         return this.keys[index];
     }
 
-    public getIndex(key: string): number {
+    public getIndex(key: KEY): number {
         return this.keys.indexOf(key);
     }
 
-    public getKeys(): string[] {
+    public getKeys(): KEY[] {
         return this.keys.concat();
     }
-    public getMatchedKeys(discriminantFunction = function (a: V): boolean { return true; }): string[] {
-        const matchKeys: string[] = [];
+    public getMatchedKeys(discriminantFunction = function (a: VALUE): boolean { return true; }): KEY[] {
+        const matchKeys: KEY[] = [];
 
         for (const key of this.keys) {
             const value = this.getValue(key);
@@ -83,8 +83,8 @@ class OrderObjects<V> implements Iterable<V> {
         return matchKeys;
     }
 
-    public search(discriminantFunction = function (a: V): boolean { return true; }): V[] {
-        const matchValues: V[] = [];
+    public search(discriminantFunction = function (a: VALUE): boolean { return true; }): VALUE[] {
+        const matchValues: VALUE[] = [];
 
         for (const key of this.keys) {
             const value = this.getValue(key);
@@ -98,16 +98,16 @@ class OrderObjects<V> implements Iterable<V> {
         return matchValues;
     }
 
-    public hasKey(key: string): boolean {
+    public hasKey(key: KEY): boolean {
         return this.keys.indexOf(key) !== -1;
     }
 
-    public push(key: string, val: V): boolean {
+    public push(key: KEY, val: VALUE): boolean {
         if (this.hasKey(key)) { console.warn("key[" + key + "] already exists"); return false; }
         if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
 
         this.keys.push(key);
-        this.values[key] = val;
+        this.values.set(key, val);
         return true;
     }
 
@@ -133,61 +133,61 @@ class OrderObjects<V> implements Iterable<V> {
         this.keys.splice(toIndex, 0, ...target);
         return true;
     }
-    public moveByKey(targetKey: string, toIndex: number): boolean {
+    public moveByKey(targetKey: KEY, toIndex: number): boolean {
         return this.move(this.getIndex(targetKey), toIndex);
     }
-    public moveTo(targetKey: string, toKey: string, offset: number = 0): boolean {
+    public moveTo(targetKey: KEY, toKey: KEY, offset: number = 0): boolean {
         return this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
     }
 
-    public replace(key: string, val: V): boolean {
+    public replace(key: KEY, val: VALUE): boolean {
         if (!this.hasKey(key)) { console.warn("key[" + key + "] not exists"); return false; }
         if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
 
-        this.values[key] = val;
+        this.values.set(key, val);
         return true;
     }
 
-    public pop(): V | undefined {
+    public pop(): VALUE | undefined {
         const key = this.keys.pop();
         if (key == undefined) { return undefined; }
 
-        const val = this.values[key];
-        delete this.values[key];
+        const val = this.values.get(key);
+        this.values.delete(key);
 
         return val;
     }
 
-    public shift(): V | undefined {
+    public shift(): VALUE | undefined {
         const key = this.keys.shift();
         if (key == undefined) { return undefined; }
 
-        const val = this.values[key];
-        delete this.values[key];
+        const val = this.values.get(key);
+        this.values.delete(key);
 
         return val;
     }
 
-    public deleteWithIndex(index: number): V | undefined {
+    public deleteWithIndex(index: number): VALUE | undefined {
         if (index < 0 || index >= this.keys.length) {
             return undefined;
         }
         const key = this.keys[index];
         if (key == undefined) { return undefined; }
 
-        const val = this.values[key];
-        delete this.values[key];
+        const val = this.values.get(key);
+        this.values.delete(key);
 
         this.keys.splice(index, 1);
 
         return val;
     }
 
-    public delete(key: string): V | undefined {
+    public delete(key: KEY): VALUE | undefined {
         return this.deleteWithIndex(this.keys.indexOf(key));
     }
 
-    public sort(compareIfMoveBehindFunc = function (a: V, b: V) { return a > b; }): void {
+    public sort(compareIfMoveBehindFunc = function (a: VALUE, b: VALUE) { return a > b; }): void {
         arrayStableSort(this.keys, (keyA, keyB) => {
             const valueA = this.getValue(keyA);
             if (valueA == undefined) { throw new Error("internal error"); }
@@ -199,7 +199,7 @@ class OrderObjects<V> implements Iterable<V> {
         });
     }
 
-    public forEach(func: (val: V) => void): void {
+    public forEach(func: (val: VALUE) => void): void {
         this.keys.forEach((key) => {
             const value = this.getValue(key);
             if (value == undefined) { throw new Error("internal error"); }
@@ -208,18 +208,18 @@ class OrderObjects<V> implements Iterable<V> {
         });
     }
 
-    public [Symbol.iterator](): Iterator<V> {
+    public [Symbol.iterator](): Iterator<VALUE> {
         let pointer = 0;
         let keys = this.keys;
         let values = this.values;
 
         return {
-            next(): IteratorResult<V> {
+            next(): IteratorResult<VALUE> {
                 if (pointer < keys.length) {
                     const key = keys[pointer++];
                     if (key == undefined) { throw new Error("internal error"); }
 
-                    const value = values[key];
+                    const value = values.get(key);
                     if (value == undefined) { throw new Error("internal error"); }
 
                     return {
@@ -236,7 +236,7 @@ class OrderObjects<V> implements Iterable<V> {
         };
     }
 
-    public setInternalData(data: { keys: string[], values: { [key: string]: V } }): void {
+    public setInternalData(data: { keys: KEY[], values: Map<KEY, VALUE> }): void {
         this.clear();
 
         if (!!data.keys) {
@@ -244,7 +244,7 @@ class OrderObjects<V> implements Iterable<V> {
                 const key = data.keys[i];
                 if (key == undefined) { throw new Error("internal error"); }
 
-                const value = data.values[key];
+                const value = data.values.get(key);
                 if (value == undefined) { throw new Error("internal error"); }
 
                 this.push(key, value);
@@ -254,7 +254,7 @@ class OrderObjects<V> implements Iterable<V> {
 
     public clear(): void {
         this.keys = [];
-        this.values = {};
+        this.values.clear();
     }
 
     public toJSON() {
