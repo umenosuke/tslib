@@ -96,18 +96,19 @@ class OrderObjects<T> implements Iterable<T> {
         return this.keys.indexOf(key) !== -1;
     }
 
-    public push(key: string, val: T): void {
-        if (this.hasKey(key)) { console.warn("key[" + key + "] already exists"); return; }
-        if (!this.validateFunc(val)) { console.warn("invalid value"); return; }
+    public push(key: string, val: T): boolean {
+        if (this.hasKey(key)) { console.warn("key[" + key + "] already exists"); return false; }
+        if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
 
         this.keys.push(key);
         this.values[key] = val;
+        return true;
     }
 
-    public move(targetIndex: number, toIndex: number): void {
+    public move(targetIndex: number, toIndex: number): boolean {
         if (targetIndex < 0 || targetIndex >= this.keys.length) {
             console.warn("index out of range", targetIndex);
-            return;
+            return false;
         }
 
         if (toIndex < 0) {
@@ -119,24 +120,26 @@ class OrderObjects<T> implements Iterable<T> {
         }
 
         if (targetIndex === toIndex) {
-            return;
+            return false;
         }
 
         const target = this.keys.splice(targetIndex, 1);
         this.keys.splice(toIndex, 0, ...target);
+        return true;
     }
-    public moveByKey(targetKey: string, toIndex: number): void {
-        this.move(this.getIndex(targetKey), toIndex);
+    public moveByKey(targetKey: string, toIndex: number): boolean {
+        return this.move(this.getIndex(targetKey), toIndex);
     }
-    public moveTo(targetKey: string, toKey: string, offset: number = 0): void {
-        this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
+    public moveTo(targetKey: string, toKey: string, offset: number = 0): boolean {
+        return this.move(this.getIndex(targetKey), this.getIndex(toKey) + offset);
     }
 
-    public replace(key: string, val: T): void {
-        if (!this.hasKey(key)) { console.warn("key[" + key + "] not exists"); return; }
-        if (!this.validateFunc(val)) { console.warn("invalid value"); return; }
+    public replace(key: string, val: T): boolean {
+        if (!this.hasKey(key)) { console.warn("key[" + key + "] not exists"); return false; }
+        if (!this.validateFunc(val)) { console.warn("invalid value"); return false; }
 
         this.values[key] = val;
+        return true;
     }
 
     public pop(): T | undefined {
