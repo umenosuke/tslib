@@ -103,8 +103,8 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
     }
 
     public push(key: KEY, val: VALUE): "success" | "already exists" | "invalid value" {
-        if (this.hasKey(key)) { return "already exists"; }
-        if (!this.validateFunc(val)) { return "invalid value"; }
+        if (this.hasKey(key)) { console.warn("already exists : ", key); return "already exists"; }
+        if (!this.validateFunc(val)) { console.warn("invalid value : ", val); return "invalid value"; }
 
         this.keys.push(key);
         this.values.set(key, val);
@@ -113,6 +113,7 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
 
     public move(targetIndex: number, toIndex: number): "success" | "not affected" | "index out of range" {
         if (targetIndex < 0 || targetIndex >= this.keys.length) {
+            console.warn("index out of range : ", targetIndex);
             return "index out of range";
         }
 
@@ -140,8 +141,8 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
     }
 
     public replace(key: KEY, val: VALUE): ({ status: "success", old: VALUE } | { status: "not exists" } | { status: "invalid value" }) {
-        if (!this.hasKey(key)) { return { status: "not exists" }; }
-        if (!this.validateFunc(val)) { return { status: "invalid value" }; }
+        if (!this.hasKey(key)) { console.warn("not exists : ", key); return { status: "not exists" }; }
+        if (!this.validateFunc(val)) { console.warn("invalid value : ", val); return { status: "invalid value" }; }
 
         const old = this.getValueNotUndefined(key);
         this.values.set(key, val);
