@@ -106,21 +106,46 @@ class TextSearch<ID> {
                 }[] = [];
                 for (const eInx of eInxList[1]) {
                     for (const iList of entry.order.list) {
-                        const iSearchLast = iList.search.indexList.at(-1) ?? Infinity;
-                        const iTargetLast = iList.target.indexList.at(-1) ?? Infinity;
+                        const iSearchLast = iList.search.indexList.at(-1);
+                        const iTargetLast = iList.target.indexList.at(-1);
+                        if (iSearchLast == undefined || iTargetLast == undefined) {
+                            throw new Error("iSearchLast == undefined || iTargetLast == undefined");
+                        }
                         if (iTargetLast < eInx) {
+                            const searchGap = iList.search.gap + (eInxList[0] - iSearchLast - 1);
+                            if (searchGap > Infinity) {
+                                continue;
+                            }
+                            const targetGap = iList.target.gap + (eInx - iTargetLast - 1);
+                            if (targetGap > Infinity) {
+                                continue;
+                            }
+
+                            const searchIndexList: number[] = [];
+                            for (const t of iList.search.indexList) {
+                                searchIndexList.push(t);
+                            }
+                            searchIndexList.push(eInxList[0]);
+
+                            const targetIndexList: number[] = [];
+                            for (const t of iList.target.indexList) {
+                                targetIndexList.push(t);
+                            }
+                            targetIndexList.push(eInx);
+
                             tempUniOrderList.push({
                                 search: {
-                                    indexList: [...iList.search.indexList, eInxList[0]],
-                                    gap: iList.search.gap + (eInxList[0] - iSearchLast - 1),
+                                    indexList: searchIndexList,
+                                    gap: searchGap,
                                 },
                                 target: {
-                                    indexList: [...iList.target.indexList, eInx],
-                                    gap: iList.target.gap + (eInx - iTargetLast - 1),
+                                    indexList: targetIndexList,
+                                    gap: targetGap,
                                 }
                             });
                         }
                     }
+
                     tempUniOrderList.push({
                         search: {
                             indexList: [eInxList[0]],
@@ -132,7 +157,11 @@ class TextSearch<ID> {
                         }
                     });
                 }
-                entry.order.list.push(...tempUniOrderList);
+
+                entry.order.list.length = 0;
+                for (const temp of tempUniOrderList) {
+                    entry.order.list.push(temp);
+                }
 
                 for (const tempUniOrder of tempUniOrderList) {
                     if (tempUniOrder.search.gap !== 0 || tempUniOrder.target.gap !== 0) {
@@ -183,7 +212,11 @@ class TextSearch<ID> {
                             throw new Error("entry == undefined");
                         }
 
-                        entry.set(index, [...dIndexList]);
+                        const temp: number[] = [];
+                        for (const d of dIndexList) {
+                            temp.push(d);
+                        }
+                        entry.set(index, temp);
                     }
                 }
             }
