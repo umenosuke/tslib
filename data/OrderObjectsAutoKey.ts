@@ -50,7 +50,33 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     }
     public setAuto(val: VALUE): ({ status: "success push" } | { status: "success replace", old: VALUE } | { status: "invalid value" } | { status: "fail" }) {
         const key = this.keyGeneratefunc(val, this);
-        return super.set(key, val);
+        if (!this.hasKey(key)) {
+            const res = super.push(key, val);
+            switch (res) {
+                case "success":
+                    return { status: "success push" };
+
+                case "invalid value":
+                    return { status: "invalid value" };
+
+                case "already exists":
+                default:
+                    return { status: "fail" };
+            }
+        } else {
+            const res = super.replace(key, val);
+            switch (res.status) {
+                case "success":
+                    return { status: "success replace", old: res.old };
+
+                case "invalid value":
+                    return { status: "invalid value" };
+
+                case "not exists":
+                default:
+                    return { status: "fail" };
+            }
+        }
     }
 }
 
