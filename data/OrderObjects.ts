@@ -99,7 +99,7 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
     }
 
     public hasKey(key: KEY): boolean {
-        return this.keys.indexOf(key) !== -1;
+        return this.keys.includes(key);
     }
 
     public push(key: KEY, val: VALUE): boolean {
