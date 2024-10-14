@@ -227,7 +227,7 @@ class OrderObjects<T> implements Iterable<T> {
         };
     }
 
-    public set(data: { keys: string[], values: { [key: string]: T } }): void {
+    public setInternalData(data: { keys: string[], values: { [key: string]: T } }): void {
         this.clear();
 
         if (!!data.keys) {
