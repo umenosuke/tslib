@@ -1,6 +1,8 @@
+import type { ExtractOrderObjectsValueType } from "../data/OrderObjects.js";
 import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
+import type { ExtractPart } from "../type/ExtractPart.js";
 
-export { TextSearch, type tSearchResult, type tSearchResultData };
+export { TextSearch, type tSearchResult };
 
 class TextSearch<ID> {
     private uniGram: Map<string, Map<ID, number[]>>;
@@ -120,22 +122,7 @@ class TextSearch<ID> {
                     console.log({ searchTextIndex, targetTextIndexList });
                 }*/
 
-                const tempUniOrderList: {
-                    searchText: {
-                        indexList: number[],
-                        gap: {
-                            max: number,
-                            total: number,
-                        },
-                    },
-                    targetText: {
-                        indexList: number[],
-                        gap: {
-                            max: number,
-                            total: number,
-                        },
-                    },
-                }[] = [];
+                const tempUniOrderList: ExtractPart<ExtractPart<ExtractOrderObjectsValueType<ExtractPart<tSearchResult<unknown>, "data">>[1], "order">, "list"> = [];
 
                 let matchTargetTextIndexList = new Set<number>();
 
@@ -244,13 +231,7 @@ class TextSearch<ID> {
             entry.uni.kind += kind;
             entry.uni.count += count;
 
-            const maxContinuous: {
-                textLength: number,
-                points: {
-                    start: number,
-                    end: number,
-                }[],
-            } = {
+            const maxContinuous: ExtractPart<ExtractPart<ExtractOrderObjectsValueType<ExtractPart<tSearchResult<unknown>, "data">>[1], "order">, "maxContinuous"> = {
                 textLength: -Infinity,
                 points: [],
             };
@@ -350,36 +331,35 @@ function getCharList(text: string): string[] {
 
 type tSearchResult<ID> = {
     searchText: string[],
-    data: OrderObjectsAutoKey<ID, [ID, tSearchResultData]>,
-};
-type tSearchResultData = {
-    uni: {
-        kind: number,
-        count: number,
-    },
-    order: {
-        list: {
-            searchText: {
-                indexList: number[],
-                gap: {
-                    max: number,
-                    total: number,
+    data: OrderObjectsAutoKey<ID, [ID, {
+        uni: {
+            kind: number,
+            count: number,
+        },
+        order: {
+            list: {
+                searchText: {
+                    indexList: number[],
+                    gap: {
+                        max: number,
+                        total: number,
+                    },
                 },
-            },
-            targetText: {
-                indexList: number[],
-                gap: {
-                    max: number,
-                    total: number,
+                targetText: {
+                    indexList: number[],
+                    gap: {
+                        max: number,
+                        total: number,
+                    },
                 },
-            },
-        }[],
-        maxContinuous: {
-            textLength: number,
-            points: {
-                start: number,
-                end: number,
             }[],
-        }
-    },
+            maxContinuous: {
+                textLength: number,
+                points: {
+                    start: number,
+                    end: number,
+                }[],
+            }
+        },
+    }]>,
 };
