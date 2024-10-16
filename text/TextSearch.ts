@@ -81,8 +81,8 @@ class TextSearch<ID> {
                     order: {
                         list: [],
                         maxContinuous: {
-                            count: 0,
-                            length: 0,
+                            textLength: 0,
+                            points: [],
                         },
                     },
                 }]);
@@ -233,39 +233,60 @@ class TextSearch<ID> {
             entry.uni.kind += kind;
             entry.uni.count += count;
 
-            const maxContinuous = {
-                length: -Infinity,
-                count: -Infinity,
+            const maxContinuous: {
+                textLength: number,
+                points: {
+                    start: number,
+                    end: number,
+                }[],
+            } = {
+                textLength: -Infinity,
+                points: [],
             };
             for (const tempOrder of entry.order.list) {
                 let tempMaxContinuousLength = 0;
+                let tempFirst = -Infinity;
                 let tempBefore = -Infinity;
 
                 for (const targetTextIndex of tempOrder.targetText.indexList) {
                     if (targetTextIndex !== tempBefore + 1) {
-                        if (tempMaxContinuousLength === maxContinuous.length) {
-                            maxContinuous.count++;
-                        } else if (tempMaxContinuousLength > maxContinuous.length) {
-                            maxContinuous.length = tempMaxContinuousLength;
-                            maxContinuous.count = 1;
+                        if (tempMaxContinuousLength === maxContinuous.textLength) {
+                            maxContinuous.points.push({
+                                start: tempFirst,
+                                end: tempBefore,
+                            });
+                        } else if (tempMaxContinuousLength > maxContinuous.textLength) {
+                            maxContinuous.textLength = tempMaxContinuousLength;
+                            maxContinuous.points = [{
+                                start: tempFirst,
+                                end: tempBefore,
+                            }];
                         }
+
                         tempMaxContinuousLength = 0;
+                        tempFirst = targetTextIndex;
                     }
                     tempMaxContinuousLength++;
                     tempBefore = targetTextIndex;
                 }
-                if (tempMaxContinuousLength === maxContinuous.length) {
-                    maxContinuous.count++;
-                } else if (tempMaxContinuousLength > maxContinuous.length) {
-                    maxContinuous.length = tempMaxContinuousLength;
-                    maxContinuous.count = 1;
+
+                if (tempMaxContinuousLength === maxContinuous.textLength) {
+                    maxContinuous.points.push({
+                        start: tempFirst,
+                        end: tempBefore,
+                    });
+                } else if (tempMaxContinuousLength > maxContinuous.textLength) {
+                    maxContinuous.textLength = tempMaxContinuousLength;
+                    maxContinuous.points = [{
+                        start: tempFirst,
+                        end: tempBefore,
+                    }];
                 }
             }
-            if (maxContinuous.length === entry.order.maxContinuous.length) {
-                entry.order.maxContinuous.count += maxContinuous.count;
-            } else if (maxContinuous.length > entry.order.maxContinuous.length) {
-                entry.order.maxContinuous.length = maxContinuous.length;
-                entry.order.maxContinuous.count = maxContinuous.count;
+            if (maxContinuous.textLength === entry.order.maxContinuous.textLength) {
+                entry.order.maxContinuous.points.push(...maxContinuous.points);
+            } else if (maxContinuous.textLength > entry.order.maxContinuous.textLength) {
+                entry.order.maxContinuous = maxContinuous;
             }
         }
 
@@ -337,8 +358,11 @@ type tSearchResultData = {
             },
         }[],
         maxContinuous: {
-            length: number,
-            count: number,
+            textLength: number,
+            points: {
+                start: number,
+                end: number,
+            }[],
         }
     },
 };
