@@ -228,25 +228,45 @@ class TextSearch<ID> {
                     }*/
                     entry.order.list.push(temp);
                 }
-
-                for (const tempOrder of entry.order.list) {
-                    if (tempOrder.searchText.gap !== 0 || tempOrder.targetText.gap !== 0) {
-                        continue;
-                    }
-
-                    if (tempOrder.targetText.indexList.length < entry.order.maxContinuous.length) {
-                        continue;
-                    }
-                    if (tempOrder.targetText.indexList.length > entry.order.maxContinuous.length) {
-                        entry.order.maxContinuous.length = tempOrder.targetText.indexList.length;
-                        entry.order.maxContinuous.count = 0;
-                    }
-                    entry.order.maxContinuous.count++;
-                }
             }
 
             entry.uni.kind += kind;
             entry.uni.count += count;
+
+            const maxContinuous = {
+                length: -Infinity,
+                count: -Infinity,
+            };
+            for (const tempOrder of entry.order.list) {
+                let tempMaxContinuousLength = 0;
+                let tempBefore = -Infinity;
+
+                for (const targetTextIndex of tempOrder.targetText.indexList) {
+                    if (targetTextIndex !== tempBefore + 1) {
+                        if (tempMaxContinuousLength === maxContinuous.length) {
+                            maxContinuous.count++;
+                        } else if (tempMaxContinuousLength > maxContinuous.length) {
+                            maxContinuous.length = tempMaxContinuousLength;
+                            maxContinuous.count = 1;
+                        }
+                        tempMaxContinuousLength = 0;
+                    }
+                    tempMaxContinuousLength++;
+                    tempBefore = targetTextIndex;
+                }
+                if (tempMaxContinuousLength === maxContinuous.length) {
+                    maxContinuous.count++;
+                } else if (tempMaxContinuousLength > maxContinuous.length) {
+                    maxContinuous.length = tempMaxContinuousLength;
+                    maxContinuous.count = 1;
+                }
+            }
+            if (maxContinuous.length === entry.order.maxContinuous.length) {
+                entry.order.maxContinuous.count += maxContinuous.count;
+            } else if (maxContinuous.length > entry.order.maxContinuous.length) {
+                entry.order.maxContinuous.length = maxContinuous.length;
+                entry.order.maxContinuous.count = maxContinuous.count;
+            }
         }
 
         return res;
