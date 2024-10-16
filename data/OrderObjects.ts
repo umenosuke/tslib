@@ -1,6 +1,6 @@
 import { arrayStableSort } from "./arrayStableSort.js";
 
-export { OrderObjects };
+export { OrderObjects, type ExtractOrderObjectsValueType };
 
 class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
     private keys: KEY[];
@@ -292,3 +292,5 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return { keys: this.keys, values: this.values };
     }
 }
+
+type ExtractOrderObjectsValueType<T> = T extends OrderObjects<unknown, infer VALUE> ? VALUE : never;
