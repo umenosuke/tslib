@@ -95,12 +95,18 @@ class TextSearch<ID> {
             entry.order.list.push({
                 searchText: {
                     indexList: [],
-                    gap: 0,
+                    gap: {
+                        max: 0,
+                        total: 0,
+                    },
                 },
                 targetText: {
                     indexList: [],
-                    gap: 0,
-                }
+                    gap: {
+                        max: 0,
+                        total: 0,
+                    },
+                },
             });
 
             for (const searchResult of searchResultMap) {
@@ -117,11 +123,17 @@ class TextSearch<ID> {
                 const tempUniOrderList: {
                     searchText: {
                         indexList: number[],
-                        gap: number,
+                        gap: {
+                            max: number,
+                            total: number,
+                        },
                     },
                     targetText: {
                         indexList: number[],
-                        gap: number,
+                        gap: {
+                            max: number,
+                            total: number,
+                        },
                     },
                 }[] = [];
 
@@ -151,21 +163,8 @@ class TextSearch<ID> {
                         }
 
                         if (flgNearestTargetTextIndex) {
-                            //if (searchTextIndex > orderCurrentSearchIndexLast + 3) {
-                            //    continue;
-                            //}
-                            const tempSearchGap = Number.isFinite(orderCurrentSearchIndexLast) ? orderCurrent.searchText.gap + (searchTextIndex - orderCurrentSearchIndexLast - 1) : 0;
-                            //if (tempSearchGap > 6) {
-                            //    continue;
-                            //}
-
-                            //if (targetTextIndex > orderCurrentTargetIndexLast + 3) {
-                            //    continue;
-                            //}
-                            const tempTargetGap = Number.isFinite(orderCurrentTargetIndexLast) ? orderCurrent.targetText.gap + (targetTextIndex - orderCurrentTargetIndexLast - 1) : 0;
-                            //if (tempTargetGap > 6) {
-                            //    continue;
-                            //}
+                            const tempSearchGapNow = Number.isFinite(orderCurrentSearchIndexLast) ? (searchTextIndex - orderCurrentSearchIndexLast - 1) : 0;
+                            const tempTargetGapNow = Number.isFinite(orderCurrentTargetIndexLast) ? (targetTextIndex - orderCurrentTargetIndexLast - 1) : 0;
 
                             const tempSearchIndexList: number[] = [];
                             for (const t of orderCurrent.searchText.indexList) {
@@ -182,11 +181,17 @@ class TextSearch<ID> {
                             tempUniOrderList.push({
                                 searchText: {
                                     indexList: tempSearchIndexList,
-                                    gap: tempSearchGap,
+                                    gap: {
+                                        total: orderCurrent.searchText.gap.total + tempSearchGapNow,
+                                        max: Math.max(orderCurrent.searchText.gap.total, tempSearchGapNow),
+                                    },
                                 },
                                 targetText: {
                                     indexList: tempTargetIndexList,
-                                    gap: tempTargetGap,
+                                    gap: {
+                                        total: orderCurrent.targetText.gap.total + tempTargetGapNow,
+                                        max: Math.max(orderCurrent.targetText.gap.max, tempTargetGapNow),
+                                    },
                                 }
                             });
 
@@ -210,11 +215,17 @@ class TextSearch<ID> {
                         tempUniOrderList.push({
                             searchText: {
                                 indexList: [searchTextIndex],
-                                gap: 0,
+                                gap: {
+                                    max: 0,
+                                    total: 0,
+                                },
                             },
                             targetText: {
                                 indexList: [targetTextIndex],
-                                gap: 0,
+                                gap: {
+                                    max: 0,
+                                    total: 0,
+                                },
                             }
                         });
                         matchTargetTextIndexList.add(targetTextIndex);
@@ -350,11 +361,17 @@ type tSearchResultData = {
         list: {
             searchText: {
                 indexList: number[],
-                gap: number,
+                gap: {
+                    max: number,
+                    total: number,
+                },
             },
             targetText: {
                 indexList: number[],
-                gap: number,
+                gap: {
+                    max: number,
+                    total: number,
+                },
             },
         }[],
         maxContinuous: {
