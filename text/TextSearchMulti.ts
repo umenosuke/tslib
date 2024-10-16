@@ -1,3 +1,5 @@
+import { OrderObjects } from "../data/OrderObjects.js";
+import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import { TextSearch, type tSearchResult } from "./TextSearch.js";
 
 export { TextSearchMulti, type tSearchResultMulti };
@@ -23,14 +25,15 @@ class TextSearchMulti<TAG, ID> {
     }
 
     public search(text: string): tSearchResultMulti<TAG, ID> {
-        const res: tSearchResultMulti<TAG, ID> = new Map();
+        const res: tSearchResultMulti<TAG, ID> = new OrderObjectsAutoKey(v => v[0]);
 
         for (const textSearch of this.textSearchList) {
-            res.set(textSearch[0], textSearch[1].search(text));
+            res.setAuto([textSearch[0], textSearch[1].search(text)]);
         }
 
         return res;
     }
 }
 
-type tSearchResultMulti<TAG, ID> = Map<TAG, tSearchResult<ID>>;
+type tSearchResultMulti<TAG, ID> = OrderObjectsAutoKey<TAG, [TAG, tSearchResult<ID>]>;
+

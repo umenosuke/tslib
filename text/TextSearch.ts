@@ -1,3 +1,5 @@
+import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
+
 export { TextSearch, type tSearchResult, type tSearchResultData };
 
 class TextSearch<ID> {
@@ -55,7 +57,7 @@ class TextSearch<ID> {
         const charList = getCharList(text);
         const res: tSearchResult<ID> = {
             searchText: charList,
-            data: new Map(),
+            data: new OrderObjectsAutoKey(v => v[0]),
         };
 
         const len = charList.length;
@@ -66,12 +68,12 @@ class TextSearch<ID> {
         for (const searchResult of this.searchUni(text)) {
             const searchResultID = searchResult[0];
             const searchResultMap = searchResult[1];
-            if (searchResultID === "hogehoge") {
+            /*if (searchResultID === "") {
                 console.log(searchResultMap);
-            }
+            }*/
 
-            if (!res.data.has(searchResultID)) {
-                res.data.set(searchResultID, {
+            if (!res.data.hasKey(searchResultID)) {
+                res.data.setAuto([searchResultID, {
                     uni: {
                         kind: 0,
                         count: 0,
@@ -83,15 +85,23 @@ class TextSearch<ID> {
                             length: 0,
                         },
                     },
-                });
+                }]);
             }
-            const entry = res.data.get(searchResultID);
-            if (entry == undefined) {
-                throw new Error("entry == undefined");
-            }
+            const entry = res.data.getValueNotUndefined(searchResultID)[1];
 
             let kind = 0;
             let count = 0;
+
+            entry.order.list.push({
+                searchText: {
+                    indexList: [],
+                    gap: 0,
+                },
+                targetText: {
+                    indexList: [],
+                    gap: 0,
+                }
+            });
 
             for (const searchResult of searchResultMap) {
                 const searchTextIndex = searchResult[0];
@@ -100,31 +110,38 @@ class TextSearch<ID> {
                 kind++;
                 count += targetTextIndexList.length;
 
-                if (searchResultID === "hogehoge") {
+                /*if (searchResultID === "") {
                     console.log({ searchTextIndex, targetTextIndexList });
-                }
-                for (const targetTextIndex of targetTextIndexList) {
-                    const tempUniOrderList: {
-                        searchText: {
-                            indexList: number[],
-                            gap: number,
-                        },
-                        targetText: {
-                            indexList: number[],
-                            gap: number,
-                        },
-                    }[] = [];
+                }*/
 
-                    for (const orderCurrent of entry.order.list) {
-                        if (searchResultID === "hogehoge") {
-                            console.log(targetTextIndex, orderCurrent.searchText.indexList, orderCurrent.targetText.indexList);
-                        }
+                const tempUniOrderList: {
+                    searchText: {
+                        indexList: number[],
+                        gap: number,
+                    },
+                    targetText: {
+                        indexList: number[],
+                        gap: number,
+                    },
+                }[] = [];
 
-                        const orderCurrentSearchIndexLast = orderCurrent.searchText.indexList.at(-1);
-                        const orderCurrentTargetIndexLast = orderCurrent.targetText.indexList.at(-1);
-                        if (orderCurrentSearchIndexLast == undefined || orderCurrentTargetIndexLast == undefined) {
-                            throw new Error("iSearchLast == undefined || iTargetLast == undefined");
-                        }
+                let matchTargetTextIndexList = new Set<number>();
+
+                for (const orderCurrent of entry.order.list) {
+                    let flgNearestTargetTextIndex = true;
+                    let flgNotMatchOrderCurrent = true;
+
+                    /*if (searchResultID === "") {
+                        console.log("orderCurrent", orderCurrent.searchText.indexList, orderCurrent.targetText.indexList);
+                    }*/
+
+                    for (const targetTextIndex of targetTextIndexList) {
+                        /*if (searchResultID === "") {
+                            console.log("targetText", targetTextIndex);
+                        }*/
+
+                        const orderCurrentSearchIndexLast = orderCurrent.searchText.indexList.at(-1) ?? -Infinity;
+                        const orderCurrentTargetIndexLast = orderCurrent.targetText.indexList.at(-1) ?? -Infinity;
 
                         if (orderCurrentSearchIndexLast >= searchTextIndex) {
                             continue;
@@ -133,60 +150,83 @@ class TextSearch<ID> {
                             continue;
                         }
 
-                        //if (searchTextIndex > orderCurrentSearchIndexLast + 3) {
-                        //    continue;
-                        //}
-                        const tempSearchGap = orderCurrent.searchText.gap + (searchTextIndex - orderCurrentSearchIndexLast - 1);
-                        //if (tempSearchGap > 6) {
-                        //    continue;
-                        //}
+                        if (flgNearestTargetTextIndex) {
+                            //if (searchTextIndex > orderCurrentSearchIndexLast + 3) {
+                            //    continue;
+                            //}
+                            const tempSearchGap = Number.isFinite(orderCurrentSearchIndexLast) ? orderCurrent.searchText.gap + (searchTextIndex - orderCurrentSearchIndexLast - 1) : 0;
+                            //if (tempSearchGap > 6) {
+                            //    continue;
+                            //}
 
-                        //if (targetTextIndex > orderCurrentTargetIndexLast + 3) {
-                        //    continue;
-                        //}
-                        const tempTargetGap = orderCurrent.targetText.gap + (targetTextIndex - orderCurrentTargetIndexLast - 1);
-                        //if (tempTargetGap > 6) {
-                        //    continue;
-                        //}
+                            //if (targetTextIndex > orderCurrentTargetIndexLast + 3) {
+                            //    continue;
+                            //}
+                            const tempTargetGap = Number.isFinite(orderCurrentTargetIndexLast) ? orderCurrent.targetText.gap + (targetTextIndex - orderCurrentTargetIndexLast - 1) : 0;
+                            //if (tempTargetGap > 6) {
+                            //    continue;
+                            //}
 
-                        const tempSearchIndexList: number[] = [];
-                        for (const t of orderCurrent.searchText.indexList) {
-                            tempSearchIndexList.push(t);
+                            const tempSearchIndexList: number[] = [];
+                            for (const t of orderCurrent.searchText.indexList) {
+                                tempSearchIndexList.push(t);
+                            }
+                            tempSearchIndexList.push(searchTextIndex);
+
+                            const tempTargetIndexList: number[] = [];
+                            for (const t of orderCurrent.targetText.indexList) {
+                                tempTargetIndexList.push(t);
+                            }
+                            tempTargetIndexList.push(targetTextIndex);
+
+                            tempUniOrderList.push({
+                                searchText: {
+                                    indexList: tempSearchIndexList,
+                                    gap: tempSearchGap,
+                                },
+                                targetText: {
+                                    indexList: tempTargetIndexList,
+                                    gap: tempTargetGap,
+                                }
+                            });
+
+                            flgNearestTargetTextIndex = false;
+                            flgNotMatchOrderCurrent = false;
+                            matchTargetTextIndexList.add(targetTextIndex);
                         }
-                        tempSearchIndexList.push(searchTextIndex);
+                    }
 
-                        const tempTargetIndexList: number[] = [];
-                        for (const t of orderCurrent.targetText.indexList) {
-                            tempTargetIndexList.push(t);
-                        }
-                        tempTargetIndexList.push(targetTextIndex);
+                    if (flgNotMatchOrderCurrent) {
+                        tempUniOrderList.push(orderCurrent);
+                    }
+                }
+
+                for (const targetTextIndex of targetTextIndexList) {
+                    if (!matchTargetTextIndexList.has(targetTextIndex)) {
+                        /*if (searchResultID === "") {
+                            console.log("notMatchTargetTextIndexList", targetTextIndex);
+                        }*/
 
                         tempUniOrderList.push({
                             searchText: {
-                                indexList: tempSearchIndexList,
-                                gap: tempSearchGap,
+                                indexList: [searchTextIndex],
+                                gap: 0,
                             },
                             targetText: {
-                                indexList: tempTargetIndexList,
-                                gap: tempTargetGap,
+                                indexList: [targetTextIndex],
+                                gap: 0,
                             }
                         });
+                        matchTargetTextIndexList.add(targetTextIndex);
                     }
+                }
 
-                    for (const temp of tempUniOrderList) {
-                        entry.order.list.push(temp);
-                    }
-
-                    entry.order.list.push({
-                        searchText: {
-                            indexList: [searchTextIndex],
-                            gap: 0,
-                        },
-                        targetText: {
-                            indexList: [targetTextIndex],
-                            gap: 0,
-                        }
-                    });
+                entry.order.list.length = 0;
+                for (const temp of tempUniOrderList) {
+                    /*if (searchResultID === "") {
+                        console.log("tempUniOrderList", temp.searchText.indexList, temp.targetText.indexList);
+                    }*/
+                    entry.order.list.push(temp);
                 }
 
                 for (const tempOrder of entry.order.list) {
@@ -258,7 +298,7 @@ function getCharList(text: string): string[] {
 
 type tSearchResult<ID> = {
     searchText: string[],
-    data: Map<ID, tSearchResultData>,
+    data: OrderObjectsAutoKey<ID, [ID, tSearchResultData]>,
 };
 type tSearchResultData = {
     uni: {
