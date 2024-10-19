@@ -332,55 +332,56 @@ class TextSearch<ID> {
 
                 let minJunk = Infinity;
                 while (true) {
-                    if (searchTextIndexList.length <= 0) {
+                    const fitst = searchTextIndexList.shift();
+                    if (fitst == undefined) {
                         break;
                     }
 
-                    let extra = 0;
-                    let insufficient = res.searchText.length - (searchTextIndexList.last?.[0] ?? -Infinity) - 1;
+                    for (const f of fitst[1]) {
+                        let extra = 0;
+                        let insufficient = res.searchText.length - (searchTextIndexList.last?.[0] ?? -Infinity) - 1;
+                        insufficient += fitst[0];
 
-                    let beforeSearchIndex = -1;
-                    let beforeTargetIndex = -Infinity;
-                    for (const searchTextIndex of searchTextIndexList) {
-                        if (searchTextIndex[0] > beforeSearchIndex + 1) {
-                            insufficient += searchTextIndex[0] - (beforeSearchIndex + 1)
-                        }
-                        beforeSearchIndex = searchTextIndex[0];
+                        let beforeSearchIndex = fitst[0];
+                        let beforeTargetIndex = f;
 
-                        {
-                            const tempIndexList = [...searchTextIndex[1]];
-                            tempIndexList.sort((a, b) => a - b);
+                        for (const searchTextIndex of searchTextIndexList) {
+                            if (searchTextIndex[0] > beforeSearchIndex + 1) {
+                                insufficient += searchTextIndex[0] - (beforeSearchIndex + 1)
+                            }
+                            beforeSearchIndex = searchTextIndex[0];
 
-                            let foundFlg = false;
-                            for (const targetIndex of tempIndexList) {
-                                if (beforeTargetIndex < targetIndex) {
-                                    if (Number.isFinite(beforeTargetIndex)) {
+                            {
+                                const tempIndexList = [...searchTextIndex[1]];
+                                tempIndexList.sort((a, b) => a - b);
+
+                                let foundFlg = false;
+                                for (const targetIndex of tempIndexList) {
+                                    if (beforeTargetIndex < targetIndex) {
                                         if (targetIndex - beforeTargetIndex > maxRange) {
                                             break;
                                         }
 
                                         extra += targetIndex - beforeTargetIndex - 1;
+                                        beforeTargetIndex = targetIndex;
+                                        foundFlg = true;
+                                        break;
                                     }
-
-                                    beforeTargetIndex = targetIndex;
-                                    foundFlg = true;
-                                    break;
+                                }
+                                if (!foundFlg) {
+                                    insufficient++;
                                 }
                             }
-                            if (!foundFlg) {
-                                insufficient++;
-                            }
+                        }
+
+                        if (extra + insufficient === minJunk) {
+                            entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
+                        } else if (extra + insufficient < minJunk) {
+                            entry.order.maxDiffList.fromSearchText.length = 0;
+                            entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
+                            minJunk = extra + insufficient;
                         }
                     }
-
-                    if (extra + insufficient === minJunk) {
-                        entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
-                    } else if (extra + insufficient < minJunk) {
-                        entry.order.maxDiffList.fromSearchText.length = 0;
-                        entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
-                        minJunk = extra + insufficient;
-                    }
-                    searchTextIndexList.shift();
                 }
             }
         }
