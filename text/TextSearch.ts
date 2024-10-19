@@ -313,6 +313,8 @@ class TextSearch<ID> {
                 }
             }
             {
+                const maxRange = 3;
+
                 const searchTextIndexList: OrderObjectsAutoKey<number, [number, Set<number>]> = new OrderObjectsAutoKey(v => v[0]);
                 for (const tempOrder of entry.order.list) {
                     for (let i = 0; i < tempOrder.searchText.indexList.length; i++) {
@@ -352,8 +354,12 @@ class TextSearch<ID> {
                             let foundFlg = false;
                             for (const targetIndex of tempIndexList) {
                                 if (beforeTargetIndex < targetIndex) {
-                                    if (Number.isFinite(beforeTargetIndex) && targetIndex - beforeTargetIndex > 5) {
-                                        break;
+                                    if (Number.isFinite(beforeTargetIndex)) {
+                                        if (targetIndex - beforeTargetIndex > maxRange) {
+                                            break;
+                                        }
+
+                                        extra += targetIndex - beforeTargetIndex - 1;
                                     }
 
                                     beforeTargetIndex = targetIndex;
@@ -361,9 +367,8 @@ class TextSearch<ID> {
                                     break;
                                 }
                             }
-
                             if (!foundFlg) {
-                                extra++;
+                                insufficient++;
                             }
                         }
                     }
