@@ -338,7 +338,7 @@ class TextSearch<ID> {
                     let insufficient = res.searchText.length - searchTextIndexList.length;
 
                     let beforeSearchIndex = -1;
-                    let beforeTargetIndex = -1;
+                    let beforeTargetIndex = -Infinity;
                     for (const searchTextIndex of searchTextIndexList) {
                         if (searchTextIndex[0] < beforeSearchIndex + 1) {
                             insufficient += searchTextIndex[0] - (beforeSearchIndex + 1)
@@ -352,6 +352,10 @@ class TextSearch<ID> {
                             let foundFlg = false;
                             for (const targetIndex of tempIndexList) {
                                 if (beforeTargetIndex < targetIndex) {
+                                    if (Number.isFinite(beforeTargetIndex) && targetIndex - beforeTargetIndex > 5) {
+                                        break;
+                                    }
+
                                     beforeTargetIndex = targetIndex;
                                     foundFlg = true;
                                     break;
