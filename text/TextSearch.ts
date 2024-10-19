@@ -93,7 +93,7 @@ class TextSearch<ID> {
                                 targetTotalGap: Infinity,
                             },
                         },
-                        maxShuffleIndexList: [],
+                        maxDiffList: [],
                     },
                 }]);
             }
@@ -361,10 +361,10 @@ class TextSearch<ID> {
                     }
 
                     if (extra + insufficient === minJunk) {
-                        entry.order.maxShuffleIndexList.push({ extra, insufficient, });
+                        entry.order.maxDiffList.push({ extra, insufficient, });
                     } else if (extra + insufficient < minJunk) {
-                        entry.order.maxShuffleIndexList.length = 0;
-                        entry.order.maxShuffleIndexList.push({ extra, insufficient, });
+                        entry.order.maxDiffList.length = 0;
+                        entry.order.maxDiffList.push({ extra, insufficient, });
                         minJunk = extra + insufficient;
                     }
                     searchTextIndexList.shift();
@@ -457,7 +457,7 @@ type tSearchResult<ID> = {
                     targetTotalGap: number,
                 },
             },
-            maxShuffleIndexList: {
+            maxDiffList: {
                 extra: number,
                 insufficient: number,
             }[],
