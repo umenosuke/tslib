@@ -6,16 +6,14 @@ export { TextSearchMulti, type tSearchResultMulti };
 
 class TextSearchMulti<TAG, ID> {
     private textSearchList: Map<TAG, TextSearch<ID>>
-    private maxRuneSize: number;
 
-    constructor(maxRuneSize: number = 1) {
+    constructor() {
         this.textSearchList = new Map();
-        this.maxRuneSize = maxRuneSize;
     }
 
     public add(tag: TAG, id: ID, text: string) {
         if (!this.textSearchList.has(tag)) {
-            this.textSearchList.set(tag, new TextSearch(this.maxRuneSize));
+            this.textSearchList.set(tag, new TextSearch());
         }
 
         const textSearch = this.textSearchList.get(tag);
