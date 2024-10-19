@@ -337,7 +337,7 @@ class TextSearch<ID> {
                     }
 
                     let extra = 0;
-                    let insufficient = res.searchText.length - (searchTextIndexList.last?.[0] ?? 0);
+                    let insufficient = res.searchText.length - (searchTextIndexList.last?.[0] ?? -Infinity) - 1;
 
                     let beforeSearchIndex = -1;
                     let beforeTargetIndex = -Infinity;
