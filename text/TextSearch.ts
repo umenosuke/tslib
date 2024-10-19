@@ -1,64 +1,94 @@
-import type { ExtractOrderObjectsValueType } from "../data/OrderObjects.js";
+import { OrderObjects, type ExtractOrderObjectsValueType } from "../data/OrderObjects.js";
 import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import type { ExtractPart } from "../type/ExtractPart.js";
 
 export { TextSearch, type tSearchResult };
 
 class TextSearch<ID> {
-    private uniGram: Map<string, Map<ID, number[]>>;
+    private xGramList: OrderObjects<number, Map<string, Map<ID, number[]>>>;
+    private maxRuneSize: number;
 
-    constructor() {
-        this.uniGram = new Map();
+    constructor(maxRuneSize: number = 1) {
+        this.xGramList = new OrderObjects();
+
+        if (maxRuneSize <= 0) {
+            throw new Error("maxRuneSize <= 0");
+        }
+        this.maxRuneSize = maxRuneSize;
     }
 
     public add(id: ID, text: string) {
-        const charList = getCharList(text);
+        const charListAll = getCharListAll(text, this.maxRuneSize);
 
-        const len = charList.length;
-        if (len <= 0) {
-            return;
+        const maxRuneSize = charListAll.length;
+        if (maxRuneSize <= 0) {
+            throw new Error("maxRuneSize <= 0");
         }
 
-        let index = 0;
-        while (true) {
-            const char1 = charList[index];
-            if (char1 == undefined) {
-                throw new Error("char1 == undefined");
+        for (let runeSize = 1; runeSize <= maxRuneSize; runeSize++) {
+            const charList = charListAll[runeSize - 1];
+            if (charList == undefined) {
+                throw new Error("charList == undefined");
             }
 
-            {
-                const char = char1;
-                if (!this.uniGram.has(char)) {
-                    this.uniGram.set(char, new Map());
-                }
-                const list = this.uniGram.get(char);
-                if (list == undefined) {
-                    throw new Error("list == undefined");
-                }
-
-                if (!list.has(id)) {
-                    list.set(id, []);
-                }
-
-                const indexList = list.get(id);
-                if (indexList == undefined) {
-                    throw new Error("indexList == undefined");
-                }
-                indexList.push(index);
+            const len = charList.length;
+            if (len <= 0) {
+                return;
             }
 
-            if (index + 1 >= len) {
-                break;
-            }
+            const xGram = this.xGramList.getValueWithPushDefault(runeSize, newMap);
 
-            index++;
+            let index = 0;
+            while (true) {
+                const char1 = charList[index];
+                if (char1 == undefined) {
+                    throw new Error("char1 == undefined");
+                }
+
+                {
+                    const char = char1;
+                    if (!xGram.has(char)) {
+                        xGram.set(char, new Map());
+                    }
+                    const list = xGram.get(char);
+                    if (list == undefined) {
+                        throw new Error("list == undefined");
+                    }
+
+                    if (!list.has(id)) {
+                        list.set(id, []);
+                    }
+
+                    const indexList = list.get(id);
+                    if (indexList == undefined) {
+                        throw new Error("indexList == undefined");
+                    }
+                    indexList.push(index);
+                }
+
+                if (index + 1 >= len) {
+                    break;
+                }
+
+                index++;
+            }
         }
     }
 
     public search(text: string): tSearchResult<ID> {
-        const charList = getCharList(text);
+        const charListAll = getCharListAll(text, this.maxRuneSize);
+        const runeSize = charListAll.length;
+        if (runeSize <= 0) {
+            throw new Error("maxRuneSize <= 0");
+        }
+        const charList = charListAll[runeSize - 1];
+        if (charList == undefined) {
+            throw new Error("charList == undefined");
+        }
+
         const res: tSearchResult<ID> = {
             searchText: charList,
+            runeSize: runeSize,
             data: new OrderObjectsAutoKey(v => v[0]),
         };
 
@@ -67,7 +97,7 @@ class TextSearch<ID> {
             return res;
         }
 
-        for (const searchResult of this.searchUni(text)) {
+        for (const searchResult of this.searchSub(text)) {
             const searchResultID = searchResult[0];
             const searchResultMap = searchResult[1];
             /*if (searchResultID === "") {
@@ -285,8 +315,17 @@ class TextSearch<ID> {
         return res;
     }
 
-    public searchUni(text: string): Map<ID, Map<number, number[]>> {
-        const charList = getCharList(text);
+    private searchSub(text: string): Map<ID, Map<number, number[]>> {
+        const charListAll = getCharListAll(text, this.maxRuneSize);
+        const runeSize = charListAll.length;
+        if (runeSize <= 0) {
+            throw new Error("maxRuneSize <= 0");
+        }
+        const charList = charListAll[runeSize - 1];
+        if (charList == undefined) {
+            throw new Error("charList == undefined");
+        }
+
         const res: Map<ID, Map<number, number[]>> = new Map();
 
         const len = charList.length;
@@ -297,9 +336,9 @@ class TextSearch<ID> {
             }
 
             {
-                const list = this.uniGram.get(char1);
-                if (list != undefined) {
-                    for (const d of list) {
+                const xGram = this.xGramList.getValueWithPushDefault(runeSize, newMap).get(char1);
+                if (xGram != undefined) {
+                    for (const d of xGram) {
                         const eID = d[0];
                         const dIndexList = d[1];
 
@@ -325,12 +364,30 @@ class TextSearch<ID> {
     }
 }
 
-function getCharList(text: string): string[] {
-    return [...(text.normalize("NFKC").toLowerCase())];
+function getCharListAll(text: string, maxRuneSize: number): string[][] {
+    const charList = [...(text.normalize("NFKC").toLowerCase())];
+
+    const res: string[][] = [];
+    res.push(charList);
+
+    for (let runeSize = 2; runeSize <= charList.length; runeSize++) {
+        const temp: string[] = []
+
+        let i = 0;
+        for (; i + maxRuneSize < charList.length; i++) {
+            temp.push(charList.slice(i, i + runeSize).join(""));
+        }
+        temp.push(charList.slice(i, charList.length).join(""));
+
+        res.push(temp);
+    }
+
+    return res;
 }
 
 type tSearchResult<ID> = {
     searchText: string[],
+    runeSize: number,
     data: OrderObjectsAutoKey<ID, [ID, {
         uni: {
             kind: number,
@@ -363,3 +420,5 @@ type tSearchResult<ID> = {
         },
     }]>,
 };
+
+const newMap = () => new Map();
