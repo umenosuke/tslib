@@ -93,7 +93,9 @@ class TextSearch<ID> {
                                 targetTotalGap: Infinity,
                             },
                         },
-                        maxDiffList: [],
+                        maxDiffList: {
+                            fromSearchText: [],
+                        },
                     },
                 }]);
             }
@@ -328,8 +330,6 @@ class TextSearch<ID> {
 
                 let minJunk = Infinity;
                 while (true) {
-                    if (searchTextIndexList.length <= 0) { break; }
-
                     let extra = 0;
                     let insufficient = res.searchText.length - searchTextIndexList.length;
 
@@ -343,7 +343,7 @@ class TextSearch<ID> {
 
                         {
                             const tempIndexList = [...searchTextIndex[1]];
-                            tempIndexList.sort();
+                            tempIndexList.sort((a, b) => a - b);
 
                             let foundFlg = false;
                             for (const targetIndex of tempIndexList) {
@@ -361,10 +361,10 @@ class TextSearch<ID> {
                     }
 
                     if (extra + insufficient === minJunk) {
-                        entry.order.maxDiffList.push({ extra, insufficient, });
+                        entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
                     } else if (extra + insufficient < minJunk) {
-                        entry.order.maxDiffList.length = 0;
-                        entry.order.maxDiffList.push({ extra, insufficient, });
+                        entry.order.maxDiffList.fromSearchText.length = 0;
+                        entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
                         minJunk = extra + insufficient;
                     }
                     searchTextIndexList.shift();
@@ -458,9 +458,11 @@ type tSearchResult<ID> = {
                 },
             },
             maxDiffList: {
-                extra: number,
-                insufficient: number,
-            }[],
+                fromSearchText: {
+                    extra: number,
+                    insufficient: number,
+                }[],
+            },
         },
     }]>,
 };
