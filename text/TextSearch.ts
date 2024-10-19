@@ -83,9 +83,17 @@ class TextSearch<ID> {
                     order: {
                         list: [],
                         maxContinuous: {
-                            textLength: 0,
+                            textLength: -Infinity,
                             points: [],
                         },
+                        maxSearchTextIndexList: {
+                            textLength: -Infinity,
+                            minSearchTotalGap: {
+                                gap: Infinity,
+                                targetTotalGap: Infinity,
+                            },
+                        },
+                        maxShuffleIndexList: [],
                     },
                 }]);
             }
@@ -231,54 +239,136 @@ class TextSearch<ID> {
             entry.uni.kind += kind;
             entry.uni.count += count;
 
-            const maxContinuous: ExtractPart<ExtractPart<ExtractOrderObjectsValueType<ExtractPart<tSearchResult<unknown>, "data">>[1], "order">, "maxContinuous"> = {
-                textLength: -Infinity,
-                points: [],
-            };
-            for (const tempOrder of entry.order.list) {
-                let tempMaxContinuousLength = 0;
-                let tempFirst = -Infinity;
-                let tempBefore = -Infinity;
+            {
+                const maxContinuous: ExtractPart<ExtractPart<ExtractOrderObjectsValueType<ExtractPart<tSearchResult<unknown>, "data">>[1], "order">, "maxContinuous"> = {
+                    textLength: -Infinity,
+                    points: [],
+                };
+                for (const tempOrder of entry.order.list) {
+                    let tempMaxContinuousLength = 0;
+                    let tempFirst = -Infinity;
+                    let tempBefore = -Infinity;
 
-                for (const targetTextIndex of tempOrder.targetText.indexList) {
-                    if (targetTextIndex !== tempBefore + 1) {
-                        if (tempMaxContinuousLength === maxContinuous.textLength) {
-                            maxContinuous.points.push({
-                                start: tempFirst,
-                                end: tempBefore,
-                            });
-                        } else if (tempMaxContinuousLength > maxContinuous.textLength) {
-                            maxContinuous.textLength = tempMaxContinuousLength;
-                            maxContinuous.points = [{
-                                start: tempFirst,
-                                end: tempBefore,
-                            }];
+                    for (const targetTextIndex of tempOrder.targetText.indexList) {
+                        if (targetTextIndex !== tempBefore + 1) {
+                            if (tempMaxContinuousLength === maxContinuous.textLength) {
+                                maxContinuous.points.push({
+                                    start: tempFirst,
+                                    end: tempBefore,
+                                });
+                            } else if (tempMaxContinuousLength > maxContinuous.textLength) {
+                                maxContinuous.textLength = tempMaxContinuousLength;
+                                maxContinuous.points = [{
+                                    start: tempFirst,
+                                    end: tempBefore,
+                                }];
+                            }
+
+                            tempMaxContinuousLength = 0;
+                            tempFirst = targetTextIndex;
                         }
-
-                        tempMaxContinuousLength = 0;
-                        tempFirst = targetTextIndex;
+                        tempMaxContinuousLength++;
+                        tempBefore = targetTextIndex;
                     }
-                    tempMaxContinuousLength++;
-                    tempBefore = targetTextIndex;
-                }
 
-                if (tempMaxContinuousLength === maxContinuous.textLength) {
-                    maxContinuous.points.push({
-                        start: tempFirst,
-                        end: tempBefore,
-                    });
-                } else if (tempMaxContinuousLength > maxContinuous.textLength) {
-                    maxContinuous.textLength = tempMaxContinuousLength;
-                    maxContinuous.points = [{
-                        start: tempFirst,
-                        end: tempBefore,
-                    }];
+                    if (tempMaxContinuousLength === maxContinuous.textLength) {
+                        maxContinuous.points.push({
+                            start: tempFirst,
+                            end: tempBefore,
+                        });
+                    } else if (tempMaxContinuousLength > maxContinuous.textLength) {
+                        maxContinuous.textLength = tempMaxContinuousLength;
+                        maxContinuous.points = [{
+                            start: tempFirst,
+                            end: tempBefore,
+                        }];
+                    }
+                }
+                if (maxContinuous.textLength === entry.order.maxContinuous.textLength) {
+                    entry.order.maxContinuous.points.push(...maxContinuous.points);
+                } else if (maxContinuous.textLength > entry.order.maxContinuous.textLength) {
+                    entry.order.maxContinuous = maxContinuous;
                 }
             }
-            if (maxContinuous.textLength === entry.order.maxContinuous.textLength) {
-                entry.order.maxContinuous.points.push(...maxContinuous.points);
-            } else if (maxContinuous.textLength > entry.order.maxContinuous.textLength) {
-                entry.order.maxContinuous = maxContinuous;
+            {
+                for (const tempOrder of entry.order.list) {
+                    if (tempOrder.searchText.indexList.length === entry.order.maxSearchTextIndexList.textLength) {
+                        if (tempOrder.searchText.gap.total < entry.order.maxSearchTextIndexList.minSearchTotalGap.gap) {
+                            entry.order.maxSearchTextIndexList.minSearchTotalGap = {
+                                gap: tempOrder.searchText.gap.total,
+                                targetTotalGap: tempOrder.targetText.gap.total,
+                            };
+                        }
+                    } else if (tempOrder.searchText.indexList.length > entry.order.maxSearchTextIndexList.textLength) {
+                        entry.order.maxSearchTextIndexList = {
+                            textLength: tempOrder.searchText.indexList.length,
+                            minSearchTotalGap: {
+                                gap: tempOrder.searchText.gap.total,
+                                targetTotalGap: tempOrder.targetText.gap.total,
+                            }
+                        };
+                    }
+                }
+            }
+            {
+                const searchTextIndexList: OrderObjectsAutoKey<number, [number, Set<number>]> = new OrderObjectsAutoKey(v => v[0]);
+                for (const tempOrder of entry.order.list) {
+                    for (let i = 0; i < tempOrder.searchText.indexList.length; i++) {
+                        const searchTextIndex = tempOrder.searchText.indexList[i];
+                        if (searchTextIndex == undefined) { throw new Error(""); }
+
+                        const targetTextIndex = tempOrder.targetText.indexList[i];
+                        if (targetTextIndex == undefined) { throw new Error(""); }
+
+
+                        searchTextIndexList.getValueWithPushAutoDefault(searchTextIndex, newKeySet<number, number>)[1].add(targetTextIndex);
+                    }
+                }
+                searchTextIndexList.sort((a, b) => a[0] > b[0]);
+
+                let minJunk = Infinity;
+                while (true) {
+                    if (searchTextIndexList.length <= 0) { break; }
+
+                    let extra = 0;
+                    let insufficient = res.searchText.length - searchTextIndexList.length;
+
+                    let beforeSearchIndex = -1;
+                    let beforeTargetIndex = -1;
+                    for (const searchTextIndex of searchTextIndexList) {
+                        if (searchTextIndex[0] < beforeSearchIndex + 1) {
+                            insufficient += searchTextIndex[0] - (beforeSearchIndex + 1)
+                        }
+                        beforeSearchIndex = searchTextIndex[0];
+
+                        {
+                            const tempIndexList = [...searchTextIndex[1]];
+                            tempIndexList.sort();
+
+                            let foundFlg = false;
+                            for (const targetIndex of tempIndexList) {
+                                if (beforeTargetIndex < targetIndex) {
+                                    beforeTargetIndex = targetIndex;
+                                    foundFlg = true;
+                                    break;
+                                }
+                            }
+
+                            if (!foundFlg) {
+                                extra++;
+                            }
+                        }
+                    }
+
+                    if (extra + insufficient === minJunk) {
+                        entry.order.maxShuffleIndexList.push({ extra, insufficient, });
+                    } else if (extra + insufficient < minJunk) {
+                        entry.order.maxShuffleIndexList.length = 0;
+                        entry.order.maxShuffleIndexList.push({ extra, insufficient, });
+                        minJunk = extra + insufficient;
+                    }
+                    searchTextIndexList.shift();
+                }
             }
         }
 
@@ -359,7 +449,22 @@ type tSearchResult<ID> = {
                     start: number,
                     end: number,
                 }[],
-            }
+            },
+            maxSearchTextIndexList: {
+                textLength: number,
+                minSearchTotalGap: {
+                    gap: number,
+                    targetTotalGap: number,
+                },
+            },
+            maxShuffleIndexList: {
+                extra: number,
+                insufficient: number,
+            }[],
         },
     }]>,
 };
+
+function newKeySet<K, V>(k: K): [K, Set<V>] {
+    return [k, new Set<V>()];
+}
