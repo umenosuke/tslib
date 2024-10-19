@@ -342,7 +342,7 @@ class TextSearch<ID> {
                     let beforeSearchIndex = -1;
                     let beforeTargetIndex = -Infinity;
                     for (const searchTextIndex of searchTextIndexList) {
-                        if (searchTextIndex[0] < beforeSearchIndex + 1) {
+                        if (searchTextIndex[0] > beforeSearchIndex + 1) {
                             insufficient += searchTextIndex[0] - (beforeSearchIndex + 1)
                         }
                         beforeSearchIndex = searchTextIndex[0];
