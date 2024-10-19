@@ -339,7 +339,7 @@ class TextSearch<ID> {
 
                     for (const f of fitst[1]) {
                         let extra = 0;
-                        let insufficient = res.searchText.length - (searchTextIndexList.last?.[0] ?? -Infinity) - 1;
+                        let insufficient = res.searchText.length - (searchTextIndexList.last?.[0] ?? fitst[0]) - 1;
                         insufficient += fitst[0];
 
                         let beforeSearchIndex = fitst[0];
