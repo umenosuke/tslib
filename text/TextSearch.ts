@@ -330,6 +330,10 @@ class TextSearch<ID> {
 
                 let minJunk = Infinity;
                 while (true) {
+                    if (searchTextIndexList.length <= 0) {
+                        break;
+                    }
+
                     let extra = 0;
                     let insufficient = res.searchText.length - searchTextIndexList.length;
 
