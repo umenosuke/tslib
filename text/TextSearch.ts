@@ -350,6 +350,10 @@ class TextSearch<ID> {
                         }];
 
                         for (const searchTextIndex of searchTextIndexList) {
+                            if (extra + insufficient > minJunk) {
+                                break;
+                            }
+
                             if (searchTextIndex[0] > beforeSearchIndex + 1) {
                                 insufficient += searchTextIndex[0] - (beforeSearchIndex + 1)
                             }
@@ -380,10 +384,6 @@ class TextSearch<ID> {
                                         targetText: beforeTargetIndex,
                                     });
                                 }
-                            }
-
-                            if (extra + insufficient > minJunk) {
-                                break;
                             }
                         }
 
