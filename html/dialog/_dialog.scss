@@ -1,3 +1,7 @@
+$index_dialog: 1000 !default;
+$color_head: white !default;
+$color_head_text: black !default;
+
 $index_dialog_header: 20;
 $index_dialog_main: 10;
 $index_dialog_footer: 20;
@@ -46,11 +50,8 @@ $index_dialog_footer: 20;
       flex-shrink: 0;
       z-index: $index_dialog_header;
       background-color: $color_head;
+      color: $color_head_text;
       box-shadow: 0 1px 8px 2px rgba(0, 0, 0, 0.4);
-
-      h1 {
-        color: white;
-      }
     }
 
     &>main {
