@@ -344,6 +344,10 @@ class TextSearch<ID> {
 
                         let beforeSearchIndex = fitst[0];
                         let beforeTargetIndex = f;
+                        const tempTextIndexList = [{
+                            searchText: beforeSearchIndex,
+                            targetText: beforeTargetIndex,
+                        }];
 
                         for (const searchTextIndex of searchTextIndexList) {
                             if (searchTextIndex[0] > beforeSearchIndex + 1) {
@@ -370,15 +374,24 @@ class TextSearch<ID> {
                                 }
                                 if (!foundFlg) {
                                     insufficient++;
+                                } else {
+                                    tempTextIndexList.push({
+                                        searchText: beforeSearchIndex,
+                                        targetText: beforeTargetIndex,
+                                    });
                                 }
+                            }
+
+                            if (extra + insufficient > minJunk) {
+                                break;
                             }
                         }
 
                         if (extra + insufficient === minJunk) {
-                            entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
+                            entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, textIndexList: tempTextIndexList });
                         } else if (extra + insufficient < minJunk) {
                             entry.order.maxDiffList.fromSearchText.length = 0;
-                            entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, });
+                            entry.order.maxDiffList.fromSearchText.push({ extra, insufficient, textIndexList: tempTextIndexList });
                             minJunk = extra + insufficient;
                         }
                     }
@@ -473,6 +486,10 @@ type tSearchResult<ID> = {
             },
             maxDiffList: {
                 fromSearchText: {
+                    textIndexList: {
+                        searchText: number,
+                        targetText: number,
+                    }[],
                     extra: number,
                     insufficient: number,
                 }[],
