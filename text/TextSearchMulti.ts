@@ -1,4 +1,3 @@
-import { OrderObjects } from "../data/OrderObjects.js";
 import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import { TextSearch, type tSearchResult } from "./TextSearch.js";
 

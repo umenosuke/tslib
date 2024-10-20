@@ -1,5 +1,5 @@
 import * as UnixCrypt from "./UnixCrypt.js";
-import { HASH_TYPE_LIST, type tHashTypeList, HASH_TYPE_DEFAULT, SALT_NOT_ALLOWED_CHAR, ROUNDS_MAX, ROUNDS_MIN, ROUNDS_DEFAULT } from "./UnixCryptConsts.js";
+import { HASH_TYPE_DEFAULT, HASH_TYPE_LIST, ROUNDS_DEFAULT, ROUNDS_MAX, ROUNDS_MIN, SALT_NOT_ALLOWED_CHAR, type tHashTypeList } from "./UnixCryptConsts.js";
 
 export { test };
 

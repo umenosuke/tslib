@@ -1,5 +1,5 @@
-import { test as v4Test } from "./v4/v4.test.js"
-import { test as v6Test } from "./v6/v6.test.js"
+import { test as v4Test } from "./v4/v4.test.js";
+import { test as v6Test } from "./v6/v6.test.js";
 
 export { test };
 

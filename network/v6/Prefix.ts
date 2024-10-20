@@ -1,8 +1,8 @@
-import * as util from "./util.js";
-import { parseIP } from "./parser.js";
+import { PrefixSuper } from "../PrefixSuper.js";
 import type { tParseMode, tStringifyMode } from "../types.js";
 import { IP } from "./IP.js";
-import { PrefixSuper } from "../PrefixSuper.js";
+import { parseIP } from "./parser.js";
+import * as util from "./util.js";
 
 export { Prefix, Prefix as PrefixIPv6 };
 

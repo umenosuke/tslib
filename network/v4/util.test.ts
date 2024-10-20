@@ -1,4 +1,4 @@
-import { BITS, octetStr2Bits, bits2OctetStr, bitsReverse, bitsIsLOneRZero, prefixNum2Bits, prefixStr2Bits } from "./util.js";
+import { BITS, bits2OctetStr, bitsIsLOneRZero, bitsReverse, octetStr2Bits, prefixNum2Bits, prefixStr2Bits } from "./util.js";
 
 export { test };
 

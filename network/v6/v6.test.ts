@@ -1,5 +1,5 @@
-import { test as utilTest } from "./util.test.js"
-import { test as parserTest } from "./parser.test.js"
+import { test as parserTest } from "./parser.test.js";
+import { test as utilTest } from "./util.test.js";
 
 export { test };
 

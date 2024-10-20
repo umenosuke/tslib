@@ -1,4 +1,4 @@
-import { BITS, normalizeHextetStr, hextetStr2Bits, bits2HextetStr, bitsReverse, prefixNum2Bits, prefixStr2Bits, bitsIsLOneRZero } from "./util.js";
+import { BITS, bits2HextetStr, bitsIsLOneRZero, bitsReverse, hextetStr2Bits, normalizeHextetStr, prefixNum2Bits, prefixStr2Bits } from "./util.js";
 
 export { test };
 

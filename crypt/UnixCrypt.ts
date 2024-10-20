@@ -1,5 +1,5 @@
 import { uint8ArrayConcat } from "../data/uint8ArrayConcat.js";
-import { type tHashTypeList, HASH_TYPE_DEFAULT, SALT_NOT_ALLOWED_CHAR, ROUNDS_MAX, ROUNDS_MIN, ROUNDS_DEFAULT } from "./UnixCryptConsts.js";
+import { HASH_TYPE_DEFAULT, ROUNDS_DEFAULT, ROUNDS_MAX, ROUNDS_MIN, SALT_NOT_ALLOWED_CHAR, type tHashTypeList } from "./UnixCryptConsts.js";
 
 export { UnixCryptConfig, UnixCrypt };
 

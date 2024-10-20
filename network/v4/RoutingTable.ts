@@ -1,5 +1,5 @@
-import { Route } from "./Route.js";
 import { Prefix } from "./Prefix.js";
+import { Route } from "./Route.js";
 import type { RouteMeta } from "./RouteMeta.js";
 
 export type { tNestRoute };

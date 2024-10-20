@@ -1,4 +1,4 @@
-export { search, searchAll }
+export { search, searchAll };
 
 function search<T extends HTMLElement>(query: string, elem: Document | Element | DocumentFragment = document): T {
     const e = elem.querySelector<T>(query);
