@@ -80,6 +80,6 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     }
 }
 
-function keyGenerateFromLength(_: unknown, arr: OrderObjectsAutoKey<number, unknown>): number {
+function keyGenerateFromLength<V>(_: V, arr: OrderObjectsAutoKey<number, V>): number {
     return arr.length;
 }
