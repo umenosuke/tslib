@@ -1,6 +1,6 @@
 import { OrderObjects } from "./OrderObjects.js";
 
-export { OrderObjectsAutoKey, keyGenerateFromLength, keyGenerateFromID };
+export { OrderObjectsAutoKey, keyGenerateFromLength, keyGenerateFromID, keyGenerateFromID2 };
 
 class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     private keyGeneratefunc: (value: VALUE, arr: OrderObjectsAutoKey<KEY, VALUE>) => KEY;
@@ -86,4 +86,8 @@ function keyGenerateFromLength<V>(_: V, arr: OrderObjectsAutoKey<number, V>): nu
 
 function keyGenerateFromID<K, V extends { id: K }>(value: V, _: OrderObjectsAutoKey<K, V>): K {
     return value.id;
+}
+
+function keyGenerateFromID2<K, V extends { ID: K }>(value: V, _: OrderObjectsAutoKey<K, V>): K {
+    return value.ID;
 }
