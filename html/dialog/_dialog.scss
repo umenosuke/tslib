@@ -7,16 +7,16 @@ $index_dialog_main: 10;
 $index_dialog_footer: 20;
 
 .dialog-cover {
-  width: 100vw;
-  height: 100vh;
+  display: flex;
+  z-index: $index_dialog;
   position: absolute;
   top: 0;
   left: 0;
-  z-index: $index_dialog;
-  display: flex;
   flex-flow: row nowrap;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.4);
 
   &.dilog-hidaden {
@@ -24,16 +24,16 @@ $index_dialog_footer: 20;
   }
 
   &>.dialog {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
     width: 90%;
     height: 90%;
     overflow: auto;
     border-radius: 0.2em;
-    box-shadow: 6px 6px 16px 2px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: flex-start;
-    align-items: stretch;
     background-color: white;
+    box-shadow: 6px 6px 16px 2px rgba(0, 0, 0, 0.4);
 
     &>header,
     &>main,
@@ -43,34 +43,34 @@ $index_dialog_footer: 20;
     }
 
     &>header {
-      padding: 0 0.2rem;
-      height: 2rem;
-      line-height: 2rem;
+      z-index: $index_dialog_header;
       flex-grow: 0;
       flex-shrink: 0;
-      z-index: $index_dialog_header;
+      height: 2rem;
+      padding: 0 0.2rem;
       background-color: $color_head;
-      color: $color_head_text;
       box-shadow: 0 1px 8px 2px rgba(0, 0, 0, 0.4);
+      color: $color_head_text;
+      line-height: 2rem;
     }
 
     &>main {
-      max-height: calc(90vh - 2rem - 3rem);
+      z-index: $index_dialog_main;
       flex-grow: 1;
       flex-shrink: 1;
+      max-height: calc(90vh - 2rem - 3rem);
       overflow: auto;
-      z-index: $index_dialog_main;
     }
 
     &>footer {
-      padding: 0 1rem;
-      height: 3rem;
-      line-height: 3rem;
+      z-index: $index_dialog_footer;
       flex-grow: 0;
       flex-shrink: 0;
-      z-index: $index_dialog_footer;
-      text-align: right;
+      height: 3rem;
+      padding: 0 1rem;
       box-shadow: 0 -1px 8px 2px rgba(0, 0, 0, 0.4);
+      line-height: 3rem;
+      text-align: right;
 
       &>button {
         &:not(:last-child) {

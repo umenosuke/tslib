@@ -66,11 +66,11 @@ audio,
 video {
   margin: 0;
   padding: 0;
-  outline: 0;
   border: 0;
+  outline: 0;
   background: transparent;
-  vertical-align: baseline;
   font-size: 100%;
+  vertical-align: baseline;
 }
 
 body {
@@ -110,8 +110,8 @@ a {
   padding: 0;
   border: 0;
   background: transparent;
-  vertical-align: baseline;
   font-size: 100%;
+  vertical-align: baseline;
 }
 
 ins {
@@ -123,8 +123,8 @@ ins {
 mark {
   background-color: #ff9;
   color: #000;
-  font-weight: bold;
   font-style: italic;
+  font-weight: bold;
 }
 
 del {
@@ -138,15 +138,15 @@ dfn[title] {
 }
 
 table {
-  border-spacing: 0;
   border-collapse: collapse;
+  border-spacing: 0;
 }
 
 hr {
   display: block;
+  height: 1px;
   margin: 1em 0;
   padding: 0;
-  height: 1px;
   border: 0;
   border-top: 1px solid #cccccc;
 }

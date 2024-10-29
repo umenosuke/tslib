@@ -3,21 +3,21 @@ table.sticky-header {
   border-spacing: 0;
 
   &:not(.not-vertical-sticky)>thead>tr>th {
+    z-index: 2;
     position: sticky;
     top: 0;
-    z-index: 2;
   }
 
   &:not(.not-horizontal-sticky)>thead>tr>th:first-child {
+    z-index: 3;
     position: sticky;
     left: 0;
-    z-index: 3;
   }
 
   &:not(.not-horizontal-sticky)>tbody>tr>th:first-child {
+    z-index: 1;
     position: sticky;
     left: 0;
-    z-index: 1;
   }
 
   &>thead+tbody>tr {
