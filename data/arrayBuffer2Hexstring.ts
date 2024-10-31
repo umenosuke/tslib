@@ -2,11 +2,11 @@ export { arrayBuffer2Hexstring };
 
 function arrayBuffer2Hexstring(buf: ArrayBuffer): string {
     const arr = new Uint8Array(buf);
-    const hashHexList: string[] = [];
+    const hexStrList: string[] = [];
 
     for (const octet of arr) {
-        hashHexList.push(octet.toString(16));
+        hexStrList.push(octet.toString(16).padStart(2, "0"));
     }
 
-    return hashHexList.join("");
+    return hexStrList.join("");
 }
