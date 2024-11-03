@@ -1,13 +1,13 @@
 export type { exEvent, exMouseEvent, exPointerEvent };
 
 interface exEvent<T extends EventTarget> extends Event {
-    currentTarget: T;
+    currentTarget: T | null;
 }
 
 interface exPointerEvent<T extends EventTarget> extends PointerEvent {
-    currentTarget: T;
+    currentTarget: T | null;
 }
 
 interface exMouseEvent<T extends EventTarget> extends MouseEvent {
-    currentTarget: T;
+    currentTarget: T | null;
 }
