@@ -25,7 +25,11 @@ class Dialog {
 
         this.coverElem = document.createElement("div");
         this.coverElem.classList.add("dialog-cover", "dilog-hidaden");
-        this.coverElem.addEventListener("click", (e: exEvent<HTMLElement>) => { this.showCallbackFunc(e) });
+        this.coverElem.addEventListener("click", {
+            handleEvent: (e: exEvent<HTMLElement>) => {
+                this.showCallbackFunc(e);
+            },
+        });
 
         parentElem.appendChild(this.coverElem);
 
@@ -52,7 +56,11 @@ class Dialog {
                 btn.textContent = dialogButtonDataList[key].name;
                 btn.dataset["state"] = dialogButtonDataList[key].state;
 
-                btn.addEventListener("click", (e: exEvent<HTMLElement>) => { this.showCallbackFunc(e) });
+                btn.addEventListener("click", {
+                    handleEvent: (e: exEvent<HTMLElement>) => {
+                        this.showCallbackFunc(e);
+                    },
+                });
 
                 list[key] = btn;
             }
@@ -77,10 +85,10 @@ class Dialog {
         };
     }
 
-    public setShowCallbackFunc(func: () => void) {
+    public setShowCallbackFunc(func: () => void): void {
         this.callbackFunc.show = func;
     }
-    public setHideCallbackFunc(func: (state: tDialogState) => void) {
+    public setHideCallbackFunc(func: (state: tDialogState) => void): void {
         this.callbackFunc.hide = func;
     }
 
@@ -110,7 +118,7 @@ class Dialog {
         });
     }
 
-    private showCallbackFunc(e: exEvent<HTMLElement>) {
+    private showCallbackFunc(e: exEvent<HTMLElement>): void {
         e.stopPropagation();
         const elem = e.currentTarget;
 

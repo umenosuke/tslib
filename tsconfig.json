@@ -1,22 +1,19 @@
 {
     "compilerOptions": {
-        "alwaysStrict": true,
         "declaration": true,
         "forceConsistentCasingInFileNames": true,
         "module": "ES2022",
-        "noImplicitAny": true,
+        "noFallthroughCasesInSwitch": true,
         "noImplicitOverride": true,
         "noImplicitReturns": true,
-        "noImplicitThis": true,
         "noPropertyAccessFromIndexSignature": true,
         "noUncheckedIndexedAccess": true,
         "outDir": "../build/",
         "removeComments": true,
         "rootDir": "./",
+        "skipLibCheck": true,
         "sourceMap": true,
-        "strictBindCallApply": true,
-        "strictNullChecks": true,
-        "strictPropertyInitialization": true,
+        "strict": true,
         "target": "ES2022",
         "verbatimModuleSyntax": true
     }
