@@ -108,7 +108,7 @@ class UnixCryptConfig {
     }
 
     public static assertSalt(salt: string): void {
-        if (salt.match(SALT_NOT_ALLOWED_CHAR)) {
+        if (SALT_NOT_ALLOWED_CHAR.test(salt)) {
             throw new Error("input error, not allowed char : " + salt);
         }
         if (salt.length > 16) {
