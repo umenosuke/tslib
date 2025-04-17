@@ -5,8 +5,8 @@ export { OrderObjectsAutoKey, keyGenerateFromLength, keyGenerateFromID, keyGener
 class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     private keyGeneratefunc: (value: VALUE, arr: OrderObjectsAutoKey<KEY, VALUE>) => KEY;
 
-    constructor(keyGeneratefunc: (value: VALUE, arr: OrderObjectsAutoKey<KEY, VALUE>) => KEY) {
-        super();
+    constructor(keyGeneratefunc: (value: VALUE, arr: OrderObjectsAutoKey<KEY, VALUE>) => KEY, validateFunc?: (value: VALUE) => boolean) {
+        super(validateFunc);
 
         this.keyGeneratefunc = keyGeneratefunc;
     }
@@ -29,6 +29,9 @@ class OrderObjectsAutoKey<KEY, VALUE> extends OrderObjects<KEY, VALUE> {
     public getValueWithPushAutoDefault(key: KEY, defaultValueGenerateFunc: (key: KEY) => VALUE): VALUE {
         if (!this.hasKey(key)) {
             this.pushAuto(defaultValueGenerateFunc(key));
+        }
+        if (!this.hasKey(key)) {
+            throw new Error("push failed");
         }
         return this.getValueNotUndefined(key);
     }

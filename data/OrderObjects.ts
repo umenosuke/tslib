@@ -103,8 +103,14 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
     }
 
     public push(key: KEY, val: VALUE): "success" | "already exists" | "invalid value" {
-        if (this.hasKey(key)) { console.warn("already exists : ", key); return "already exists"; }
-        if (!this.validateFunc(val)) { console.warn("invalid value : ", val); return "invalid value"; }
+        if (this.hasKey(key)) {
+            console.warn("already exists : ", key);
+            return "already exists";
+        }
+        if (!this.validateFunc(val)) {
+            console.warn("invalid value : ", val);
+            return "invalid value";
+        }
 
         this.keys.push(key);
         this.values.set(key, val);
@@ -260,27 +266,27 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
                 } else {
                     return {
                         done: true,
-                        value: null
+                        value: undefined
                     };
                 }
             }
         };
     }
 
-    public setInternalData(data: { keys: KEY[], values: Map<KEY, VALUE> }): void {
+    public setInternalData(data: { keys: KEY[], values: Map<KEY, VALUE> }): ReturnType<typeof this.push>[] {
         this.clear();
 
-        if (!!data.keys) {
-            for (let i = 0, len = data.keys.length; i < len; i++) {
-                const key = data.keys[i];
-                if (key == undefined) { throw new Error("internal error"); }
+        const resList: ReturnType<typeof this.push>[] = [];
 
-                const value = data.values.get(key);
-                if (value == undefined) { throw new Error("internal error"); }
-
-                this.push(key, value);
+        for (const key of data.keys) {
+            const value = data.values.get(key);
+            if (value == undefined) {
+                throw new Error("internal error");
             }
+            resList.push(this.push(key, value));
         }
+
+        return resList;
     }
 
     public clear(): void {
@@ -288,9 +294,39 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         this.values.clear();
     }
 
-    public toJSON() {
-        return { keys: this.keys, values: this.values };
+    public toJSON(): tSerialize<KEY, VALUE> {
+        const res: tSerialize<KEY, VALUE> = {
+            values: [],
+        };
+        for (const key of this.keys) {
+            res.values.push({
+                key: key,
+                value: this.getValueNotUndefined(key),
+            })
+        }
+        return res;
+    }
+    public static fromJSON<KEY, VALUE>(data: tSerialize<KEY, VALUE>, opt: {
+        validateFunc?: ConstructorParameters<typeof OrderObjects<KEY, VALUE>>[0],
+    } = {}): OrderObjects<KEY, VALUE> {
+        const o = new OrderObjects<KEY, VALUE>(opt.validateFunc);
+
+        for (const v of data.values) {
+            const res = o.push(v.key, v.value);
+            if (res !== "success") {
+                throw new Error("error : " + res + ", " + JSON.stringify(v));
+            }
+        }
+
+        return o;
     }
 }
+
+type tSerialize<KEY, VALUE> = {
+    values: {
+        key: KEY,
+        value: VALUE,
+    }[],
+};
 
 type ExtractOrderObjectsValueType<T> = T extends OrderObjects<unknown, infer VALUE> ? VALUE : never;
