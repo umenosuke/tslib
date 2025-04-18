@@ -66,9 +66,9 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
     }
 
     public getKeys(): KEY[] {
-        return this.keys.concat();
+        return Array.from(this.keys);
     }
-    public getMatchedKeys(discriminantFunction = function (a: VALUE): boolean { return true; }): KEY[] {
+    public getMatchedKeys(discriminantFunction = function (value: VALUE): boolean { return true; }): KEY[] {
         const matchKeys: KEY[] = [];
 
         for (const key of this.keys) {
@@ -83,7 +83,7 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return matchKeys;
     }
 
-    public search(discriminantFunction = function (a: VALUE): boolean { return true; }): VALUE[] {
+    public search(discriminantFunction = function (value: VALUE): boolean { return true; }): VALUE[] {
         const matchValues: VALUE[] = [];
 
         for (const key of this.keys) {
@@ -205,6 +205,9 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return val;
     }
 
+    public delete(key: KEY): VALUE | undefined {
+        return this.deleteWithIndex(this.keys.indexOf(key));
+    }
     public deleteWithIndex(index: number): VALUE | undefined {
         if (index < 0 || index >= this.keys.length) {
             return undefined;
@@ -220,8 +223,9 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         return val;
     }
 
-    public delete(key: KEY): VALUE | undefined {
-        return this.deleteWithIndex(this.keys.indexOf(key));
+    public clear(): void {
+        this.keys = [];
+        this.values.clear();
     }
 
     public sort(compareIfMoveBehindFunc = function (a: VALUE, b: VALUE) { return a > b; }): void {
@@ -287,11 +291,6 @@ class OrderObjects<KEY, VALUE> implements Iterable<VALUE> {
         }
 
         return resList;
-    }
-
-    public clear(): void {
-        this.keys = [];
-        this.values.clear();
     }
 
     public toJSON(): tSerialize<KEY, VALUE> {
