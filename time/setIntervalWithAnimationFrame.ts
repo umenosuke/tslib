@@ -3,7 +3,7 @@ import { TokenBucket } from "./TokenBucket.js";
 export { setIntervalWithAnimationFrame };
 
 function setIntervalWithAnimationFrame(handler: Function, timeout: number) {
-    const bucket = new TokenBucket(timeout, timeout);
+    const bucket = new TokenBucket(timeout, 1000);
 
     const fnc = async () => {
         await bucket.tryConsumeWait(timeout);
