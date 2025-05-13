@@ -8,11 +8,11 @@ export const JobSenderOption = {
 };
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
-class JobSender<JOB_MAP extends Record<string, Job>> {
+class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
     private jobKeyList: (keyof JOB_MAP)[];
-    private funcList: ConstructorParameters<typeof JobSender<JOB_MAP>>[0];
+    private funcList: ConstructorParameters<typeof JobSender<JOB_MAP, REQUEST_SEND_META>>[0];
 
-    private requestSendFunc: ConstructorParameters<typeof JobSender<JOB_MAP>>[1];
+    private requestSendFunc: ConstructorParameters<typeof JobSender<JOB_MAP, REQUEST_SEND_META>>[1];
 
     private waiting: OrderObjectsAutoKey<string, {
         id: string,
@@ -26,7 +26,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
                 typeGuard: (res: any) => res is JOB_MAP[JOB_KEY]['response'];
             }
         },
-        requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>) => void,
+        requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => void,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -80,7 +80,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
         return true;
     };
 
-    public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"]): Promise<JOB_MAP[JOB_KEY]["response"]> {
+    public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"], meta: REQUEST_SEND_META): Promise<JOB_MAP[JOB_KEY]["response"]> {
         return new Promise((resolve, reject): void => {
             const id = crypto.randomUUID();
             this.waiting.pushAuto({
@@ -100,7 +100,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
             if (JobSenderOption.debug) {
                 console.log("request send", req);
             }
-            this.requestSendFunc(req);
+            this.requestSendFunc(req, meta);
         });
     }
 }
