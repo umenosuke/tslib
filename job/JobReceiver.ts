@@ -19,7 +19,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
             }
         },
-        responseSendFunc: (req: tJobMessageResponse<keyof JOB_MAP>) => void,
+        responseSendFunc: (req: tJobMessageResponse<keyof JOB_MAP>) => Promise<void>,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -52,7 +52,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             if (JobReceiverOption.debug) {
                 console.log("response send", res);
             }
-            this.responseSendFunc(res);
+            await this.responseSendFunc(res);
             return false;
         }
 
@@ -66,7 +66,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             if (JobReceiverOption.debug) {
                 console.log("response send", res);
             }
-            this.responseSendFunc(res);
+            await this.responseSendFunc(res);
             return true;
         } catch (err) {
             const res: tJobMessageResponse<typeof request.jobKey> = {
@@ -78,7 +78,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             if (JobReceiverOption.debug) {
                 console.log("response send", res);
             }
-            this.responseSendFunc(res);
+            await this.responseSendFunc(res);
             return false;
         }
     }

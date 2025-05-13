@@ -26,7 +26,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
                 typeGuard: (res: any) => res is JOB_MAP[JOB_KEY]['response'];
             }
         },
-        requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => void,
+        requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => Promise<void>,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -81,7 +81,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
     };
 
     public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"], meta: REQUEST_SEND_META): Promise<JOB_MAP[JOB_KEY]["response"]> {
-        return new Promise((resolve, reject): void => {
+        return new Promise(async (resolve, reject): Promise<void> => {
             const id = crypto.randomUUID();
             this.waiting.pushAuto({
                 id: id,
@@ -100,7 +100,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             if (JobSenderOption.debug) {
                 console.log("request send", req);
             }
-            this.requestSendFunc(req, meta);
+            await this.requestSendFunc(req, meta);
         });
     }
 }
