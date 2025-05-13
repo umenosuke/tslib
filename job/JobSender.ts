@@ -8,7 +8,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
     private jobKeyList: (keyof JOB_MAP)[];
     private funcList: ConstructorParameters<typeof JobSender<JOB_MAP>>[0];
 
-    private sendFunc: ConstructorParameters<typeof JobSender<JOB_MAP>>[1];
+    private requestSendFunc: ConstructorParameters<typeof JobSender<JOB_MAP>>[1];
 
     private waiting: OrderObjectsAutoKey<string, {
         id: string,
@@ -22,7 +22,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
                 typeGuard: (res: any) => res is JOB_MAP[JOB_KEY]['response'];
             }
         },
-        sendFunc: (req: any) => void
+        requestSendFunc: (req: any) => void,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -30,13 +30,13 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
         };
 
         this.funcList = func;
-        this.sendFunc = sendFunc;
+        this.requestSendFunc = requestSendFunc;
 
         this.waiting = new OrderObjectsAutoKey(keyGenerateFromID);
     }
 
     public Listener(response: unknown): boolean {
-        console.log("message response", response);
+        console.log("response receive", response);
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
             console.error("!isJobMessageReceive(response)");
@@ -68,9 +68,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
         return true;
     };
 
-    public exec<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, data: JOB_MAP[JOB_KEY]["argument"]): Promise<JOB_MAP[JOB_KEY]["response"]> {
-        console.log("message send", data);
-
+    public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"]): Promise<JOB_MAP[JOB_KEY]["response"]> {
         return new Promise((resolve, reject): void => {
             const id = crypto.randomUUID();
             this.waiting.pushAuto({
@@ -85,9 +83,10 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
             const req: tJobMessageRequest<JOB_KEY> = {
                 id: id,
                 jobKey: jobKey,
-                argument: data,
+                argument: argument,
             }
-            this.sendFunc(req);
+            console.log("request send", req);
+            this.requestSendFunc(req);
         });
     }
 }

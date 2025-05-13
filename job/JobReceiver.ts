@@ -6,22 +6,28 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
     private jobKeyList: (keyof JOB_MAP)[];
     private funcList: ConstructorParameters<typeof JobReceiver<JOB_MAP>>[0];
 
-    constructor(func: {
-        [JOB_KEY in keyof JOB_MAP]: {
-            job: (data: JOB_MAP[JOB_KEY]["argument"]) => Promise<JOB_MAP[JOB_KEY]["response"]>,
-            typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
-        }
-    }) {
+    private responseSendFunc: ConstructorParameters<typeof JobReceiver<JOB_MAP>>[1];
+
+    constructor(
+        func: {
+            [JOB_KEY in keyof JOB_MAP]: {
+                job: (data: JOB_MAP[JOB_KEY]["argument"]) => Promise<JOB_MAP[JOB_KEY]["response"]>,
+                typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
+            }
+        },
+        responseSendFunc: (req: any) => void,
+    ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
             this.jobKeyList.push(jobKey);
         };
 
         this.funcList = func;
+        this.responseSendFunc = responseSendFunc;
     }
 
     public async Listener(request: unknown): Promise<boolean> {
-        console.log("message receive", request);
+        console.log("request receive", request);
 
         if (!isJobMessageRequest(request, this.jobKeyList)) {
             console.error("!isJobMessageReceive(response)");
@@ -35,7 +41,8 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 jobKey: request.jobKey,
                 errMsg: "!typeGuard[jobKey](argument)",
             }
-            self.postMessage(res);
+            console.log("response send", res);
+            this.responseSendFunc(res);
             return false;
         }
 
@@ -46,7 +53,8 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 jobKey: request.jobKey,
                 response: await this.funcList[request.jobKey].job(request.argument),
             }
-            self.postMessage(res);
+            console.log("response send", res);
+            this.responseSendFunc(res);
             return true;
         } catch (err) {
             const res: tJobMessageResponse<typeof request.jobKey> = {
@@ -55,7 +63,8 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 jobKey: request.jobKey,
                 errMsg: String(err),
             }
-            self.postMessage(res);
+            console.log("response send", res);
+            this.responseSendFunc(res);
             return false;
         }
     }
