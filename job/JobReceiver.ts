@@ -15,7 +15,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
     constructor(
         func: {
             [JOB_KEY in keyof JOB_MAP]: {
-                job: (data: JOB_MAP[JOB_KEY]["argument"]) => Promise<JOB_MAP[JOB_KEY]["response"]>,
+                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: unknown) => Promise<JOB_MAP[JOB_KEY]["response"]>,
                 typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
             }
         },
@@ -30,7 +30,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
         this.responseSendFunc = responseSendFunc;
     }
 
-    public async Listener(request: unknown): Promise<boolean> {
+    public async Listener(request: unknown, meta?: unknown): Promise<boolean> {
         if (JobReceiverOption.debug) {
             console.log("request receive", request);
         }
@@ -61,7 +61,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 id: request.id,
                 success: true,
                 jobKey: request.jobKey,
-                response: await this.funcList[request.jobKey].job(request.argument),
+                response: await this.funcList[request.jobKey].job(request.argument, meta),
             }
             if (JobReceiverOption.debug) {
                 console.log("response send", res);
