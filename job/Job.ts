@@ -77,6 +77,10 @@ function isJobMessageResponse<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJob
 }
 
 function isJobKey<JOB_KEY>(key: any, jobKeyList: JOB_KEY[]): key is JOB_KEY {
+    if (key == undefined) {
+        return false;
+    }
+
     for (const jobKey of jobKeyList) {
         if (key === jobKey) {
             return true;
