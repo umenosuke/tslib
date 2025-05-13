@@ -51,7 +51,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             return false;
         }
 
-        const waiting = this.waiting.getValue(response.id);
+        const waiting = this.waiting.delete(response.id);
         if (waiting == undefined) {
             if (JobSenderOption.debug) {
                 console.error("waiting == undefined");
@@ -100,7 +100,13 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             if (JobSenderOption.debug) {
                 console.log("request send", req);
             }
-            await this.requestSendFunc(req, meta);
+
+            try {
+                await this.requestSendFunc(req, meta);
+            } catch (err) {
+                this.waiting.delete(id);
+                reject(err);
+            }
         });
     }
 }
