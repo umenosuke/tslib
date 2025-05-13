@@ -1,9 +1,11 @@
 import { keyGenerateFromID, OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import { isJobMessageResponse, type Job, type tJobMessageRequest } from "./Job.js";
 
-export { debug, JobSender };
+export { JobSender };
 
-let debug = false;
+export const JobSenderOption = {
+    debug: false
+};
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
 class JobSender<JOB_MAP extends Record<string, Job>> {
@@ -38,12 +40,12 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
     }
 
     public Listener(response: unknown): boolean {
-        if (debug) {
+        if (JobSenderOption.debug) {
             console.log("response receive", response);
         }
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
-            if (debug) {
+            if (JobSenderOption.debug) {
                 console.error("!isJobMessageReceive(response)");
             }
             return false;
@@ -51,14 +53,14 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
 
         const waiting = this.waiting.getValue(response.id);
         if (waiting == undefined) {
-            if (debug) {
+            if (JobSenderOption.debug) {
                 console.error("waiting == undefined");
             }
             return false;
         }
 
         if (response.jobKey !== waiting.jobKey) {
-            if (debug) {
+            if (JobSenderOption.debug) {
                 console.error("res.jobKey !== waiting.jobKey");
             }
             return false;
@@ -95,7 +97,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
                 jobKey: jobKey,
                 argument: argument,
             }
-            if (debug) {
+            if (JobSenderOption.debug) {
                 console.log("request send", req);
             }
             this.requestSendFunc(req);

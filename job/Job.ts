@@ -1,6 +1,8 @@
-export { debug, type Job, type tJobMessage, isJobMessage, type tJobMessageRequest, isJobMessageRequest, type tJobMessageResponse, isJobMessageResponse, isJobKey };
+export { type Job, type tJobMessage, isJobMessage, type tJobMessageRequest, isJobMessageRequest, type tJobMessageResponse, isJobMessageResponse, isJobKey };
 
-let debug = false;
+export const JobOption = {
+    debug: false
+};
 
 type Job<ARGUMENT = any, RESPONSE = any> = {
     argument: ARGUMENT,
@@ -14,21 +16,21 @@ type tJobMessage<JOB_KEY> = {
 
 function isJobMessage<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessage<JOB_KEY> {
     if (m == undefined) {
-        if (debug) {
+        if (JobOption.debug) {
             console.error("m == undefined");
         }
         return false;
     }
 
     if (typeof m.id !== "string") {
-        if (debug) {
+        if (JobOption.debug) {
             console.error("typeof m.id !== \"string\"");
         }
         return false;
     }
 
     if (!isJobKey(m.jobKey, jobKeyList)) {
-        if (debug) {
+        if (JobOption.debug) {
             console.error("!isJobKey(m.jobKey, jobKeyList)");
         }
         return false;
@@ -43,7 +45,7 @@ type tJobMessageRequest<JOB_KEY> = {
 
 function isJobMessageRequest<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessageRequest<JOB_KEY> {
     if (m == undefined) {
-        if (debug) {
+        if (JobOption.debug) {
             console.error("m == undefined");
         }
         return false;
@@ -64,14 +66,14 @@ type tJobMessageResponse<JOB_KEY> = {
 
 function isJobMessageResponse<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessageResponse<JOB_KEY> {
     if (m == undefined) {
-        if (debug) {
+        if (JobOption.debug) {
             console.error("m == undefined");
         }
         return false;
     }
 
     if (typeof m.success !== "boolean") {
-        if (debug) {
+        if (JobOption.debug) {
             console.error("typeof m.success !== \"boolean\"");
         }
         return false;
@@ -80,7 +82,7 @@ function isJobMessageResponse<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJob
         // response の型はなんでもいいので
     } else {
         if (typeof m.errMsg !== "string") {
-            if (debug) {
+            if (JobOption.debug) {
                 console.error("typeof m.errMsg !== \"string\"");
             }
             return false;
