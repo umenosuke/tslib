@@ -1,6 +1,8 @@
 import { isJobMessageRequest, type Job, type tJobMessageResponse } from "./Job.js";
 
-export { JobReceiver };
+export { debug, JobReceiver };
+
+let debug = false;
 
 class JobReceiver<JOB_MAP extends Record<string, Job>> {
     private jobKeyList: (keyof JOB_MAP)[];
@@ -15,7 +17,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
             }
         },
-        responseSendFunc: (req: any) => void,
+        responseSendFunc: (req: tJobMessageResponse<keyof JOB_MAP>) => void,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -27,10 +29,14 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
     }
 
     public async Listener(request: unknown): Promise<boolean> {
-        console.log("request receive", request);
+        if (debug) {
+            console.log("request receive", request);
+        }
 
         if (!isJobMessageRequest(request, this.jobKeyList)) {
-            console.error("!isJobMessageReceive(response)");
+            if (debug) {
+                console.error("!isJobMessageReceive(response)");
+            }
             return false;
         }
 
@@ -41,7 +47,9 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 jobKey: request.jobKey,
                 errMsg: "!typeGuard[jobKey](argument)",
             }
-            console.log("response send", res);
+            if (debug) {
+                console.log("response send", res);
+            }
             this.responseSendFunc(res);
             return false;
         }
@@ -53,7 +61,9 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 jobKey: request.jobKey,
                 response: await this.funcList[request.jobKey].job(request.argument),
             }
-            console.log("response send", res);
+            if (debug) {
+                console.log("response send", res);
+            }
             this.responseSendFunc(res);
             return true;
         } catch (err) {
@@ -63,7 +73,9 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
                 jobKey: request.jobKey,
                 errMsg: String(err),
             }
-            console.log("response send", res);
+            if (debug) {
+                console.log("response send", res);
+            }
             this.responseSendFunc(res);
             return false;
         }

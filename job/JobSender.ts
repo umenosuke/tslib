@@ -1,7 +1,9 @@
 import { keyGenerateFromID, OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import { isJobMessageResponse, type Job, type tJobMessageRequest } from "./Job.js";
 
-export { JobSender };
+export { debug, JobSender };
+
+let debug = false;
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
 class JobSender<JOB_MAP extends Record<string, Job>> {
@@ -22,7 +24,7 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
                 typeGuard: (res: any) => res is JOB_MAP[JOB_KEY]['response'];
             }
         },
-        requestSendFunc: (req: any) => void,
+        requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>) => void,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -36,21 +38,29 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
     }
 
     public Listener(response: unknown): boolean {
-        console.log("response receive", response);
+        if (debug) {
+            console.log("response receive", response);
+        }
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
-            console.error("!isJobMessageReceive(response)");
+            if (debug) {
+                console.error("!isJobMessageReceive(response)");
+            }
             return false;
         }
 
         const waiting = this.waiting.getValue(response.id);
         if (waiting == undefined) {
-            console.error("waiting == undefined");
+            if (debug) {
+                console.error("waiting == undefined");
+            }
             return false;
         }
 
         if (response.jobKey !== waiting.jobKey) {
-            console.error("res.jobKey !== waiting.jobKey");
+            if (debug) {
+                console.error("res.jobKey !== waiting.jobKey");
+            }
             return false;
         }
 
@@ -85,7 +95,9 @@ class JobSender<JOB_MAP extends Record<string, Job>> {
                 jobKey: jobKey,
                 argument: argument,
             }
-            console.log("request send", req);
+            if (debug) {
+                console.log("request send", req);
+            }
             this.requestSendFunc(req);
         });
     }
