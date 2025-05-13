@@ -42,21 +42,11 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             return false;
         }
 
-        if (!this.funcList[request.jobKey].typeGuard(request.argument)) {
-            const res: tJobMessageResponse<typeof request.jobKey> = {
-                id: request.id,
-                success: false,
-                jobKey: request.jobKey,
-                errMsg: "!typeGuard[jobKey](argument)",
-            }
-            if (JobReceiverOption.debug) {
-                console.log("response send", res);
-            }
-            await this.responseSendFunc(res);
-            return false;
-        }
-
         try {
+            if (!this.funcList[request.jobKey].typeGuard(request.argument)) {
+                throw new Error("!typeGuard[jobKey](argument)");
+            }
+
             const res: tJobMessageResponse<typeof request.jobKey> = {
                 id: request.id,
                 success: true,
@@ -69,16 +59,23 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             await this.responseSendFunc(res);
             return true;
         } catch (err) {
-            const res: tJobMessageResponse<typeof request.jobKey> = {
-                id: request.id,
-                success: false,
-                jobKey: request.jobKey,
-                errMsg: String(err),
+            try {
+                const res: tJobMessageResponse<typeof request.jobKey> = {
+                    id: request.id,
+                    success: false,
+                    jobKey: request.jobKey,
+                    errMsg: String(err),
+                }
+
+                if (JobReceiverOption.debug) {
+                    console.log("response send", res);
+                }
+                await this.responseSendFunc(res);
+            } catch (err) {
+                if (JobReceiverOption.debug) {
+                    console.error({ msg: "fail this.responseSendFunc", err });
+                }
             }
-            if (JobReceiverOption.debug) {
-                console.log("response send", res);
-            }
-            await this.responseSendFunc(res);
             return false;
         }
     }
