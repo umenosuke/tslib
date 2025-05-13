@@ -6,16 +6,16 @@ export const JobReceiverOption = {
     debug: false
 };
 
-class JobReceiver<JOB_MAP extends Record<string, Job>> {
+class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
     private jobKeyList: (keyof JOB_MAP)[];
-    private funcList: ConstructorParameters<typeof JobReceiver<JOB_MAP>>[0];
+    private funcList: ConstructorParameters<typeof JobReceiver<JOB_MAP, RESPONSE_SEND_META>>[0];
 
-    private responseSendFunc: ConstructorParameters<typeof JobReceiver<JOB_MAP>>[1];
+    private responseSendFunc: ConstructorParameters<typeof JobReceiver<JOB_MAP, RESPONSE_SEND_META>>[1];
 
     constructor(
         func: {
             [JOB_KEY in keyof JOB_MAP]: {
-                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: unknown) => Promise<JOB_MAP[JOB_KEY]["response"]>,
+                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: RESPONSE_SEND_META) => Promise<JOB_MAP[JOB_KEY]["response"]>,
                 typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
             }
         },
@@ -30,7 +30,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>> {
         this.responseSendFunc = responseSendFunc;
     }
 
-    public async Listener(request: unknown, meta?: unknown): Promise<boolean> {
+    public async Listener(request: unknown, meta: RESPONSE_SEND_META): Promise<boolean> {
         if (JobReceiverOption.debug) {
             console.log("request receive", request);
         }
