@@ -48,7 +48,8 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             }
 
             const res: tJobMessageResponse<typeof request.jobKey> = {
-                id: request.id,
+                sendorID: request.sendorID,
+                jobID: request.jobID,
                 success: true,
                 jobKey: request.jobKey,
                 response: await this.funcList[request.jobKey].job(request.argument, meta),
@@ -61,7 +62,8 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
         } catch (err) {
             try {
                 const res: tJobMessageResponse<typeof request.jobKey> = {
-                    id: request.id,
+                    sendorID: request.sendorID,
+                    jobID: request.jobID,
                     success: false,
                     jobKey: request.jobKey,
                     errMsg: String(err),

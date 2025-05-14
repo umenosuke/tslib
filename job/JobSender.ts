@@ -1,4 +1,4 @@
-import { keyGenerateFromID, OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
+import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import { isJobMessageResponse, type Job, type tJobMessageRequest } from "./Job.js";
 
 export { JobSender };
@@ -9,13 +9,15 @@ export const JobSenderOption = {
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
 class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
+    private sendorID: string;
+
     private jobKeyList: (keyof JOB_MAP)[];
     private funcList: ConstructorParameters<typeof JobSender<JOB_MAP, REQUEST_SEND_META>>[0];
 
     private requestSendFunc: ConstructorParameters<typeof JobSender<JOB_MAP, REQUEST_SEND_META>>[1];
 
-    private waiting: OrderObjectsAutoKey<string, {
-        id: string,
+    private waitingJobList: OrderObjectsAutoKey<string, {
+        jobID: string,
         jobKey: keyof JOB_MAP,
         p: tPromiseHandlers<JOB_MAP[keyof JOB_MAP]['response']>,
     }>;
@@ -28,6 +30,8 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
         },
         requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => Promise<void>,
     ) {
+        this.sendorID = crypto.randomUUID();
+
         this.jobKeyList = [];
         for (const jobKey in func) {
             this.jobKeyList.push(jobKey);
@@ -36,7 +40,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
         this.funcList = func;
         this.requestSendFunc = requestSendFunc;
 
-        this.waiting = new OrderObjectsAutoKey(keyGenerateFromID);
+        this.waitingJobList = new OrderObjectsAutoKey(v => v.jobID);
     }
 
     public Listener(response: unknown): boolean {
@@ -51,7 +55,11 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             return false;
         }
 
-        const waiting = this.waiting.delete(response.id);
+        if (response.sendorID !== this.sendorID) {
+            return true;
+        }
+
+        const waiting = this.waitingJobList.delete(response.jobID);
         if (waiting == undefined) {
             if (JobSenderOption.debug) {
                 console.error("waiting == undefined");
@@ -82,9 +90,9 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
     public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"], meta: REQUEST_SEND_META): Promise<JOB_MAP[JOB_KEY]["response"]> {
         return new Promise(async (resolve, reject): Promise<void> => {
-            const id = crypto.randomUUID();
-            this.waiting.pushAuto({
-                id: id,
+            const jobID = crypto.randomUUID();
+            this.waitingJobList.pushAuto({
+                jobID: jobID,
                 jobKey: jobKey,
                 p: {
                     resolve: resolve,
@@ -93,7 +101,8 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             });
 
             const req: tJobMessageRequest<JOB_KEY> = {
-                id: id,
+                sendorID: this.sendorID,
+                jobID: jobID,
                 jobKey: jobKey,
                 argument: argument,
             }
@@ -104,7 +113,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             try {
                 await this.requestSendFunc(req, meta);
             } catch (err) {
-                this.waiting.delete(id);
+                this.waitingJobList.delete(jobID);
                 reject(err);
             }
         });
