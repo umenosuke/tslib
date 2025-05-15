@@ -111,7 +111,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         return setData(fromData, this.data, this.dataPropertyInfo);
     }
 
-    public async save() {
+    public save() {
         if (this.waiting) {
             return;
         }
@@ -123,7 +123,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
 
             (async () => {
                 await this.tokenBucket.tryConsumeWait(this.opt.saveInterval);
-                this._save();
+                await this._save();
                 this.waiting = false;
             })();
         }
@@ -138,13 +138,13 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
 
     public generateDocumentFragment(): DocumentFragment {
         return generateDocumentFragment(this.data, async () => {
-            await this.save();
+            this.save();
         }, this.dataPropertyInfo);
     }
 
     public generateHtmlElements(): PropertyHtml<DATA_PROPERTY_INFO> {
         return generateHtmlElements(this.data, async () => {
-            await this.save();
+            this.save();
         }, this.dataPropertyInfo);
     }
 }
