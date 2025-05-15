@@ -24,17 +24,17 @@ type PropertyInfo = Record<string,
     | PropertyInfoEnum
     | {
         "type": "nest",
-        "child": PropertyInfo,
         "label": string,
+        "child": PropertyInfo,
     }
 >;
 type PropertyInfoEnum = {
     "type": "enum",
-    "list": readonly {
-        "value": string,
-        "label": string,
-    }[],
     "label": string,
+    "list": readonly {
+        "label": string,
+        "value": string,
+    }[],
 };
 
 type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
@@ -69,6 +69,36 @@ type PropertyDataEnum<LIST extends readonly { "value": string, }[]> = (
     )
     : never
 );
+
+type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
+    [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
+    ? ({
+        type: PROPERTY_INFO[K]["type"],
+        label: HTMLSpanElement,
+        elem: HTMLInputElement,
+    })
+    : (PROPERTY_INFO[K]["type"] extends "enum"
+        ? ({
+            type: PROPERTY_INFO[K]["type"],
+            label: HTMLSpanElement,
+            elem: HTMLSelectElement,
+        })
+        : (PROPERTY_INFO[K]["type"] extends "nest"
+            ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
+                ? (CHILD extends PropertyInfo
+                    ? ({
+                        type: PROPERTY_INFO[K]["type"],
+                        label: HTMLSpanElement,
+                        child: PropertyHtml<CHILD>,
+                    })
+                    : never
+                )
+                : never
+            )
+            : never
+        )
+    )
+};
 
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     public readonly dataPropertyInfo: DATA_PROPERTY_INFO;
@@ -194,10 +224,14 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         await this.saveFunc(JSON.stringify(this.data));
     }
 
-    public generateHtmlElements(): DocumentFragment {
-        return generateHtmlElements(this.data, async () => {
+    public generateDocumentFragment(): DocumentFragment {
+        return generateDocumentFragment(this.data, async () => {
             await this.save();
         }, this.dataPropertyInfo);
+    }
+
+    public generateHtmlElements(): PropertyHtml<DATA_PROPERTY_INFO> | undefined {
+        return;
     }
 }
 
@@ -414,7 +448,7 @@ function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string,
     return false;
 };
 
-function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
+function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
     const handlerList: { [key in keyof PropertyTypeMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
@@ -730,38 +764,38 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                     {
                         div.appendChild(document.createElement("br"));
                     }
-                }
-                {
-                    const dataPropertyInfoChild = dataPropertyInfo[key];
-                    if (dataPropertyInfoChild == undefined) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error("dataPropertyInfoChild == undefined");
+                    {
+                        const dataPropertyInfoChild = dataPropertyInfo[key];
+                        if (dataPropertyInfoChild == undefined) {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoChild == undefined");
+                            }
+                            throw new Error("dataPropertyInfoChild == undefined");
                         }
-                        throw new Error("dataPropertyInfoChild == undefined");
-                    }
-                    if (dataPropertyInfoChild.type !== "nest") {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error("dataPropertyInfoChild.type !== nest");
+                        if (dataPropertyInfoChild.type !== "nest") {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoChild.type !== nest");
+                            }
+                            throw new Error("dataPropertyInfoChild.type !== nest");
                         }
-                        throw new Error("dataPropertyInfoChild.type !== nest");
-                    }
-                    const dataPropertyInfoChildInfo = dataPropertyInfoChild["child"];
-                    if (dataPropertyInfoChildInfo == undefined) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error("dataPropertyInfoChildInfo == undefined");
+                        const dataPropertyInfoChildInfo = dataPropertyInfoChild["child"];
+                        if (dataPropertyInfoChildInfo == undefined) {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoChildInfo == undefined");
+                            }
+                            throw new Error("dataPropertyInfoChildInfo == undefined");
                         }
-                        throw new Error("dataPropertyInfoChildInfo == undefined");
-                    }
 
-                    // dがnestの時の型が欠落するのはなんでじゃろか
-                    if (typeof d !== "object") {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error("nest error", { data: d, });
+                        // dがnestの時の型が欠落するのはなんでじゃろか
+                        if (typeof d !== "object") {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("nest error", { data: d, });
+                            }
+                            throw new Error("nest data is not object");
                         }
-                        throw new Error("nest data is not object");
-                    }
 
-                    div.appendChild(generateHtmlElements(d, saveFunc, dataPropertyInfoChildInfo));
+                        div.appendChild(generateDocumentFragment(d, saveFunc, dataPropertyInfoChildInfo));
+                    }
                 }
                 break;
             }
@@ -776,4 +810,378 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
     }
 
     return frag;
+}
+
+function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): PropertyHtml<DATA_PROPERTY_INFO> {
+    const handlerList: { [key in keyof PropertyTypeMap | "enum"]: EventListenerObject } = {
+        "boolean": {
+            handleEvent:
+                async (e: exEvent<HTMLInputElement>) => {
+                    if (e.currentTarget == null) {
+                        throw new Error("e.currentTarget == null");
+                    }
+
+                    const checkbox = e.currentTarget;
+                    checkbox.readOnly = true;
+
+                    try {
+                        const key = checkbox.dataset["key"];
+                        if (!isDataPropertyKey(key, dataPropertyInfo)) {
+                            throw new Error("!this.isDataPropertyKey(key)");
+                        }
+                        const val = checkbox.checked;
+                        // 多分大丈夫だけどいつか改善したい
+                        (data as any)[key] = val;
+                        await saveFunc();
+                    } catch (e) {
+                        if (OptionBaseConsoleOption.error) {
+                            console.error(e);
+                        }
+                    }
+
+                    checkbox.readOnly = false;
+                },
+        },
+        "string": {
+            handleEvent:
+                async (e: exEvent<HTMLInputElement>) => {
+                    if (e.currentTarget == null) {
+                        throw new Error("e.currentTarget == null");
+                    }
+
+                    const input = e.currentTarget;
+                    input.readOnly = true;
+
+                    try {
+                        const key = input.dataset["key"];
+                        if (!isDataPropertyKey(key, dataPropertyInfo)) {
+                            throw new Error("!this.isDataPropertyKey(key)");
+                        }
+                        const val = input.value;
+                        // 多分大丈夫だけどいつか改善したい
+                        (data as any)[key] = val;
+                        await saveFunc();
+                    } catch (e) {
+                        if (OptionBaseConsoleOption.error) {
+                            console.error(e);
+                        }
+                    }
+
+                    input.readOnly = false;
+                },
+        },
+        "number": {
+            handleEvent:
+                async (e: exEvent<HTMLInputElement>) => {
+                    if (e.currentTarget == null) {
+                        throw new Error("e.currentTarget == null");
+                    }
+
+                    const input = e.currentTarget;
+                    input.readOnly = true;
+
+                    try {
+                        const key = input.dataset["key"];
+                        if (!isDataPropertyKey(key, dataPropertyInfo)) {
+                            throw new Error("!this.isDataPropertyKey(key)");
+                        }
+                        const val = Number.parseFloat(input.value);
+                        if (Number.isNaN(val) || !Number.isFinite(val)) {
+                            throw new Error("Number.isNaN(val) || !Number.isFinite(val)");
+                        }
+                        // 多分大丈夫だけどいつか改善したい
+                        (data as any)[key] = val;
+                        await saveFunc();
+                    } catch (e) {
+                        if (OptionBaseConsoleOption.error) {
+                            console.error(e);
+                        }
+                    }
+
+                    input.readOnly = false;
+                },
+        },
+        "enum": {
+            handleEvent:
+                async (e: exEvent<HTMLSelectElement>) => {
+                    if (e.currentTarget == null) {
+                        throw new Error("e.currentTarget == null");
+                    }
+
+                    const select = e.currentTarget;
+
+                    try {
+                        const key = select.dataset["key"];
+                        if (!isDataPropertyKey(key, dataPropertyInfo)) {
+                            throw new Error("!this.isDataPropertyKey(key)");
+                        }
+                        const val = select.value;
+                        const dataPropertyInfoEnum = dataPropertyInfo[key];
+                        if (dataPropertyInfoEnum == undefined) {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoEnum == undefined");
+                            }
+                            throw new Error("dataPropertyInfoEnum == undefined");
+                        }
+                        if (dataPropertyInfoEnum.type !== "enum") {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoEnum.type !== enum");
+                            }
+                            throw new Error("dataPropertyInfoEnum.type !== enum");
+                        }
+                        if (!isEnumValue(val, dataPropertyInfoEnum)) {
+                            throw new Error("!this.isEnumValue(val)");
+                        }
+                        // 多分大丈夫だけどいつか改善したい
+                        (data as any)[key] = val;
+                        await saveFunc();
+                    } catch (e) {
+                        if (OptionBaseConsoleOption.error) {
+                            console.error(e);
+                        }
+                    }
+                },
+        },
+    };
+
+    const resHtml: Partial<PropertyHtml<DATA_PROPERTY_INFO>> = {};
+
+    for (const key in dataPropertyInfo) {
+        const p = dataPropertyInfo[key];
+        const d = data[key];
+
+        // なんでundefinedになる可能性があるんやろ？
+        if (p?.type == undefined || p.label == undefined) {
+            throw new Error("p?.type == undefined || p.label == undefined");
+        }
+
+        switch (p.type) {
+            case "boolean": {
+                const val = d;
+                if (typeof val !== "boolean") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== boolean");
+                    }
+                    throw new Error("typeof val !== boolean");
+                }
+
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                resHtmlTemp.type = p.type;
+                {
+                    const span = document.createElement("span");
+                    resHtmlTemp.label = span;
+                    {
+                        span.textContent = p.label;
+                    }
+                }
+                {
+                    {
+                        const checkbox = document.createElement("input");
+                        resHtmlTemp.elem = checkbox;
+                        {
+                            checkbox.dataset["key"] = key;
+                            checkbox.type = "checkbox";
+                            checkbox.checked = val;
+                            checkbox.addEventListener("click", handlerList[p.type]);
+                        }
+                    }
+                }
+
+                // ここ怪しい
+                (resHtml as any)[key] = resHtmlTemp;
+                break;
+            }
+
+            case "string": {
+                const val = d;
+                if (typeof val !== "string") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== string");
+                    }
+                    throw new Error("typeof val !== string");
+                }
+
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                resHtmlTemp.type = p.type;
+                {
+                    {
+                        const span = document.createElement("span");
+                        resHtmlTemp.label = span;
+                        {
+                            span.textContent = p.label;
+                        }
+                    }
+                    {
+                        const input = document.createElement("input");
+                        resHtmlTemp.elem = input;
+                        {
+                            input.dataset["key"] = key;
+                            input.type = "text";
+                            input.value = val;
+                            input.addEventListener("change", handlerList[p.type]);
+                        }
+                    }
+                }
+
+                // ここ怪しい
+                (resHtml as any)[key] = resHtmlTemp;
+                break;
+            }
+
+            case "number": {
+                const val = d;
+                if (typeof val !== "number") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== number");
+                    }
+                    throw new Error("typeof val !== number");
+                }
+
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                resHtmlTemp.type = p.type;
+                {
+                    {
+                        const span = document.createElement("span");
+                        resHtmlTemp.label = span;
+                        {
+                            span.textContent = p.label;
+                        }
+                    }
+                    {
+                        const input = document.createElement("input");
+                        resHtmlTemp.elem = input;
+                        {
+                            input.dataset["key"] = key;
+                            input.type = "number";
+                            input.value = String(val);
+                            input.addEventListener("change", handlerList[p.type]);
+                        }
+                    }
+                }
+
+                // ここ怪しい
+                (resHtml as any)[key] = resHtmlTemp;
+                break;
+            }
+
+            case "enum": {
+                const val = d;
+                if (typeof val !== "string") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== string");
+                    }
+                    throw new Error("typeof val !== string");
+                }
+
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                resHtmlTemp.type = p.type;
+                {
+                    {
+                        const span = document.createElement("span");
+                        resHtmlTemp.label = span;
+                        {
+                            span.textContent = p.label;
+                        }
+                    }
+                    {
+                        const select = document.createElement("select");
+                        resHtmlTemp.elem = select;
+                        {
+                            select.dataset["key"] = key;
+                            {
+                                const dataPropertyInfoEnum = dataPropertyInfo[key];
+                                if (dataPropertyInfoEnum == undefined) {
+                                    if (OptionBaseConsoleOption.error) {
+                                        console.error("dataPropertyInfoEnum == undefined");
+                                    }
+                                    throw new Error("dataPropertyInfoEnum == undefined");
+                                }
+                                if (dataPropertyInfoEnum.type !== "enum") {
+                                    if (OptionBaseConsoleOption.error) {
+                                        console.error("dataPropertyInfoEnum.type !== enum");
+                                    }
+                                    throw new Error("dataPropertyInfoEnum.type !== enum");
+                                }
+                                const dataPropertyInfoEnumList = dataPropertyInfoEnum["list"];
+
+                                for (const e of dataPropertyInfoEnumList) {
+                                    const option = document.createElement("option");
+                                    select.appendChild(option);
+                                    option.textContent = e.label;
+                                    option.value = e.value;
+                                }
+                            }
+                            select.value = val;
+                            select.addEventListener("change", handlerList[p.type]);
+                        }
+                    }
+                }
+
+                // ここ怪しい
+                (resHtml as any)[key] = resHtmlTemp;
+                break;
+            }
+
+            case "nest": {
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                resHtmlTemp.type = p.type;
+                {
+                    {
+                        const span = document.createElement("span");
+                        resHtmlTemp.label = span;
+                        {
+                            span.textContent = p.label;
+                        }
+                    }
+                    {
+                        const dataPropertyInfoChild = dataPropertyInfo[key];
+                        if (dataPropertyInfoChild == undefined) {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoChild == undefined");
+                            }
+                            throw new Error("dataPropertyInfoChild == undefined");
+                        }
+                        if (dataPropertyInfoChild.type !== "nest") {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoChild.type !== nest");
+                            }
+                            throw new Error("dataPropertyInfoChild.type !== nest");
+                        }
+                        const dataPropertyInfoChildInfo = dataPropertyInfoChild["child"];
+                        if (dataPropertyInfoChildInfo == undefined) {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoChildInfo == undefined");
+                            }
+                            throw new Error("dataPropertyInfoChildInfo == undefined");
+                        }
+
+                        // dがnestの時の型が欠落するのはなんでじゃろか
+                        if (typeof d !== "object") {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("nest error", { data: d, });
+                            }
+                            throw new Error("nest data is not object");
+                        }
+
+                        // ここ怪しい
+                        (resHtmlTemp as any).child = generateHtmlElements(d, saveFunc, dataPropertyInfoChildInfo);
+                    }
+                }
+
+                // ここ怪しい
+                (resHtml as any)[key] = resHtmlTemp;
+                break;
+            }
+
+            default: {
+                if (OptionBaseConsoleOption.error) {
+                    console.error("unknown p.type", p);
+                }
+                throw new Error("unknown p.type");
+            }
+        }
+    }
+
+    // ここ怪しい
+    return <any>resHtml;
 }
