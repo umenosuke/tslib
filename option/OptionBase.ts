@@ -3,7 +3,7 @@ import type { exEvent } from "../html/exEvents.js";
 import { TokenBucket } from "../time/TokenBucket.js";
 import type { RecursivePartial } from "../type/RecursivePartial.js";
 
-export { OptionBase };
+export { OptionBase, type PropertyTypeMap, type PropertyInfo, type PropertyData };
 
 export const OptionBaseConsoleOption = {
     debug: false,
@@ -43,7 +43,8 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     private waiting: boolean;
 
     constructor(
-        { dataPropertyInfo,
+        {
+            dataPropertyInfo,
             defaultData,
             saveFunc,
             loadFunc,
