@@ -1,4 +1,4 @@
-export { type PropertyInfo, type PropertyData, type PropertyDataEnum, type PropertyHtml, type PropertyInfoPrimitiveMap, type PropertyInfoEnum };
+export { type PropertyInfo, type PropertyInfoPrimitiveMap, type PropertyInfoEnum, type PropertyData, type PropertyDataEnum, type PropertyHtml };
 
 type PropertyInfo = Record<string,
     {
