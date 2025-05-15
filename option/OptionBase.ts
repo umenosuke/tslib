@@ -92,7 +92,12 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         this.waiting = false;
     }
 
-    public async load(): Promise<boolean> {
+    public async load(): Promise<{
+        abort: true,
+    } | {
+        abort: false,
+        containsInvalidData: boolean,
+    }> {
         if (OptionBaseConsoleOption.debug) {
             console.log("Option load");
         }
@@ -102,35 +107,33 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
                 if (OptionBaseConsoleOption.warn) {
                     console.warn("config load abort");
                 }
-                return false;
+                return {
+                    abort: true,
+                };
             }
 
             const loadData = <tJson>JSON.parse(loadRes.dataStr);
-            if (!dataTypeGuard(loadData, this.dataPropertyInfo)) {
-                if (OptionBaseConsoleOption.error) {
-                    console.error("!this.valueTypeGuard(loadData) : " + loadRes.dataStr);
-                }
-                return false;
-            }
-
-            this.setData(loadData);
-            return true;
+            const setRes = setData(loadData, this.data, this.dataPropertyInfo);
+            return {
+                abort: false,
+                containsInvalidData: setRes.containsInvalidData,
+            };
         } catch (err) {
             if (OptionBaseConsoleOption.error) {
                 console.error("load error : ", err);
             }
-            return false;
+            return {
+                abort: false,
+                containsInvalidData: true,
+            };;
         }
     }
 
-    public setData(fromData: RecursivePartial<PropertyData<DATA_PROPERTY_INFO>>): void {
-        for (const key in this.dataPropertyInfo) {
-            if (fromData[key] == undefined) {
-                continue;
-            }
-            // 多分大丈夫だけどいつか改善したい
-            (this.data as any)[key] = fromData[key];
-        }
+    public setData(fromData: RecursivePartial<PropertyData<DATA_PROPERTY_INFO>>): ({
+        changed: boolean,
+        containsInvalidData: boolean,
+    }) {
+        return setData(fromData, this.data, this.dataPropertyInfo);
     }
 
     public async save() {
@@ -166,6 +169,10 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
 }
 
 function dataTypeGuard<DATA_PROPERTY_INFO extends PropertyInfo>(data: any, dataPropertyInfo: DATA_PROPERTY_INFO): data is RecursivePartial<PropertyData<DATA_PROPERTY_INFO>> | undefined {
+    if (data == undefined) {
+        return true;
+    }
+
     for (const key in dataPropertyInfo) {
         // なんでundefinedになる可能性があるんやろ？
         const dataExpectType = dataPropertyInfo[key]?.["type"];
@@ -173,7 +180,7 @@ function dataTypeGuard<DATA_PROPERTY_INFO extends PropertyInfo>(data: any, dataP
             if (OptionBaseConsoleOption.error) {
                 console.error("dataExpectType == undefined");
             }
-            return false;
+            throw new Error("dataExpectType == undefined");
         }
 
         if (data[key] == undefined) {
@@ -196,7 +203,7 @@ function dataTypeGuard<DATA_PROPERTY_INFO extends PropertyInfo>(data: any, dataP
                     }
                     return false;
                 }
-                break;
+                return true;
             }
 
             case "nest": {
@@ -218,7 +225,7 @@ function dataTypeGuard<DATA_PROPERTY_INFO extends PropertyInfo>(data: any, dataP
                     if (OptionBaseConsoleOption.error) {
                         console.error("dataPropertyInfoChildInfo == undefined");
                     }
-                    return false;
+                    throw new Error("dataPropertyInfoChildInfo == undefined");
                 }
 
                 if (!dataTypeGuard(data[key], dataPropertyInfoChildInfo)) {
@@ -232,19 +239,125 @@ function dataTypeGuard<DATA_PROPERTY_INFO extends PropertyInfo>(data: any, dataP
                     }
                     return false;
                 }
-                break;
+                return true;
             }
 
             default: {
                 if (OptionBaseConsoleOption.error) {
                     console.error("unknown dataExpectType", dataExpectType);
                 }
-                return false;
+                throw new Error("unknown dataExpectType");
             }
         }
     }
 
     return true;
+}
+
+function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO): ({
+    changed: boolean,
+    containsInvalidData: boolean,
+}) {
+    const res = {
+        changed: false,
+        containsInvalidData: false,
+    };
+
+    if (fromData == undefined) {
+        res.containsInvalidData = true;
+        return res;
+    }
+
+    for (const key in dataPropertyInfo) {
+        // なんでundefinedになる可能性があるんやろ？
+        const dataExpectType = dataPropertyInfo[key]?.["type"];
+        if (dataExpectType == undefined) {
+            if (OptionBaseConsoleOption.error) {
+                console.error("dataExpectType == undefined");
+            }
+            throw new Error("dataExpectType == undefined");
+        }
+
+        if (fromData[key] == undefined) {
+            res.containsInvalidData = true;
+            continue;
+        }
+
+        switch (dataExpectType) {
+            case "number":
+            case "string":
+            case "boolean": {
+                if (typeof fromData[key] !== dataExpectType) {
+                    if (OptionBaseConsoleOption.warn) {
+                        console.warn("setData skip", {
+                            dataIn: fromData,
+                            key: key,
+                            dataType: typeof fromData[key],
+                            dataVal: fromData[key],
+                            dataExpectType: dataExpectType,
+                        });
+                    }
+                    res.containsInvalidData = true;
+                    continue;
+                }
+                if (toData[key] !== fromData[key]) {
+                    toData[key] = fromData[key];
+                    res.changed = true;
+                }
+                continue;
+            }
+
+            case "nest": {
+                if (typeof fromData[key] !== "object") {
+                    if (OptionBaseConsoleOption.warn) {
+                        console.warn("setData skip nest", {
+                            dataIn: fromData,
+                            key: key,
+                            dataType: typeof fromData[key],
+                            dataVal: fromData[key],
+                            dataExpectType: "object",
+                        });
+                    }
+                    res.containsInvalidData = true;
+                    continue;
+                }
+
+                const dataPropertyInfoChildInfo = dataPropertyInfo[key]?.["child"];
+                if (dataPropertyInfoChildInfo == undefined) {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("dataPropertyInfoChildInfo == undefined");
+                    }
+                    throw new Error("dataPropertyInfoChildInfo == undefined");
+                }
+
+                // toData[key]がnestの時の型が欠落するのはなんでじゃろか
+                if (typeof toData[key] !== "object") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("nest error", { data: toData[key], });
+                    }
+                    throw new Error("nest data is not object");
+                }
+
+                const nestRes = setData(fromData[key], toData[key], dataPropertyInfoChildInfo);
+                if (nestRes.changed) {
+                    res.changed = true;
+                }
+                if (nestRes.containsInvalidData) {
+                    res.containsInvalidData = true;
+                }
+                continue;
+            }
+
+            default: {
+                if (OptionBaseConsoleOption.error) {
+                    console.error("unknown dataExpectType", dataExpectType);
+                }
+                throw new Error("unknown dataExpectType");
+            }
+        }
+    }
+
+    return res;
 }
 
 function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, dataPropertyInfo: DATA_PROPERTY_INFO): key is keyof DATA_PROPERTY_INFO {
