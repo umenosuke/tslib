@@ -2,102 +2,14 @@ import type { tJson } from "../data/typeJson.js";
 import type { exEvent } from "../html/exEvents.js";
 import { TokenBucket } from "../time/TokenBucket.js";
 import type { RecursivePartial } from "../type/RecursivePartial.js";
+import type { PropertyData, PropertyDataEnum, PropertyHtml, PropertyInfo, PropertyInfoEnum, PropertyInfoPrimitiveMap } from "./type.js";
 
-export { OptionBase, type PropertyInfo, type PropertyData, type PropertyHtml };
+export { OptionBase };
 
 export const OptionBaseConsoleOption = {
     debug: false,
     warn: false,
     error: true,
-};
-
-type PropertyTypeMap = {
-    "boolean": boolean,
-    "string": string,
-    "number": number,
-};
-type PropertyInfo = Record<string,
-    {
-        "type": keyof PropertyTypeMap,
-        "label": string,
-    }
-    | PropertyInfoEnum
-    | {
-        "type": "nest",
-        "label": string,
-        "child": PropertyInfo,
-    }
->;
-type PropertyInfoEnum = {
-    "type": "enum",
-    "label": string,
-    "list": readonly {
-        "label": string,
-        "value": string,
-    }[],
-};
-
-type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
-    [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
-    ? PropertyTypeMap[PROPERTY_INFO[K]["type"]]
-    : (PROPERTY_INFO[K]["type"] extends "enum"
-        ? (PROPERTY_INFO[K] extends { "list": infer PROPERTY_INFO_ENUM_LIST }
-            ? (PROPERTY_INFO_ENUM_LIST extends readonly { "value": string, }[]
-                ? PropertyDataEnum<PROPERTY_INFO_ENUM_LIST>
-                : never
-            )
-            : never
-        )
-        : (PROPERTY_INFO[K]["type"] extends "nest"
-            ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
-                ? (CHILD extends PropertyInfo
-                    ? PropertyData<CHILD>
-                    : never
-                )
-                : never
-            )
-            : never
-        )
-    )
-};
-type PropertyDataEnum<LIST extends readonly { "value": string, }[]> = (
-    LIST extends readonly { "value": infer PROPERTY_INFO_ENUM_LIST_VALUE, }[]
-    ? (
-        string extends PROPERTY_INFO_ENUM_LIST_VALUE
-        ? never
-        : PROPERTY_INFO_ENUM_LIST_VALUE
-    )
-    : never
-);
-
-type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
-    [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
-    ? ({
-        type: PROPERTY_INFO[K]["type"],
-        label: HTMLSpanElement,
-        elem: HTMLInputElement,
-    })
-    : (PROPERTY_INFO[K]["type"] extends "enum"
-        ? ({
-            type: PROPERTY_INFO[K]["type"],
-            label: HTMLSpanElement,
-            elem: HTMLSelectElement,
-        })
-        : (PROPERTY_INFO[K]["type"] extends "nest"
-            ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
-                ? (CHILD extends PropertyInfo
-                    ? ({
-                        type: PROPERTY_INFO[K]["type"],
-                        label: HTMLSpanElement,
-                        child: PropertyHtml<CHILD>,
-                    })
-                    : never
-                )
-                : never
-            )
-            : never
-        )
-    )
 };
 
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
@@ -451,7 +363,7 @@ function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string,
 };
 
 function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
-    const handlerList: { [key in keyof PropertyTypeMap | "enum"]: EventListenerObject } = {
+    const handlerList: { [key in keyof PropertyInfoPrimitiveMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
@@ -815,7 +727,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
 }
 
 function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): PropertyHtml<DATA_PROPERTY_INFO> {
-    const handlerList: { [key in keyof PropertyTypeMap | "enum"]: EventListenerObject } = {
+    const handlerList: { [key in keyof PropertyInfoPrimitiveMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
