@@ -3,7 +3,7 @@ import type { exEvent } from "../html/exEvents.js";
 import { TokenBucket } from "../time/TokenBucket.js";
 import type { RecursivePartial } from "../type/RecursivePartial.js";
 
-export { OptionBase, type PropertyTypeMap, type PropertyInfo, type PropertyData };
+export { OptionBase, type PropertyInfo, type PropertyData, type PropertyHtml };
 
 export const OptionBaseConsoleOption = {
     debug: false,
@@ -230,8 +230,10 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         }, this.dataPropertyInfo);
     }
 
-    public generateHtmlElements(): PropertyHtml<DATA_PROPERTY_INFO> | undefined {
-        return;
+    public generateHtmlElements(): PropertyHtml<DATA_PROPERTY_INFO> {
+        return generateHtmlElements(this.data, async () => {
+            await this.save();
+        }, this.dataPropertyInfo);
     }
 }
 
