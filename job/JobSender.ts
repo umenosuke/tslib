@@ -3,8 +3,9 @@ import { isJobMessageResponse, type Job, type tJobMessageRequest } from "./Job.j
 
 export { JobSender };
 
-export const JobSenderOption = {
-    debug: false
+export const JobSenderConsoleOption = {
+    debug: false,
+    error: true,
 };
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
@@ -44,12 +45,12 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
     }
 
     public Listener(response: unknown): boolean {
-        if (JobSenderOption.debug) {
+        if (JobSenderConsoleOption.debug) {
             console.log("response receive", response);
         }
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
-            if (JobSenderOption.debug) {
+            if (JobSenderConsoleOption.error) {
                 console.error("!isJobMessageReceive(response)");
             }
             return false;
@@ -61,14 +62,14 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
         const waiting = this.waitingJobList.delete(response.jobID);
         if (waiting == undefined) {
-            if (JobSenderOption.debug) {
+            if (JobSenderConsoleOption.error) {
                 console.error("waiting == undefined");
             }
             return false;
         }
 
         if (response.jobKey !== waiting.jobKey) {
-            if (JobSenderOption.debug) {
+            if (JobSenderConsoleOption.error) {
                 console.error("res.jobKey !== waiting.jobKey");
             }
             return false;
@@ -106,7 +107,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
                 jobKey: jobKey,
                 argument: argument,
             }
-            if (JobSenderOption.debug) {
+            if (JobSenderConsoleOption.debug) {
                 console.log("request send", req);
             }
 

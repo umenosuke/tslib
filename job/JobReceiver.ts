@@ -2,8 +2,9 @@ import { isJobMessageRequest, type Job, type tJobMessageResponse } from "./Job.j
 
 export { JobReceiver };
 
-export const JobReceiverOption = {
-    debug: false
+export const JobReceiverConsoleOption = {
+    debug: false,
+    error: true,
 };
 
 class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
@@ -31,12 +32,12 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
     }
 
     public async Listener(request: unknown, meta: RESPONSE_SEND_META): Promise<boolean> {
-        if (JobReceiverOption.debug) {
+        if (JobReceiverConsoleOption.debug) {
             console.log("request receive", request);
         }
 
         if (!isJobMessageRequest(request, this.jobKeyList)) {
-            if (JobReceiverOption.debug) {
+            if (JobReceiverConsoleOption.error) {
                 console.error("!isJobMessageReceive(response)");
             }
             return false;
@@ -54,7 +55,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 jobKey: request.jobKey,
                 response: await this.funcList[request.jobKey].job(request.argument, meta),
             }
-            if (JobReceiverOption.debug) {
+            if (JobReceiverConsoleOption.debug) {
                 console.log("response send", res);
             }
             await this.responseSendFunc(res);
@@ -69,12 +70,12 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                     errMsg: String(err),
                 }
 
-                if (JobReceiverOption.debug) {
+                if (JobReceiverConsoleOption.debug) {
                     console.log("response send", res);
                 }
                 await this.responseSendFunc(res);
             } catch (err) {
-                if (JobReceiverOption.debug) {
+                if (JobReceiverConsoleOption.error) {
                     console.error({ msg: "fail this.responseSendFunc", err });
                 }
             }
