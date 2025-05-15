@@ -113,7 +113,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
                 return false;
             }
 
-            this.set(loadData);
+            this.setData(loadData);
             return true;
         } catch (err) {
             if (OptionBaseConsoleOption.error) {
@@ -123,7 +123,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         }
     }
 
-    public set(fromData: RecursivePartial<PropertyData<DATA_PROPERTY_INFO>>): void {
+    public setData(fromData: RecursivePartial<PropertyData<DATA_PROPERTY_INFO>>): void {
         for (const key in this.dataPropertyInfo) {
             if (fromData[key] == undefined) {
                 continue;
@@ -220,7 +220,19 @@ function dataTypeGuard<DATA_PROPERTY_INFO extends PropertyInfo>(data: any, dataP
                     }
                     return false;
                 }
-                return dataTypeGuard(data[key], dataPropertyInfoChildInfo);
+
+                if (!dataTypeGuard(data[key], dataPropertyInfoChildInfo)) {
+                    if (OptionBaseConsoleOption.warn) {
+                        console.warn("dataTypeGuard nest fail", {
+                            dataIn: data,
+                            key: key,
+                            dataVal: data[key],
+                            dataExpectType: dataPropertyInfoChildInfo,
+                        });
+                    }
+                    return false;
+                }
+                break;
             }
 
             default: {
