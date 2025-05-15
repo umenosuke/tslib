@@ -219,7 +219,13 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
 
         if (fromData[key] == undefined) {
             if (OptionBaseConsoleOption.warn) {
-                console.warn("fromData[key] == undefined");
+                console.warn("fromData[key] == undefined", {
+                    dataIn: fromData,
+                    key: key,
+                    dataType: typeof fromData[key],
+                    dataVal: fromData[key],
+                    dataExpectType: dataExpectType,
+                });
             }
             res.containsInvalidData = true;
             continue;
@@ -336,6 +342,14 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                     res.changed = true;
                 }
                 if (nestRes.containsInvalidData) {
+                    if (OptionBaseConsoleOption.warn) {
+                        console.warn("nestRes contains invalid data", {
+                            dataIn: fromData,
+                            key: key,
+                            dataVal: fromData[key],
+                            dataExpectType: dataPropertyInfoChildInfo,
+                        });
+                    }
                     res.containsInvalidData = true;
                 }
                 continue;
