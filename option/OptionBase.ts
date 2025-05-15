@@ -243,6 +243,57 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                 continue;
             }
 
+            case "enum": {
+                const val: unknown = fromData[key];
+                if (typeof val !== "string") {
+                    if (OptionBaseConsoleOption.warn) {
+                        console.warn("setData skip", {
+                            dataIn: fromData,
+                            key: key,
+                            dataType: typeof fromData[key],
+                            dataVal: fromData[key],
+                            dataExpectType: dataExpectType,
+                        });
+                    }
+                    res.containsInvalidData = true;
+                    continue;
+                }
+
+                const dataPropertyInfoEnum = dataPropertyInfo[key];
+                if (dataPropertyInfoEnum == undefined) {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("dataPropertyInfoEnum == undefined");
+                    }
+                    throw new Error("dataPropertyInfoEnum == undefined");
+                }
+                if (dataPropertyInfoEnum.type !== "enum") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("dataPropertyInfoEnum.type !== enum");
+                    }
+                    throw new Error("dataPropertyInfoEnum.type !== enum");
+                }
+
+                if (!isEnumValue(val, dataPropertyInfoEnum)) {
+                    if (OptionBaseConsoleOption.warn) {
+                        console.warn("setData skip", {
+                            dataIn: fromData,
+                            key: key,
+                            dataType: typeof fromData[key],
+                            dataVal: fromData[key],
+                            dataExpectType: dataExpectType,
+                        });
+                    }
+                    res.containsInvalidData = true;
+                    continue;
+                }
+
+                if (toData[key] !== val) {
+                    toData[key] = val;
+                    res.changed = true;
+                }
+                continue;
+            }
+
             case "nest": {
                 if (typeof fromData[key] !== "object") {
                     if (OptionBaseConsoleOption.warn) {
