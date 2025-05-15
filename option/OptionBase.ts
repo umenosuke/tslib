@@ -23,18 +23,37 @@ type PropertyInfo = Record<string, {
     "type": "nest",
     "child": PropertyInfo,
     "label": string,
+} | {
+    "type": "enum",
+    "list": readonly string[],
+    "label": string,
 }>;
 
 type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
     ? PropertyTypeMap[PROPERTY_INFO[K]["type"]]
-    : PROPERTY_INFO[K]["type"] extends "nest"
-    ? PROPERTY_INFO[K] extends { "child": infer C }
-    ? C extends PropertyInfo
-    ? PropertyData<C>
-    : never
-    : never :
-    never
+    : (PROPERTY_INFO[K]["type"] extends "nest"
+        ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
+            ? (CHILD extends PropertyInfo
+                ? PropertyData<CHILD>
+                : never
+            )
+            : never
+        )
+        : (PROPERTY_INFO[K]["type"] extends "enum"
+            ? (PROPERTY_INFO[K] extends { "list": infer LIST }
+                ? (LIST extends readonly string[]
+                    ? (string extends LIST[number]
+                        ? never
+                        : LIST[number]
+                    )
+                    : never
+                )
+                : never
+            )
+            : never
+        )
+    )
 };
 
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
