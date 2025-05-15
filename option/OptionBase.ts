@@ -82,21 +82,28 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         if (OptionBaseConsoleOption.debug) {
             console.log("Option load");
         }
-        const loadRes = await this.loadFunc();
-        if (loadRes.abort) {
-            return false;
-        }
+        try {
+            const loadRes = await this.loadFunc();
+            if (loadRes.abort) {
+                return false;
+            }
 
-        const loadData = <tJson>JSON.parse(loadRes.dataStr);
-        if (!this.dataTypeGuard(loadData)) {
+            const loadData = <tJson>JSON.parse(loadRes.dataStr);
+            if (!this.dataTypeGuard(loadData)) {
+                if (OptionBaseConsoleOption.error) {
+                    console.error("!this.valueTypeGuard(loadData) : " + loadRes.dataStr);
+                }
+                return false;
+            }
+
+            this.set(loadData);
+            return true;
+        } catch (err) {
             if (OptionBaseConsoleOption.error) {
-                console.error("!this.valueTypeGuard(loadData) : " + loadRes.dataStr);
+                console.error("load error : ", err);
             }
             return false;
         }
-
-        this.set(loadData);
-        return true;
     }
 
     public set(fromData: RecursivePartial<{ [K in keyof DATA_PROPERTY_INFO]: PropertyTypeMap[DATA_PROPERTY_INFO[K]["type"]] }>): void {
