@@ -555,8 +555,9 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                             span.textContent = p.label;
                         }
                     }
-                    frag.appendChild(document.createElement("br"));
                 }
+
+                frag.appendChild(document.createElement("br"));
                 break;
             }
 
@@ -588,9 +589,9 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                             input.addEventListener("change", handlerList[p.type]);
                         }
                     }
-                    frag.appendChild(document.createElement("br"));
                 }
 
+                frag.appendChild(document.createElement("br"));
                 break;
             }
 
@@ -622,8 +623,9 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                             input.addEventListener("change", handlerList[p.type]);
                         }
                     }
-                    frag.appendChild(document.createElement("br"));
                 }
+
+                frag.appendChild(document.createElement("br"));
                 break;
             }
 
@@ -678,6 +680,8 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         }
                     }
                 }
+
+                frag.appendChild(document.createElement("br"));
                 break;
             }
 
