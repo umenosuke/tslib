@@ -20,33 +20,33 @@ type PropertyInfo = Record<string, {
     "type": keyof PropertyTypeMap,
     "label": string,
 } | {
-    "type": "nest",
-    "child": PropertyInfo,
-    "label": string,
-} | {
     "type": "enum",
     "list": readonly string[],
+    "label": string,
+} | {
+    "type": "nest",
+    "child": PropertyInfo,
     "label": string,
 }>;
 
 type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
     ? PropertyTypeMap[PROPERTY_INFO[K]["type"]]
-    : (PROPERTY_INFO[K]["type"] extends "nest"
-        ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
-            ? (CHILD extends PropertyInfo
-                ? PropertyData<CHILD>
+    : (PROPERTY_INFO[K]["type"] extends "enum"
+        ? (PROPERTY_INFO[K] extends { "list": infer LIST }
+            ? (LIST extends readonly string[]
+                ? (string extends LIST[number]
+                    ? never
+                    : LIST[number]
+                )
                 : never
             )
             : never
         )
-        : (PROPERTY_INFO[K]["type"] extends "enum"
-            ? (PROPERTY_INFO[K] extends { "list": infer LIST }
-                ? (LIST extends readonly string[]
-                    ? (string extends LIST[number]
-                        ? never
-                        : LIST[number]
-                    )
+        : (PROPERTY_INFO[K]["type"] extends "nest"
+            ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
+                ? (CHILD extends PropertyInfo
+                    ? PropertyData<CHILD>
                     : never
                 )
                 : never
@@ -401,7 +401,7 @@ function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, da
 
 function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
     const handlerList: { [key in keyof PropertyTypeMap]: EventListenerObject } = {
-        boolean: {
+        "boolean": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
                     if (e.currentTarget == null) {
@@ -429,7 +429,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                     checkbox.readOnly = false;
                 },
         },
-        string: {
+        "string": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
                     if (e.currentTarget == null) {
@@ -457,7 +457,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                     input.readOnly = false;
                 },
         },
-        number: {
+        "number": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
                     if (e.currentTarget == null) {
