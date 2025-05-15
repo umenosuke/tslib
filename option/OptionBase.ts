@@ -200,6 +200,9 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
     };
 
     if (fromData == undefined) {
+        if (OptionBaseConsoleOption.warn) {
+            console.warn("fromData == undefined");
+        }
         res.containsInvalidData = true;
         return res;
     }
@@ -215,6 +218,9 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
         }
 
         if (fromData[key] == undefined) {
+            if (OptionBaseConsoleOption.warn) {
+                console.warn("fromData[key] == undefined");
+            }
             res.containsInvalidData = true;
             continue;
         }
