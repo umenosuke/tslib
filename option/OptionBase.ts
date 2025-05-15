@@ -30,7 +30,10 @@ type PropertyInfo = Record<string,
 >;
 type PropertyInfoEnum = {
     "type": "enum",
-    "list": readonly string[],
+    "list": readonly {
+        "value": string,
+        "label": string,
+    }[],
     "label": string,
 };
 
@@ -38,9 +41,9 @@ type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
     ? PropertyTypeMap[PROPERTY_INFO[K]["type"]]
     : (PROPERTY_INFO[K]["type"] extends "enum"
-        ? (PROPERTY_INFO[K] extends { "list": infer LIST }
-            ? (LIST extends readonly string[]
-                ? PropertyDataEnum<LIST>
+        ? (PROPERTY_INFO[K] extends { "list": infer PROPERTY_INFO_ENUM_LIST }
+            ? (PROPERTY_INFO_ENUM_LIST extends readonly { "value": string, }[]
+                ? PropertyDataEnum<PROPERTY_INFO_ENUM_LIST>
                 : never
             )
             : never
@@ -57,7 +60,15 @@ type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
         )
     )
 };
-type PropertyDataEnum<LIST extends readonly string[]> = string extends LIST[number] ? never : LIST[number];
+type PropertyDataEnum<LIST extends readonly { "value": string, }[]> = (
+    LIST extends readonly { "value": infer PROPERTY_INFO_ENUM_LIST_VALUE, }[]
+    ? (
+        string extends PROPERTY_INFO_ENUM_LIST_VALUE
+        ? never
+        : PROPERTY_INFO_ENUM_LIST_VALUE
+    )
+    : never
+);
 
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     public readonly dataPropertyInfo: DATA_PROPERTY_INFO;
@@ -389,7 +400,7 @@ function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, da
 
 function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string, dataPropertyInfo: DATA_PROPERTY_INFO): value is PropertyDataEnum<DATA_PROPERTY_INFO["list"]> {
     for (const e of dataPropertyInfo["list"]) {
-        if (value === e) {
+        if (value === e.value) {
             return true;
         }
     }
@@ -691,8 +702,8 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                                 for (const e of dataPropertyInfoEnumList) {
                                     const option = document.createElement("option");
                                     select.appendChild(option);
-                                    option.textContent = e;
-                                    option.value = e;
+                                    option.textContent = e.label;
+                                    option.value = e.value;
                                 }
                             }
                             select.value = val;
