@@ -16,18 +16,23 @@ type PropertyTypeMap = {
     "string": string,
     "number": number,
 };
-type PropertyInfo = Record<string, {
-    "type": keyof PropertyTypeMap,
-    "label": string,
-} | {
+type PropertyInfo = Record<string,
+    {
+        "type": keyof PropertyTypeMap,
+        "label": string,
+    }
+    | PropertyInfoEnum
+    | {
+        "type": "nest",
+        "child": PropertyInfo,
+        "label": string,
+    }
+>;
+type PropertyInfoEnum = {
     "type": "enum",
     "list": readonly string[],
     "label": string,
-} | {
-    "type": "nest",
-    "child": PropertyInfo,
-    "label": string,
-}>;
+};
 
 type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyTypeMap
@@ -35,10 +40,7 @@ type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
     : (PROPERTY_INFO[K]["type"] extends "enum"
         ? (PROPERTY_INFO[K] extends { "list": infer LIST }
             ? (LIST extends readonly string[]
-                ? (string extends LIST[number]
-                    ? never
-                    : LIST[number]
-                )
+                ? PropertyDataEnum<LIST>
                 : never
             )
             : never
@@ -55,6 +57,7 @@ type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
         )
     )
 };
+type PropertyDataEnum<LIST extends readonly string[]> = string extends LIST[number] ? never : LIST[number];
 
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     public readonly dataPropertyInfo: DATA_PROPERTY_INFO;
@@ -399,8 +402,24 @@ function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, da
     return false;
 };
 
+function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string, dataPropertyInfo: DATA_PROPERTY_INFO): value is PropertyDataEnum<DATA_PROPERTY_INFO["list"]> {
+    for (const e of dataPropertyInfo["list"]) {
+        if (value === e) {
+            return true;
+        }
+    }
+
+    if (OptionBaseConsoleOption.warn) {
+        console.warn("isEnumValue fail", {
+            enumIn: value,
+            enumExpectList: dataPropertyInfo["list"],
+        });
+    }
+    return false;
+};
+
 function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
-    const handlerList: { [key in keyof PropertyTypeMap]: EventListenerObject } = {
+    const handlerList: { [key in keyof PropertyTypeMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
@@ -487,7 +506,48 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
 
                     input.readOnly = false;
                 },
-        }
+        },
+        "enum": {
+            handleEvent:
+                async (e: exEvent<HTMLSelectElement>) => {
+                    if (e.currentTarget == null) {
+                        throw new Error("e.currentTarget == null");
+                    }
+
+                    const select = e.currentTarget;
+
+                    try {
+                        const key = select.dataset["key"];
+                        if (!isDataPropertyKey(key, dataPropertyInfo)) {
+                            throw new Error("!this.isDataPropertyKey(key)");
+                        }
+                        const val = select.value;
+                        const dataPropertyInfoEnum = dataPropertyInfo[key];
+                        if (dataPropertyInfoEnum == undefined) {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoEnum == undefined");
+                            }
+                            throw new Error("dataPropertyInfoEnum == undefined");
+                        }
+                        if (dataPropertyInfoEnum.type !== "enum") {
+                            if (OptionBaseConsoleOption.error) {
+                                console.error("dataPropertyInfoEnum.type !== enum");
+                            }
+                            throw new Error("dataPropertyInfoEnum.type !== enum");
+                        }
+                        if (!isEnumValue(val, dataPropertyInfoEnum)) {
+                            throw new Error("!this.isEnumValue(val)");
+                        }
+                        // 多分大丈夫だけどいつか改善したい
+                        (data as any)[key] = val;
+                        await saveFunc();
+                    } catch (e) {
+                        if (OptionBaseConsoleOption.error) {
+                            console.error(e);
+                        }
+                    }
+                },
+        },
     };
 
     const frag = document.createDocumentFragment();
@@ -503,7 +563,13 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
 
         switch (p.type) {
             case "boolean": {
-                const val = <PropertyTypeMap[typeof p.type]>d;
+                const val = d;
+                if (typeof val !== "boolean") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== boolean");
+                    }
+                    throw new Error("typeof val !== boolean");
+                }
                 const label = document.createElement("label");
                 frag.appendChild(label);
                 {
@@ -513,7 +579,6 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         {
                             checkbox.dataset["key"] = key;
                             checkbox.type = "checkbox";
-                            // 多分大丈夫だけどいつか改善したい
                             checkbox.checked = val;
                             checkbox.addEventListener("click", handlerList[p.type]);
                         }
@@ -531,7 +596,13 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             }
 
             case "string": {
-                const val = <PropertyTypeMap[typeof p.type]>d;
+                const val = d;
+                if (typeof val !== "string") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== string");
+                    }
+                    throw new Error("typeof val !== string");
+                }
                 const label = document.createElement("label");
                 frag.appendChild(label);
                 {
@@ -548,7 +619,6 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         {
                             input.dataset["key"] = key;
                             input.type = "text";
-                            // 多分大丈夫だけどいつか改善したい
                             input.value = val;
                             input.addEventListener("change", handlerList[p.type]);
                         }
@@ -560,7 +630,13 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             }
 
             case "number": {
-                const val = <PropertyTypeMap[typeof p.type]>d;
+                const val = d;
+                if (typeof val !== "number") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== number");
+                    }
+                    throw new Error("typeof val !== number");
+                }
                 const label = document.createElement("label");
                 frag.appendChild(label);
                 {
@@ -577,12 +653,65 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         {
                             input.dataset["key"] = key;
                             input.type = "number";
-                            // 多分大丈夫だけどいつか改善したい
                             input.value = String(val);
                             input.addEventListener("change", handlerList[p.type]);
                         }
                     }
                     frag.appendChild(document.createElement("br"));
+                }
+                break;
+            }
+
+            case "enum": {
+                const val = d;
+                if (typeof val !== "string") {
+                    if (OptionBaseConsoleOption.error) {
+                        console.error("typeof val !== string");
+                    }
+                    throw new Error("typeof val !== string");
+                }
+                const label = document.createElement("label");
+                frag.appendChild(label);
+                {
+                    {
+                        const span = document.createElement("span");
+                        label.appendChild(span);
+                        {
+                            span.textContent = p.label;
+                        }
+                    }
+                    {
+                        const select = document.createElement("select");
+                        label.appendChild(select);
+                        {
+                            select.dataset["key"] = key;
+                            {
+                                const dataPropertyInfoEnum = dataPropertyInfo[key];
+                                if (dataPropertyInfoEnum == undefined) {
+                                    if (OptionBaseConsoleOption.error) {
+                                        console.error("dataPropertyInfoEnum == undefined");
+                                    }
+                                    throw new Error("dataPropertyInfoEnum == undefined");
+                                }
+                                if (dataPropertyInfoEnum.type !== "enum") {
+                                    if (OptionBaseConsoleOption.error) {
+                                        console.error("dataPropertyInfoEnum.type !== enum");
+                                    }
+                                    throw new Error("dataPropertyInfoEnum.type !== enum");
+                                }
+                                const dataPropertyInfoEnumList = dataPropertyInfoEnum["list"];
+
+                                for (const e of dataPropertyInfoEnumList) {
+                                    const option = document.createElement("option");
+                                    select.appendChild(option);
+                                    option.textContent = e;
+                                    option.value = e;
+                                }
+                            }
+                            select.value = val;
+                            select.addEventListener("change", handlerList[p.type]);
+                        }
+                    }
                 }
                 break;
             }
