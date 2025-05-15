@@ -92,10 +92,10 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
             throw new Error("!this.valueTypeGuard(loadData) : " + loadRes.dataStr);
         }
 
-        this._load(loadData);
+        this.set(loadData);
     }
 
-    private _load(fromData: RecursivePartial<{ [K in keyof DATA_PROPERTY_INFO]: PropertyTypeMap[DATA_PROPERTY_INFO[K]["type"]] }>): void {
+    public set(fromData: RecursivePartial<{ [K in keyof DATA_PROPERTY_INFO]: PropertyTypeMap[DATA_PROPERTY_INFO[K]["type"]] }>): void {
         for (const key in this.dataPropertyInfo) {
             if (fromData[key] == undefined) {
                 continue;
