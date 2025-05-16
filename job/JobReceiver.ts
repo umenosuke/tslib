@@ -1,11 +1,10 @@
+import { ConsoleWrap } from "../console/ConsoleWrap.js";
 import { isJobMessageRequest, type Job, type tJobMessageResponse } from "./Job.js";
 
 export { JobReceiver };
 
-export const JobReceiverConsoleOption = {
-    debug: false,
-    error: true,
-};
+const consoleWrap = new ConsoleWrap();
+export const JobReceiverConsoleOption = consoleWrap.enables;
 
 class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
     private jobKeyList: (keyof JOB_MAP)[];
@@ -32,14 +31,10 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
     }
 
     public async Listener(request: unknown, meta: RESPONSE_SEND_META): Promise<boolean> {
-        if (JobReceiverConsoleOption.debug) {
-            console.log("request receive", request);
-        }
+        consoleWrap.log("request receive", request);
 
         if (!isJobMessageRequest(request, this.jobKeyList)) {
-            if (JobReceiverConsoleOption.error) {
-                console.error("!isJobMessageReceive(response)");
-            }
+            consoleWrap.error("!isJobMessageReceive(response)");
             return false;
         }
 
@@ -55,9 +50,8 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 jobKey: request.jobKey,
                 response: await this.funcList[request.jobKey].job(request.argument, meta),
             }
-            if (JobReceiverConsoleOption.debug) {
-                console.log("response send", res);
-            }
+
+            consoleWrap.log("response send", res);
             await this.responseSendFunc(res);
             return true;
         } catch (err) {
@@ -70,14 +64,10 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                     errMsg: String(err),
                 }
 
-                if (JobReceiverConsoleOption.debug) {
-                    console.log("response send", res);
-                }
+                consoleWrap.log("response send", res);
                 await this.responseSendFunc(res);
             } catch (err) {
-                if (JobReceiverConsoleOption.error) {
-                    console.error({ msg: "fail this.responseSendFunc", err });
-                }
+                consoleWrap.error({ msg: "fail this.responseSendFunc", err });
             }
             return false;
         }

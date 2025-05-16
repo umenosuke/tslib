@@ -1,8 +1,9 @@
+import { ConsoleWrap } from "../console/ConsoleWrap.js";
+
 export { type Job, type tJobMessage, isJobMessage, type tJobMessageRequest, isJobMessageRequest, type tJobMessageResponse, isJobMessageResponse, isJobKey };
 
-export const JobConsoleOption = {
-    warn: false,
-};
+const consoleWrap = new ConsoleWrap();
+export const JobConsoleOption = consoleWrap.enables;
 
 type Job<ARGUMENT = any, RESPONSE = any> = {
     argument: ARGUMENT,
@@ -17,30 +18,22 @@ type tJobMessage<JOB_KEY> = {
 
 function isJobMessage<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessage<JOB_KEY> {
     if (m == undefined) {
-        if (JobConsoleOption.warn) {
-            console.warn("m == undefined");
-        }
+        consoleWrap.warn("m == undefined");
         return false;
     }
 
     if (typeof m.sendorID !== "string") {
-        if (JobConsoleOption.warn) {
-            console.warn("typeof m.sendorID !== \"string\"");
-        }
+        consoleWrap.warn("typeof m.sendorID !== \"string\"");
         return false;
     }
 
     if (typeof m.jobID !== "string") {
-        if (JobConsoleOption.warn) {
-            console.warn("typeof m.jobID !== \"string\"");
-        }
+        consoleWrap.warn("typeof m.jobID !== \"string\"");
         return false;
     }
 
     if (!isJobKey(m.jobKey, jobKeyList)) {
-        if (JobConsoleOption.warn) {
-            console.warn("!isJobKey(m.jobKey, jobKeyList)");
-        }
+        consoleWrap.warn("!isJobKey(m.jobKey, jobKeyList)");
         return false;
     }
 
@@ -53,9 +46,7 @@ type tJobMessageRequest<JOB_KEY> = {
 
 function isJobMessageRequest<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessageRequest<JOB_KEY> {
     if (m == undefined) {
-        if (JobConsoleOption.warn) {
-            console.warn("m == undefined");
-        }
+        consoleWrap.warn("m == undefined");
         return false;
     }
 
@@ -74,25 +65,19 @@ type tJobMessageResponse<JOB_KEY> = {
 
 function isJobMessageResponse<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessageResponse<JOB_KEY> {
     if (m == undefined) {
-        if (JobConsoleOption.warn) {
-            console.warn("m == undefined");
-        }
+        consoleWrap.warn("m == undefined");
         return false;
     }
 
     if (typeof m.success !== "boolean") {
-        if (JobConsoleOption.warn) {
-            console.warn("typeof m.success !== \"boolean\"");
-        }
+        consoleWrap.warn("typeof m.success !== \"boolean\"");
         return false;
     }
     if (m.success) {
         // response の型はなんでもいいので
     } else {
         if (typeof m.errMsg !== "string") {
-            if (JobConsoleOption.warn) {
-                console.warn("typeof m.errMsg !== \"string\"");
-            }
+            consoleWrap.warn("typeof m.errMsg !== \"string\"");
             return false;
         }
     }

@@ -1,12 +1,11 @@
+import { ConsoleWrap } from "../console/ConsoleWrap.js";
 import { OrderObjectsAutoKey } from "../data/OrderObjectsAutoKey.js";
 import { isJobMessageResponse, type Job, type tJobMessageRequest } from "./Job.js";
 
 export { JobSender };
 
-export const JobSenderConsoleOption = {
-    debug: false,
-    error: true,
-};
+const consoleWrap = new ConsoleWrap();
+export const JobSenderConsoleOption = consoleWrap.enables;
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
 class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
@@ -45,14 +44,10 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
     }
 
     public Listener(response: unknown): boolean {
-        if (JobSenderConsoleOption.debug) {
-            console.log("response receive", response);
-        }
+        consoleWrap.log("response receive", response);
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
-            if (JobSenderConsoleOption.error) {
-                console.error("!isJobMessageReceive(response)");
-            }
+            consoleWrap.error("!isJobMessageReceive(response)");
             return false;
         }
 
@@ -62,16 +57,12 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
         const waiting = this.waitingJobList.delete(response.jobID);
         if (waiting == undefined) {
-            if (JobSenderConsoleOption.error) {
-                console.error("waiting == undefined");
-            }
+            consoleWrap.error("waiting == undefined");
             return false;
         }
 
         if (response.jobKey !== waiting.jobKey) {
-            if (JobSenderConsoleOption.error) {
-                console.error("res.jobKey !== waiting.jobKey");
-            }
+            consoleWrap.error("res.jobKey !== waiting.jobKey");
             return false;
         }
 
@@ -107,10 +98,8 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
                 jobKey: jobKey,
                 argument: argument,
             }
-            if (JobSenderConsoleOption.debug) {
-                console.log("request send", req);
-            }
 
+            consoleWrap.log("request send", req);
             try {
                 await this.requestSendFunc(req, meta);
             } catch (err) {
