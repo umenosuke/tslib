@@ -1,3 +1,4 @@
+import { ConsoleWrap } from "../console/ConsoleWrap.js";
 import type { tJson } from "../data/typeJson.js";
 import type { exEvent } from "../html/exEvents.js";
 import { TokenBucket } from "../time/TokenBucket.js";
@@ -6,11 +7,8 @@ import type { PropertyData, PropertyDataEnum, PropertyHtml, PropertyInfo, Proper
 
 export { OptionBase };
 
-export const OptionBaseConsoleOption = {
-    debug: false,
-    warn: false,
-    error: true,
-};
+const consoleWrap = new ConsoleWrap();
+export const OptionBaseConsoleOption = consoleWrap.enables;
 
 // セット時にコールバックを注入するテスト中
 function autoGetSet<T extends {}>(d: T): { real: T, wrap: T, } {
@@ -23,11 +21,11 @@ function autoGetSet<T extends {}>(d: T): { real: T, wrap: T, } {
             real[prop] = val;
             Object.defineProperty(wrap, prop, {
                 get: () => {
-                    console.log("get", prop);
+                    consoleWrap.log("get", prop);
                     return (real as any)[prop];
                 },
                 set: (val) => {
-                    console.log("set", prop);
+                    consoleWrap.log("set", prop);
                     (real as any)[prop] = val;
                 },
             });
@@ -36,11 +34,11 @@ function autoGetSet<T extends {}>(d: T): { real: T, wrap: T, } {
             real[prop] = nest.real;
             Object.defineProperty(wrap, prop, {
                 get: () => {
-                    console.log("get nest", prop);
+                    consoleWrap.log("get nest", prop);
                     return nest.wrap;
                 },
             });
-            console.log({ real, wrap, });
+            consoleWrap.log({ real, wrap, });
         }
     });
 
@@ -116,15 +114,11 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         abort: false,
         containsInvalidData: boolean,
     }> {
-        if (OptionBaseConsoleOption.debug) {
-            console.log("Option load");
-        }
+        consoleWrap.log("Option load");
         try {
             const loadRes = await this.loadFunc();
             if (loadRes.abort) {
-                if (OptionBaseConsoleOption.warn) {
-                    console.warn("config load abort");
-                }
+                consoleWrap.warn("config load abort");
                 return {
                     abort: true,
                 };
@@ -137,9 +131,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
                 containsInvalidData: setRes.containsInvalidData,
             };
         } catch (err) {
-            if (OptionBaseConsoleOption.error) {
-                console.error("load error : ", err);
-            }
+            consoleWrap.error("load error : ", err);
             return {
                 abort: false,
                 containsInvalidData: true,
@@ -173,10 +165,8 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     }
 
     private async _save() {
-        if (OptionBaseConsoleOption.debug) {
-            console.log("Option save", this.dataReal);
-            console.log("Option save", JSON.stringify(this.dataReal));
-        }
+        consoleWrap.log("Option save", this.dataReal);
+        consoleWrap.log("Option save", JSON.stringify(this.dataReal));
         await this.saveFunc(JSON.stringify(this.dataReal));
     }
 
@@ -203,9 +193,7 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
     };
 
     if (fromData == undefined) {
-        if (OptionBaseConsoleOption.warn) {
-            console.warn("fromData == undefined");
-        }
+        consoleWrap.warn("fromData == undefined");
         res.containsInvalidData = true;
         return res;
     }
@@ -214,22 +202,18 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
         // なんでundefinedになる可能性があるんやろ？
         const dataExpectType = dataPropertyInfo[key]?.["type"];
         if (dataExpectType == undefined) {
-            if (OptionBaseConsoleOption.error) {
-                console.error("dataExpectType == undefined");
-            }
+            consoleWrap.error("dataExpectType == undefined");
             throw new Error("dataExpectType == undefined");
         }
 
         if (fromData[key] == undefined) {
-            if (OptionBaseConsoleOption.warn) {
-                console.warn("fromData[key] == undefined", {
-                    dataIn: fromData,
-                    key: key,
-                    dataType: typeof fromData[key],
-                    dataVal: fromData[key],
-                    dataExpectType: dataExpectType,
-                });
-            }
+            consoleWrap.warn("fromData[key] == undefined", {
+                dataIn: fromData,
+                key: key,
+                dataType: typeof fromData[key],
+                dataVal: fromData[key],
+                dataExpectType: dataExpectType,
+            });
             res.containsInvalidData = true;
             continue;
         }
@@ -239,15 +223,13 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
             case "string":
             case "boolean": {
                 if (typeof fromData[key] !== dataExpectType) {
-                    if (OptionBaseConsoleOption.warn) {
-                        console.warn("setData skip", {
-                            dataIn: fromData,
-                            key: key,
-                            dataType: typeof fromData[key],
-                            dataVal: fromData[key],
-                            dataExpectType: dataExpectType,
-                        });
-                    }
+                    consoleWrap.warn("setData skip", {
+                        dataIn: fromData,
+                        key: key,
+                        dataType: typeof fromData[key],
+                        dataVal: fromData[key],
+                        dataExpectType: dataExpectType,
+                    });
                     res.containsInvalidData = true;
                     continue;
                 }
@@ -261,43 +243,35 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
             case "enum": {
                 const val: unknown = fromData[key];
                 if (typeof val !== "string") {
-                    if (OptionBaseConsoleOption.warn) {
-                        console.warn("setData skip", {
-                            dataIn: fromData,
-                            key: key,
-                            dataType: typeof fromData[key],
-                            dataVal: fromData[key],
-                            dataExpectType: dataExpectType,
-                        });
-                    }
+                    consoleWrap.warn("setData skip", {
+                        dataIn: fromData,
+                        key: key,
+                        dataType: typeof fromData[key],
+                        dataVal: fromData[key],
+                        dataExpectType: dataExpectType,
+                    });
                     res.containsInvalidData = true;
                     continue;
                 }
 
                 const dataPropertyInfoEnum = dataPropertyInfo[key];
                 if (dataPropertyInfoEnum == undefined) {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("dataPropertyInfoEnum == undefined");
-                    }
+                    consoleWrap.error("dataPropertyInfoEnum == undefined");
                     throw new Error("dataPropertyInfoEnum == undefined");
                 }
                 if (dataPropertyInfoEnum.type !== "enum") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("dataPropertyInfoEnum.type !== enum");
-                    }
+                    consoleWrap.error("dataPropertyInfoEnum.type !== enum");
                     throw new Error("dataPropertyInfoEnum.type !== enum");
                 }
 
                 if (!isEnumValue(val, dataPropertyInfoEnum)) {
-                    if (OptionBaseConsoleOption.warn) {
-                        console.warn("setData skip", {
-                            dataIn: fromData,
-                            key: key,
-                            dataType: typeof fromData[key],
-                            dataVal: fromData[key],
-                            dataExpectType: dataExpectType,
-                        });
-                    }
+                    consoleWrap.warn("setData skip", {
+                        dataIn: fromData,
+                        key: key,
+                        dataType: typeof fromData[key],
+                        dataVal: fromData[key],
+                        dataExpectType: dataExpectType,
+                    });
                     res.containsInvalidData = true;
                     continue;
                 }
@@ -311,32 +285,26 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
 
             case "nest": {
                 if (typeof fromData[key] !== "object") {
-                    if (OptionBaseConsoleOption.warn) {
-                        console.warn("setData skip nest", {
-                            dataIn: fromData,
-                            key: key,
-                            dataType: typeof fromData[key],
-                            dataVal: fromData[key],
-                            dataExpectType: "object",
-                        });
-                    }
+                    consoleWrap.warn("setData skip nest", {
+                        dataIn: fromData,
+                        key: key,
+                        dataType: typeof fromData[key],
+                        dataVal: fromData[key],
+                        dataExpectType: "object",
+                    });
                     res.containsInvalidData = true;
                     continue;
                 }
 
                 const dataPropertyInfoChildInfo = dataPropertyInfo[key]?.["child"];
                 if (dataPropertyInfoChildInfo == undefined) {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("dataPropertyInfoChildInfo == undefined");
-                    }
+                    consoleWrap.error("dataPropertyInfoChildInfo == undefined");
                     throw new Error("dataPropertyInfoChildInfo == undefined");
                 }
 
                 // toData[key]がnestの時の型が欠落するのはなんでじゃろか
                 if (typeof toData[key] !== "object") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("nest error", { data: toData[key], });
-                    }
+                    consoleWrap.error("nest error", { data: toData[key], });
                     throw new Error("nest data is not object");
                 }
 
@@ -345,23 +313,19 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                     res.changed = true;
                 }
                 if (nestRes.containsInvalidData) {
-                    if (OptionBaseConsoleOption.warn) {
-                        console.warn("nestRes contains invalid data", {
-                            dataIn: fromData,
-                            key: key,
-                            dataVal: fromData[key],
-                            dataExpectType: dataPropertyInfoChildInfo,
-                        });
-                    }
+                    consoleWrap.warn("nestRes contains invalid data", {
+                        dataIn: fromData,
+                        key: key,
+                        dataVal: fromData[key],
+                        dataExpectType: dataPropertyInfoChildInfo,
+                    });
                     res.containsInvalidData = true;
                 }
                 continue;
             }
 
             default: {
-                if (OptionBaseConsoleOption.error) {
-                    console.error("unknown dataExpectType", dataExpectType);
-                }
+                consoleWrap.error("unknown dataExpectType", dataExpectType);
                 throw new Error("unknown dataExpectType");
             }
         }
@@ -377,16 +341,14 @@ function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, da
         }
     }
 
-    if (OptionBaseConsoleOption.warn) {
-        const keyExpectList: any[] = [];
-        for (const k in dataPropertyInfo) {
-            keyExpectList.push(k);
-        }
-        console.warn("isDataPropertyKey fail", {
-            keyIn: key,
-            keyExpectList: keyExpectList,
-        });
+    const keyExpectList: any[] = [];
+    for (const k in dataPropertyInfo) {
+        keyExpectList.push(k);
     }
+    consoleWrap.warn("isDataPropertyKey fail", {
+        keyIn: key,
+        keyExpectList: keyExpectList,
+    });
     return false;
 };
 
@@ -397,12 +359,10 @@ function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string,
         }
     }
 
-    if (OptionBaseConsoleOption.warn) {
-        console.warn("isEnumValue fail", {
-            enumIn: value,
-            enumExpectList: dataPropertyInfo["list"],
-        });
-    }
+    consoleWrap.warn("isEnumValue fail", {
+        enumIn: value,
+        enumExpectList: dataPropertyInfo["list"],
+    });
     return false;
 };
 
@@ -428,9 +388,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
 
                     checkbox.readOnly = false;
@@ -456,9 +414,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
 
                     input.readOnly = false;
@@ -487,9 +443,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
 
                     input.readOnly = false;
@@ -512,15 +466,11 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         const val = select.value;
                         const dataPropertyInfoEnum = dataPropertyInfo[key];
                         if (dataPropertyInfoEnum == undefined) {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoEnum == undefined");
-                            }
+                            consoleWrap.error("dataPropertyInfoEnum == undefined");
                             throw new Error("dataPropertyInfoEnum == undefined");
                         }
                         if (dataPropertyInfoEnum.type !== "enum") {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoEnum.type !== enum");
-                            }
+                            consoleWrap.error("dataPropertyInfoEnum.type !== enum");
                             throw new Error("dataPropertyInfoEnum.type !== enum");
                         }
                         if (!isEnumValue(val, dataPropertyInfoEnum)) {
@@ -530,9 +480,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
                 },
         },
@@ -553,9 +501,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
             case "boolean": {
                 const val = d;
                 if (typeof val !== "boolean") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== boolean");
-                    }
+                    consoleWrap.error("typeof val !== boolean");
                     throw new Error("typeof val !== boolean");
                 }
                 const label = document.createElement("label");
@@ -587,9 +533,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
             case "string": {
                 const val = d;
                 if (typeof val !== "string") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== string");
-                    }
+                    consoleWrap.error("typeof val !== string");
                     throw new Error("typeof val !== string");
                 }
                 const label = document.createElement("label");
@@ -621,9 +565,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
             case "number": {
                 const val = d;
                 if (typeof val !== "number") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== number");
-                    }
+                    consoleWrap.error("typeof val !== number");
                     throw new Error("typeof val !== number");
                 }
                 const label = document.createElement("label");
@@ -655,9 +597,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
             case "enum": {
                 const val = d;
                 if (typeof val !== "string") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== string");
-                    }
+                    consoleWrap.error("typeof val !== string");
                     throw new Error("typeof val !== string");
                 }
                 const label = document.createElement("label");
@@ -678,15 +618,11 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                             {
                                 const dataPropertyInfoEnum = dataPropertyInfo[key];
                                 if (dataPropertyInfoEnum == undefined) {
-                                    if (OptionBaseConsoleOption.error) {
-                                        console.error("dataPropertyInfoEnum == undefined");
-                                    }
+                                    consoleWrap.error("dataPropertyInfoEnum == undefined");
                                     throw new Error("dataPropertyInfoEnum == undefined");
                                 }
                                 if (dataPropertyInfoEnum.type !== "enum") {
-                                    if (OptionBaseConsoleOption.error) {
-                                        console.error("dataPropertyInfoEnum.type !== enum");
-                                    }
+                                    consoleWrap.error("dataPropertyInfoEnum.type !== enum");
                                     throw new Error("dataPropertyInfoEnum.type !== enum");
                                 }
                                 const dataPropertyInfoEnumList = dataPropertyInfoEnum["list"];
@@ -725,30 +661,22 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                     {
                         const dataPropertyInfoChild = dataPropertyInfo[key];
                         if (dataPropertyInfoChild == undefined) {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoChild == undefined");
-                            }
+                            consoleWrap.error("dataPropertyInfoChild == undefined");
                             throw new Error("dataPropertyInfoChild == undefined");
                         }
                         if (dataPropertyInfoChild.type !== "nest") {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoChild.type !== nest");
-                            }
+                            consoleWrap.error("dataPropertyInfoChild.type !== nest");
                             throw new Error("dataPropertyInfoChild.type !== nest");
                         }
                         const dataPropertyInfoChildInfo = dataPropertyInfoChild["child"];
                         if (dataPropertyInfoChildInfo == undefined) {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoChildInfo == undefined");
-                            }
+                            consoleWrap.error("dataPropertyInfoChildInfo == undefined");
                             throw new Error("dataPropertyInfoChildInfo == undefined");
                         }
 
                         // dがnestの時の型が欠落するのはなんでじゃろか
                         if (typeof d !== "object") {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("nest error", { data: d, });
-                            }
+                            consoleWrap.error("nest error", { data: d, });
                             throw new Error("nest data is not object");
                         }
 
@@ -759,9 +687,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
             }
 
             default: {
-                if (OptionBaseConsoleOption.error) {
-                    console.error("unknown p.type", p);
-                }
+                consoleWrap.error("unknown p.type", p);
                 throw new Error("unknown p.type");
             }
         }
@@ -792,9 +718,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
 
                     checkbox.readOnly = false;
@@ -820,9 +744,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
 
                     input.readOnly = false;
@@ -851,9 +773,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
 
                     input.readOnly = false;
@@ -876,15 +796,11 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         const val = select.value;
                         const dataPropertyInfoEnum = dataPropertyInfo[key];
                         if (dataPropertyInfoEnum == undefined) {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoEnum == undefined");
-                            }
+                            consoleWrap.error("dataPropertyInfoEnum == undefined");
                             throw new Error("dataPropertyInfoEnum == undefined");
                         }
                         if (dataPropertyInfoEnum.type !== "enum") {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoEnum.type !== enum");
-                            }
+                            consoleWrap.error("dataPropertyInfoEnum.type !== enum");
                             throw new Error("dataPropertyInfoEnum.type !== enum");
                         }
                         if (!isEnumValue(val, dataPropertyInfoEnum)) {
@@ -894,9 +810,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         (data as any)[key] = val;
                         await saveFunc();
                     } catch (e) {
-                        if (OptionBaseConsoleOption.error) {
-                            console.error(e);
-                        }
+                        consoleWrap.error(e);
                     }
                 },
         },
@@ -917,9 +831,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             case "boolean": {
                 const val = d;
                 if (typeof val !== "boolean") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== boolean");
-                    }
+                    consoleWrap.error("typeof val !== boolean");
                     throw new Error("typeof val !== boolean");
                 }
 
@@ -953,9 +865,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             case "string": {
                 const val = d;
                 if (typeof val !== "string") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== string");
-                    }
+                    consoleWrap.error("typeof val !== string");
                     throw new Error("typeof val !== string");
                 }
 
@@ -989,9 +899,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             case "number": {
                 const val = d;
                 if (typeof val !== "number") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== number");
-                    }
+                    consoleWrap.error("typeof val !== number");
                     throw new Error("typeof val !== number");
                 }
 
@@ -1025,9 +933,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             case "enum": {
                 const val = d;
                 if (typeof val !== "string") {
-                    if (OptionBaseConsoleOption.error) {
-                        console.error("typeof val !== string");
-                    }
+                    consoleWrap.error("typeof val !== string");
                     throw new Error("typeof val !== string");
                 }
 
@@ -1049,15 +955,11 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                             {
                                 const dataPropertyInfoEnum = dataPropertyInfo[key];
                                 if (dataPropertyInfoEnum == undefined) {
-                                    if (OptionBaseConsoleOption.error) {
-                                        console.error("dataPropertyInfoEnum == undefined");
-                                    }
+                                    consoleWrap.error("dataPropertyInfoEnum == undefined");
                                     throw new Error("dataPropertyInfoEnum == undefined");
                                 }
                                 if (dataPropertyInfoEnum.type !== "enum") {
-                                    if (OptionBaseConsoleOption.error) {
-                                        console.error("dataPropertyInfoEnum.type !== enum");
-                                    }
+                                    consoleWrap.error("dataPropertyInfoEnum.type !== enum");
                                     throw new Error("dataPropertyInfoEnum.type !== enum");
                                 }
                                 const dataPropertyInfoEnumList = dataPropertyInfoEnum["list"];
@@ -1094,30 +996,22 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                     {
                         const dataPropertyInfoChild = dataPropertyInfo[key];
                         if (dataPropertyInfoChild == undefined) {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoChild == undefined");
-                            }
+                            consoleWrap.error("dataPropertyInfoChild == undefined");
                             throw new Error("dataPropertyInfoChild == undefined");
                         }
                         if (dataPropertyInfoChild.type !== "nest") {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoChild.type !== nest");
-                            }
+                            consoleWrap.error("dataPropertyInfoChild.type !== nest");
                             throw new Error("dataPropertyInfoChild.type !== nest");
                         }
                         const dataPropertyInfoChildInfo = dataPropertyInfoChild["child"];
                         if (dataPropertyInfoChildInfo == undefined) {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("dataPropertyInfoChildInfo == undefined");
-                            }
+                            consoleWrap.error("dataPropertyInfoChildInfo == undefined");
                             throw new Error("dataPropertyInfoChildInfo == undefined");
                         }
 
                         // dがnestの時の型が欠落するのはなんでじゃろか
                         if (typeof d !== "object") {
-                            if (OptionBaseConsoleOption.error) {
-                                console.error("nest error", { data: d, });
-                            }
+                            consoleWrap.error("nest error", { data: d, });
                             throw new Error("nest data is not object");
                         }
 
@@ -1132,9 +1026,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
             }
 
             default: {
-                if (OptionBaseConsoleOption.error) {
-                    console.error("unknown p.type", p);
-                }
+                consoleWrap.error("unknown p.type", p);
                 throw new Error("unknown p.type");
             }
         }
