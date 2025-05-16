@@ -5,6 +5,7 @@ export { type Job, type tJobMessage, isJobMessage, type tJobMessageRequest, isJo
 const consoleWrap = new ConsoleWrap();
 export const JobConsoleOption = consoleWrap.enables;
 
+// argumentの反対はreturn使いたいけど、試すとコードの一部が壊れたからやめておく"."でアクセスしたいし
 type Job<ARGUMENT = any, RESPONSE = any> = {
     argument: ARGUMENT,
     response: RESPONSE,
