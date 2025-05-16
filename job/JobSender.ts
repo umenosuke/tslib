@@ -47,7 +47,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
         consoleWrap.log("response receive", response);
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
-            consoleWrap.error("!isJobMessageReceive(response)", {
+            consoleWrap.error("!isJobMessageResponse(response)", {
                 response: response,
                 jobKeyList: this.jobKeyList,
             });
