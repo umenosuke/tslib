@@ -36,6 +36,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
         if (!isJobMessageRequest(request, this.jobKeyList)) {
             consoleWrap.error("!isJobMessageRequest(request)", {
                 request: request,
+                meta: meta,
                 jobKeyList: this.jobKeyList,
             });
             return false;
@@ -45,7 +46,37 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
             if (!this.funcList[request.jobKey].typeGuard(request.argument)) {
                 throw new Error("!typeGuard[jobKey](argument)");
             }
+        } catch (errInternal) {
+            consoleWrap.error("internal error", {
+                request: request,
+                meta: meta,
+                err: errInternal,
+            });
 
+            const errResponse: tJobMessageResponse<typeof request.jobKey> = {
+                senderID: request.senderID,
+                jobID: request.jobID,
+                success: false,
+                jobKey: request.jobKey,
+                errMsg: String(errInternal),
+            }
+
+            try {
+                consoleWrap.log("response send (job internal error)", errResponse);
+                await this.responseSendFunc(errResponse);
+                return false;
+            } catch (err) {
+                consoleWrap.error("fail this.responseSendFunc (job internal error)", {
+                    request: request,
+                    errResponse: errResponse,
+                    meta: meta,
+                    err: err,
+                });
+                return false;
+            }
+        }
+
+        try {
             const response: tJobMessageResponse<typeof request.jobKey> = {
                 senderID: request.senderID,
                 jobID: request.jobID,
@@ -54,27 +85,42 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 returnValue: await this.funcList[request.jobKey].job(request.argument, meta),
             }
 
-            consoleWrap.log("response send", response);
-            await this.responseSendFunc(response);
-            return true;
-        } catch (err) {
             try {
-                const response: tJobMessageResponse<typeof request.jobKey> = {
-                    senderID: request.senderID,
-                    jobID: request.jobID,
-                    success: false,
-                    jobKey: request.jobKey,
-                    errMsg: String(err),
-                }
-
-                consoleWrap.log("response send", response);
+                consoleWrap.log("response send (job success)", response);
                 await this.responseSendFunc(response);
+                return true;
             } catch (err) {
-                consoleWrap.error("fail this.responseSendFunc", {
+                consoleWrap.error("fail this.responseSendFunc (job success)", {
+                    request: request,
+                    response: response,
+                    meta: meta,
                     err: err,
                 });
+                return false;
             }
-            return false;
+        } catch (errJobReturn) {
+            const errResponse: tJobMessageResponse<typeof request.jobKey> = {
+                senderID: request.senderID,
+                jobID: request.jobID,
+                success: false,
+                jobKey: request.jobKey,
+                errMsg: String(errJobReturn),
+            }
+
+            try {
+                consoleWrap.log("response send (job fail)", errResponse);
+                await this.responseSendFunc(errResponse);
+                return true;
+            } catch (err) {
+                consoleWrap.error("fail this.responseSendFunc (job fail)", {
+                    request: request,
+                    errResponse: errResponse,
+                    meta: meta,
+                    err: err,
+                    errJobReturn: errJobReturn,
+                });
+                return false;
+            }
         }
     }
 }
