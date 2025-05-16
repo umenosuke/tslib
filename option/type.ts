@@ -26,13 +26,19 @@ type PropertyInfoEnum = {
     }[],
 };
 
-type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
+type PropertyData<PROPERTY_INFO extends PropertyInfo> = PropertyDataPropertyRoRw<{
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyInfoPrimitiveMap
-    ? PropertyInfoPrimitiveMap[PROPERTY_INFO[K]["type"]]
+    ? ({
+        readonly: false,
+        value: PropertyInfoPrimitiveMap[PROPERTY_INFO[K]["type"]],
+    })
     : (PROPERTY_INFO[K]["type"] extends "enum"
         ? (PROPERTY_INFO[K] extends { "list": infer PROPERTY_INFO_ENUM_LIST }
             ? (PROPERTY_INFO_ENUM_LIST extends readonly { "value": string, }[]
-                ? PropertyDataEnum<PROPERTY_INFO_ENUM_LIST>
+                ? ({
+                    readonly: false,
+                    value: PropertyDataEnum<PROPERTY_INFO_ENUM_LIST>,
+                })
                 : never
             )
             : never
@@ -40,7 +46,10 @@ type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
         : (PROPERTY_INFO[K]["type"] extends "nest"
             ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
                 ? (CHILD extends PropertyInfo
-                    ? PropertyData<CHILD>
+                    ? ({
+                        readonly: true,
+                        value: PropertyData<CHILD>,
+                    })
                     : never
                 )
                 : never
@@ -48,7 +57,7 @@ type PropertyData<PROPERTY_INFO extends PropertyInfo> = {
             : never
         )
     )
-};
+}>;
 type PropertyDataEnum<LIST extends readonly { "value": string, }[]> = (
     LIST extends readonly { "value": infer PROPERTY_INFO_ENUM_LIST_VALUE, }[]
     ? (
@@ -58,6 +67,11 @@ type PropertyDataEnum<LIST extends readonly { "value": string, }[]> = (
     )
     : never
 );
+type PropertyDataPropertyRoRw<T extends Record<string, { readonly: boolean, value: unknown, }>> = {
+    [K in keyof T as T[K]["readonly"] extends false ? K : never]: T[K]["value"]
+} & {
+    readonly [K in keyof T as T[K]["readonly"] extends true ? K : never]: T[K]["value"]
+};
 
 type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyInfoPrimitiveMap
