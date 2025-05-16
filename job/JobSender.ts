@@ -47,7 +47,10 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
         consoleWrap.log("response receive", response);
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
-            consoleWrap.error("!isJobMessageReceive(response)");
+            consoleWrap.error("!isJobMessageReceive(response)", {
+                response: response,
+                jobKeyList: this.jobKeyList,
+            });
             return false;
         }
 
@@ -62,7 +65,10 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
         }
 
         if (response.jobKey !== waiting.jobKey) {
-            consoleWrap.error("res.jobKey !== waiting.jobKey");
+            consoleWrap.error("response.jobKey !== waiting.jobKey", {
+                response: response,
+                waiting: waiting,
+            });
             return false;
         }
 
@@ -72,6 +78,9 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
         }
 
         if (!this.funcList[response.jobKey].typeGuard(response.response)) {
+            consoleWrap.error("!typeGuard[jobKey](response)", {
+                response: response,
+            });
             waiting.p.reject(new Error("!typeGuard[jobKey](response)"));
             return false;
         }
@@ -92,17 +101,20 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
                 },
             });
 
-            const req: tJobMessageRequest<JOB_KEY> = {
-                sendorID: this.sendorID,
-                jobID: jobID,
-                jobKey: jobKey,
-                argument: argument,
-            }
-
-            consoleWrap.log("request send", req);
             try {
-                await this.requestSendFunc(req, meta);
+                const request: tJobMessageRequest<JOB_KEY> = {
+                    sendorID: this.sendorID,
+                    jobID: jobID,
+                    jobKey: jobKey,
+                    argument: argument,
+                }
+
+                consoleWrap.log("request send", request);
+                await this.requestSendFunc(request, meta);
             } catch (err) {
+                consoleWrap.error("fail this.requestSendFunc", {
+                    err: err,
+                });
                 this.waitingJobList.delete(jobID);
                 reject(err);
             }

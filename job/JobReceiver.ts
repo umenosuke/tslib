@@ -34,7 +34,10 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
         consoleWrap.log("request receive", request);
 
         if (!isJobMessageRequest(request, this.jobKeyList)) {
-            consoleWrap.error("!isJobMessageReceive(response)");
+            consoleWrap.error("!isJobMessageReceive(request)", {
+                request: request,
+                jobKeyList: this.jobKeyList,
+            });
             return false;
         }
 
@@ -43,7 +46,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 throw new Error("!typeGuard[jobKey](argument)");
             }
 
-            const res: tJobMessageResponse<typeof request.jobKey> = {
+            const response: tJobMessageResponse<typeof request.jobKey> = {
                 sendorID: request.sendorID,
                 jobID: request.jobID,
                 success: true,
@@ -51,12 +54,12 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 response: await this.funcList[request.jobKey].job(request.argument, meta),
             }
 
-            consoleWrap.log("response send", res);
-            await this.responseSendFunc(res);
+            consoleWrap.log("response send", response);
+            await this.responseSendFunc(response);
             return true;
         } catch (err) {
             try {
-                const res: tJobMessageResponse<typeof request.jobKey> = {
+                const response: tJobMessageResponse<typeof request.jobKey> = {
                     sendorID: request.sendorID,
                     jobID: request.jobID,
                     success: false,
@@ -64,10 +67,12 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                     errMsg: String(err),
                 }
 
-                consoleWrap.log("response send", res);
-                await this.responseSendFunc(res);
+                consoleWrap.log("response send", response);
+                await this.responseSendFunc(response);
             } catch (err) {
-                consoleWrap.error({ msg: "fail this.responseSendFunc", err });
+                consoleWrap.error("fail this.responseSendFunc", {
+                    err: err,
+                });
             }
             return false;
         }
