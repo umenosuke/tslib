@@ -2,8 +2,26 @@ export { type PropertyInfo, type PropertyInfoPrimitiveMap, type PropertyInfoEnum
 
 type PropertyInfo = Record<string,
     {
-        "type": keyof PropertyInfoPrimitiveMap,
+        "type": "boolean",
         "label": string,
+    }
+    | {
+        "type": "string",
+        "label": string,
+    }
+    | {
+        "type": "number",
+        "label": string,
+        "min"?: number,
+        "max"?: number,
+        "step"?: number,
+    }
+    | {
+        "type": "range",
+        "label": string,
+        "min"?: number,
+        "max"?: number,
+        "step"?: number,
     }
     | PropertyInfoEnum
     | {
@@ -16,6 +34,7 @@ type PropertyInfoPrimitiveMap = {
     "boolean": boolean,
     "string": string,
     "number": number,
+    "range": number,
 };
 type PropertyInfoEnum = {
     "type": "enum",

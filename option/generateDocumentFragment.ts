@@ -91,6 +91,34 @@ function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data
                     input.readOnly = false;
                 },
         },
+        "range": {
+            handleEvent:
+                async (e: exEvent<HTMLInputElement>) => {
+                    if (e.currentTarget == null) {
+                        throw new Error("e.currentTarget == null");
+                    }
+
+                    const input = e.currentTarget;
+                    input.readOnly = true;
+
+                    try {
+                        const key = input.dataset["key"];
+                        if (!isDataPropertyKey(key, dataPropertyInfo)) {
+                            throw new Error("!this.isDataPropertyKey(key)");
+                        }
+                        const val = Number.parseFloat(input.value);
+                        if (Number.isNaN(val) || !Number.isFinite(val)) {
+                            throw new Error("Number.isNaN(val) || !Number.isFinite(val)");
+                        }
+                        // 多分大丈夫だけどいつか改善したい
+                        (data as any)[key] = val;
+                    } catch (e) {
+                        consoleWrap.error(e);
+                    }
+
+                    input.readOnly = false;
+                },
+        },
         "enum": {
             handleEvent:
                 async (e: exEvent<HTMLSelectElement>) => {
@@ -203,7 +231,8 @@ function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data
                 break;
             }
 
-            case "number": {
+            case "number":
+            case "range": {
                 const val = d;
                 if (typeof val !== "number") {
                     consoleWrap.error("typeof val !== number");
@@ -224,8 +253,29 @@ function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data
                         label.appendChild(input);
                         {
                             input.dataset["key"] = key;
-                            input.type = "number";
+                            switch (p.type) {
+                                case "number": {
+                                    input.type = "number";
+                                    break;
+                                }
+                                case "range": {
+                                    input.type = "range";
+                                    break;
+                                }
+
+                                default:
+                                    throw new Error("why?");
+                            }
                             input.value = String(val);
+                            if (p.min != undefined) {
+                                input.min = String(p.min);
+                            }
+                            if (p.max != undefined) {
+                                input.max = String(p.max);
+                            }
+                            if (p.step != undefined) {
+                                input.step = String(p.step);
+                            }
                             input.addEventListener("change", handlerList[p.type]);
                         }
                     }

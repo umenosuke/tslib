@@ -203,9 +203,9 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
         }
 
         switch (dataExpectType) {
-            case "number":
+            case "boolean":
             case "string":
-            case "boolean": {
+            case "number": {
                 if (typeof fromData[key] !== dataExpectType) {
                     consoleWrap.warn("setData skip", {
                         dataIn: fromData,
@@ -219,6 +219,26 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                 }
                 if (toData[key] !== fromData[key]) {
                     toData[key] = fromData[key];
+                    res.changed = true;
+                }
+                continue;
+            }
+
+            case "range": {
+                if (typeof fromData[key] !== "number") {
+                    consoleWrap.warn("setData skip", {
+                        dataIn: fromData,
+                        key: key,
+                        dataType: typeof fromData[key],
+                        dataVal: fromData[key],
+                        dataExpectType: dataExpectType,
+                    });
+                    res.containsInvalidData = true;
+                    continue;
+                }
+                if (toData[key] !== fromData[key]) {
+                    // ここ怪しい
+                    toData[key] = <any>fromData[key];
                     res.changed = true;
                 }
                 continue;
