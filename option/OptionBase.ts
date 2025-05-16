@@ -7,7 +7,7 @@ import type { PropertyData, PropertyDataEnum, PropertyHtml, PropertyInfo, Proper
 
 export { OptionBase };
 
-const consoleWrap = new ConsoleWrap({ debug: true, warn: true, error: true, });
+const consoleWrap = new ConsoleWrap();
 export const OptionBaseConsoleOption = consoleWrap.enables;
 
 // セット時にコールバックを注入するテスト中
