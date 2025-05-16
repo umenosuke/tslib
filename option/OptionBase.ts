@@ -7,11 +7,11 @@ import type { PropertyData, PropertyDataEnum, PropertyHtml, PropertyInfo, Proper
 
 export { OptionBase };
 
-const consoleWrap = new ConsoleWrap();
+const consoleWrap = new ConsoleWrap({ debug: true, warn: true, error: true, });
 export const OptionBaseConsoleOption = consoleWrap.enables;
 
 // セット時にコールバックを注入するテスト中
-function autoGetSet<T extends {}>(d: T): { real: T, wrap: T, } {
+function genGetSet<T extends {}>(d: T, saveFunc: () => void): { real: T, wrap: T, } {
     const real: { [key: string]: any } = {};
     const wrap = {};
 
@@ -24,13 +24,19 @@ function autoGetSet<T extends {}>(d: T): { real: T, wrap: T, } {
                     consoleWrap.log("get", prop);
                     return (real as any)[prop];
                 },
-                set: (val) => {
-                    consoleWrap.log("set", prop);
-                    (real as any)[prop] = val;
+                set: (newValue) => {
+                    if ((real as any)[prop] !== newValue) {
+                        consoleWrap.log("set", {
+                            oldValue: (real as any)[prop],
+                            newValue: newValue,
+                        });
+                        (real as any)[prop] = newValue;
+                        saveFunc();
+                    }
                 },
             });
         } else {
-            const nest = autoGetSet(val);
+            const nest = genGetSet(val, saveFunc);
             real[prop] = nest.real;
             Object.defineProperty(wrap, prop, {
                 get: () => {
@@ -62,7 +68,8 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     }>;
 
     private opt: {
-        saveInterval: number
+        saveInterval: number,
+        saveOnChanged: boolean,
     };
 
     private tokenBucket: TokenBucket;
@@ -87,13 +94,19 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         },
         {
             saveInterval = 1000,
+            saveOnChanged = true,
         }: {
-            saveInterval?: number
+            saveInterval?: number,
+            saveOnChanged?: boolean,
         } = {},
     ) {
         this.dataPropertyInfo = dataPropertyInfo;
         {
-            const d = autoGetSet(defaultData);
+            const d = genGetSet(defaultData, () => {
+                if (this.opt.saveOnChanged) {
+                    this.save();
+                }
+            });
             this.data = d.wrap;
             this.dataReal = d.real;
         }
@@ -102,6 +115,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         this.loadFunc = loadFunc;
         this.opt = {
             saveInterval: saveInterval,
+            saveOnChanged: saveOnChanged,
         };
 
         this.tokenBucket = new TokenBucket(this.opt.saveInterval, 1000);
@@ -114,29 +128,36 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         abort: false,
         containsInvalidData: boolean,
     }> {
-        consoleWrap.log("Option load");
-        try {
-            const loadRes = await this.loadFunc();
-            if (loadRes.abort) {
-                consoleWrap.warn("config load abort");
+        consoleWrap.log("option load start");
+        const nowSaveOnChanged = this.opt.saveOnChanged;
+        this.opt.saveOnChanged = false;
+        const wrapRes = await (async (): ReturnType<typeof this.load> => {
+            try {
+                const loadRes = await this.loadFunc();
+                if (loadRes.abort) {
+                    consoleWrap.warn("option load abort");
+                    return {
+                        abort: true,
+                    };
+                }
+
+                const loadData = <tJson>JSON.parse(loadRes.dataStr);
+                const setRes = setData(loadData, this.data, this.dataPropertyInfo);
                 return {
-                    abort: true,
+                    abort: false,
+                    containsInvalidData: setRes.containsInvalidData,
+                };
+            } catch (err) {
+                consoleWrap.error("option load error : ", err);
+                return {
+                    abort: false,
+                    containsInvalidData: true,
                 };
             }
-
-            const loadData = <tJson>JSON.parse(loadRes.dataStr);
-            const setRes = setData(loadData, this.data, this.dataPropertyInfo);
-            return {
-                abort: false,
-                containsInvalidData: setRes.containsInvalidData,
-            };
-        } catch (err) {
-            consoleWrap.error("load error : ", err);
-            return {
-                abort: false,
-                containsInvalidData: true,
-            };;
-        }
+        })();
+        this.opt.saveOnChanged = nowSaveOnChanged;
+        consoleWrap.log("option load end");
+        return wrapRes;
     }
 
     public setData(fromData: RecursivePartial<PropertyData<DATA_PROPERTY_INFO>>): ({
@@ -171,15 +192,11 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     }
 
     public generateDocumentFragment(): DocumentFragment {
-        return generateDocumentFragment(this.data, async () => {
-            this.save();
-        }, this.dataPropertyInfo);
+        return generateDocumentFragment(this.data, this.dataPropertyInfo);
     }
 
     public generateHtmlElements(): PropertyHtml<DATA_PROPERTY_INFO> {
-        return generateHtmlElements(this.data, async () => {
-            this.save();
-        }, this.dataPropertyInfo);
+        return generateHtmlElements(this.data, this.dataPropertyInfo);
     }
 }
 
@@ -366,7 +383,7 @@ function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string,
     return false;
 };
 
-function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
+function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO): DocumentFragment {
     const handlerList: { [key in keyof PropertyInfoPrimitiveMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
@@ -386,7 +403,6 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         const val = checkbox.checked;
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -412,7 +428,6 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         const val = input.value;
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -441,7 +456,6 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         }
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -478,7 +492,6 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                         }
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -680,7 +693,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
                             throw new Error("nest data is not object");
                         }
 
-                        div.appendChild(generateDocumentFragment(d, saveFunc, dataPropertyInfoChildInfo));
+                        div.appendChild(generateDocumentFragment(d, dataPropertyInfoChildInfo));
                     }
                 }
                 break;
@@ -696,7 +709,7 @@ function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(data:
     return frag;
 }
 
-function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, saveFunc: () => Promise<void>, dataPropertyInfo: DATA_PROPERTY_INFO): PropertyHtml<DATA_PROPERTY_INFO> {
+function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO): PropertyHtml<DATA_PROPERTY_INFO> {
     const handlerList: { [key in keyof PropertyInfoPrimitiveMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
@@ -716,7 +729,6 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         const val = checkbox.checked;
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -742,7 +754,6 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         const val = input.value;
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -771,7 +782,6 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         }
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -808,7 +818,6 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         }
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
-                        await saveFunc();
                     } catch (e) {
                         consoleWrap.error(e);
                     }
@@ -1016,7 +1025,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pro
                         }
 
                         // ここ怪しい
-                        (resHtmlTemp as any).child = generateHtmlElements(d, saveFunc, dataPropertyInfoChildInfo);
+                        (resHtmlTemp as any).child = generateHtmlElements(d, dataPropertyInfoChildInfo);
                     }
                 }
 
