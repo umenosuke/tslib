@@ -21,15 +21,19 @@ function genGetSet<T extends {}>(d: T, saveFunc: () => void): { real: T, wrap: T
             real[prop] = val;
             Object.defineProperty(wrap, prop, {
                 get: () => {
-                    consoleWrap.log("get", prop);
+                    consoleWrap.log("get", {
+                        name: prop,
+                    });
                     return (real as any)[prop];
                 },
                 set: (newValue) => {
+                    consoleWrap.log("set", {
+                        name: prop,
+                        same: (real as any)[prop] === newValue,
+                        oldValue: (real as any)[prop],
+                        newValue: newValue,
+                    });
                     if ((real as any)[prop] !== newValue) {
-                        consoleWrap.log("set", {
-                            oldValue: (real as any)[prop],
-                            newValue: newValue,
-                        });
                         (real as any)[prop] = newValue;
                         saveFunc();
                     }
@@ -164,7 +168,25 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         changed: boolean,
         containsInvalidData: boolean,
     }) {
-        return setData(fromData, this.data, this.dataPropertyInfo);
+        consoleWrap.log("option setData start");
+        const nowSaveOnChanged = this.opt.saveOnChanged;
+        this.opt.saveOnChanged = false;
+        try {
+            const setRes = setData(fromData, this.data, this.dataPropertyInfo);
+            if (nowSaveOnChanged && setRes.changed) {
+                this.save();
+            }
+
+            this.opt.saveOnChanged = nowSaveOnChanged;
+            consoleWrap.log("option setData end");
+            return setRes;
+        } catch (err) {
+            consoleWrap.log("option setData fail", {
+                err: err,
+            });
+            this.opt.saveOnChanged = nowSaveOnChanged;
+            throw err;
+        }
     }
 
     public save() {
@@ -186,8 +208,10 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     }
 
     private async _save() {
-        consoleWrap.log("Option save", this.dataReal);
-        consoleWrap.log("Option save", JSON.stringify(this.dataReal));
+        consoleWrap.log("Option save", {
+            dataObject: this.dataReal,
+            dataStr: JSON.stringify(this.dataReal),
+        });
         await this.saveFunc(JSON.stringify(this.dataReal));
     }
 
