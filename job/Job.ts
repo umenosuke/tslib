@@ -50,13 +50,27 @@ function isJobMessage<JOB_KEY>(message: any, jobKeyList: JOB_KEY[]): message is 
 }
 
 type tJobMessageRequest<JOB_KEY> = {
+    messageType: "request",
     argument: unknown,
 } & tJobMessage<JOB_KEY>;
 
 function isJobMessageRequest<JOB_KEY>(request: any, jobKeyList: JOB_KEY[]): request is tJobMessageRequest<JOB_KEY> {
     if (request == undefined) {
         consoleWrap.warn("request == undefined", {
-            message: request,
+            request: request,
+        });
+        return false;
+    }
+
+    if (typeof request.messageType !== "string") {
+        consoleWrap.warn("typeof request.messageType !== \"string\"", {
+            request: request,
+        });
+        return false;
+    }
+    if (request.messageType !== "request") {
+        consoleWrap.warn("request !== \"request\"", {
+            request: request,
         });
         return false;
     }
@@ -67,9 +81,11 @@ function isJobMessageRequest<JOB_KEY>(request: any, jobKeyList: JOB_KEY[]): requ
 }
 
 type tJobMessageResponse<JOB_KEY> = {
+    messageType: "response",
     success: true,
     returnValue: unknown,
 } & tJobMessage<JOB_KEY> | {
+    messageType: "response",
     success: false,
     errMsg: string,
 } & tJobMessage<JOB_KEY>;
@@ -77,6 +93,19 @@ type tJobMessageResponse<JOB_KEY> = {
 function isJobMessageResponse<JOB_KEY>(response: any, jobKeyList: JOB_KEY[]): response is tJobMessageResponse<JOB_KEY> {
     if (response == undefined) {
         consoleWrap.warn("response == undefined", {
+            response: response,
+        });
+        return false;
+    }
+
+    if (typeof response.messageType !== "string") {
+        consoleWrap.warn("typeof response.messageType !== \"string\"", {
+            response: response,
+        });
+        return false;
+    }
+    if (response.messageType !== "response") {
+        consoleWrap.warn("response !== \"response\"", {
             response: response,
         });
         return false;

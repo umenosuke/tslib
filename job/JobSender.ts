@@ -48,6 +48,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
         if (!isJobMessageResponse(response, this.jobKeyList)) {
             consoleWrap.error("!isJobMessageResponse(response)", {
+                senderID: this.senderID,
                 response: response,
                 jobKeyList: this.jobKeyList,
             });
@@ -66,6 +67,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
         if (response.jobKey !== waiting.jobKey) {
             consoleWrap.error("response.jobKey !== waiting.jobKey", {
+                senderID: this.senderID,
                 response: response,
                 waiting: waiting,
             });
@@ -79,6 +81,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
         if (!this.funcList[response.jobKey].typeGuard(response.returnValue)) {
             consoleWrap.error("!typeGuard[jobKey](response.returnValue)", {
+                senderID: this.senderID,
                 response: response,
             });
             waiting.p.reject(new Error("!typeGuard[jobKey](response.returnValue)"));
@@ -103,6 +106,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
             try {
                 const request: tJobMessageRequest<JOB_KEY> = {
+                    messageType: "request",
                     senderID: this.senderID,
                     jobID: jobID,
                     jobKey: jobKey,

@@ -54,6 +54,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_AND_JOB_MET
             });
 
             const errResponse: tJobMessageResponse<typeof request.jobKey> = {
+                messageType: "response",
                 senderID: request.senderID,
                 jobID: request.jobID,
                 success: false,
@@ -78,6 +79,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_AND_JOB_MET
 
         try {
             const response: tJobMessageResponse<typeof request.jobKey> = {
+                messageType: "response",
                 senderID: request.senderID,
                 jobID: request.jobID,
                 success: true,
@@ -100,6 +102,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_AND_JOB_MET
             }
         } catch (errJobReturn) {
             const errResponse: tJobMessageResponse<typeof request.jobKey> = {
+                messageType: "response",
                 senderID: request.senderID,
                 jobID: request.jobID,
                 success: false,
