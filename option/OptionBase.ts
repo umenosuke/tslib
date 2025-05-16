@@ -12,9 +12,48 @@ export const OptionBaseConsoleOption = {
     error: true,
 };
 
+// セット時にコールバックを注入するテスト中
+function autoGetSet<T extends {}>(d: T): { real: T, wrap: T, } {
+    const real: { [key: string]: any } = {};
+    const wrap = {};
+
+    Object.keys(d).forEach((prop) => {
+        const val = (d as any)[prop];
+        if (typeof val !== "object") {
+            real[prop] = val;
+            Object.defineProperty(wrap, prop, {
+                get: () => {
+                    console.log("get", prop);
+                    return (real as any)[prop];
+                },
+                set: (val) => {
+                    console.log("set", prop);
+                    (real as any)[prop] = val;
+                },
+            });
+        } else {
+            const nest = autoGetSet(val);
+            real[prop] = nest.real;
+            Object.defineProperty(wrap, prop, {
+                get: () => {
+                    console.log("get nest", prop);
+                    return nest.wrap;
+                },
+            });
+            console.log({ real, wrap, });
+        }
+    });
+
+    return {
+        real: <T>real,
+        wrap: <T>wrap,
+    };
+}
+
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     public readonly dataPropertyInfo: DATA_PROPERTY_INFO;
     public readonly data: PropertyData<DATA_PROPERTY_INFO>;
+    public readonly dataReal: PropertyData<DATA_PROPERTY_INFO>;
 
     private saveFunc: (dataStr: string) => Promise<void>;
     private loadFunc: () => Promise<{
@@ -55,7 +94,11 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         } = {},
     ) {
         this.dataPropertyInfo = dataPropertyInfo;
-        this.data = defaultData;
+        {
+            const d = autoGetSet(defaultData);
+            this.data = d.wrap;
+            this.dataReal = d.real;
+        }
 
         this.saveFunc = saveFunc;
         this.loadFunc = loadFunc;
@@ -131,9 +174,10 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
 
     private async _save() {
         if (OptionBaseConsoleOption.debug) {
-            console.log("Option save", this.data);
+            console.log("Option save", this.dataReal);
+            console.log("Option save", JSON.stringify(this.dataReal));
         }
-        await this.saveFunc(JSON.stringify(this.data));
+        await this.saveFunc(JSON.stringify(this.dataReal));
     }
 
     public generateDocumentFragment(): DocumentFragment {
