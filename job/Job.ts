@@ -18,22 +18,31 @@ type tJobMessage<JOB_KEY> = {
 
 function isJobMessage<JOB_KEY>(message: any, jobKeyList: JOB_KEY[]): message is tJobMessage<JOB_KEY> {
     if (message == undefined) {
-        consoleWrap.warn("m == undefined");
+        consoleWrap.warn("message == undefined", {
+            message: message,
+        });
         return false;
     }
 
     if (typeof message.senderID !== "string") {
-        consoleWrap.warn("typeof m.senderID !== \"string\"");
+        consoleWrap.warn("typeof message.senderID !== \"string\"", {
+            message: message,
+        });
         return false;
     }
 
     if (typeof message.jobID !== "string") {
-        consoleWrap.warn("typeof m.jobID !== \"string\"");
+        consoleWrap.warn("typeof message.jobID !== \"string\"", {
+            message: message,
+        });
         return false;
     }
 
     if (!isJobKey(message.jobKey, jobKeyList)) {
-        consoleWrap.warn("!isJobKey(m.jobKey, jobKeyList)");
+        consoleWrap.warn("!isJobKey(message.jobKey, jobKeyList)", {
+            message: message,
+            jobKeyList: jobKeyList,
+        });
         return false;
     }
 
@@ -46,7 +55,9 @@ type tJobMessageRequest<JOB_KEY> = {
 
 function isJobMessageRequest<JOB_KEY>(request: any, jobKeyList: JOB_KEY[]): request is tJobMessageRequest<JOB_KEY> {
     if (request == undefined) {
-        consoleWrap.warn("m == undefined");
+        consoleWrap.warn("request == undefined", {
+            message: request,
+        });
         return false;
     }
 
@@ -65,19 +76,25 @@ type tJobMessageResponse<JOB_KEY> = {
 
 function isJobMessageResponse<JOB_KEY>(response: any, jobKeyList: JOB_KEY[]): response is tJobMessageResponse<JOB_KEY> {
     if (response == undefined) {
-        consoleWrap.warn("m == undefined");
+        consoleWrap.warn("response == undefined", {
+            response: response,
+        });
         return false;
     }
 
     if (typeof response.success !== "boolean") {
-        consoleWrap.warn("typeof m.success !== \"boolean\"");
+        consoleWrap.warn("typeof response.success !== \"boolean\"", {
+            response: response,
+        });
         return false;
     }
     if (response.success) {
         // returnValue の型はなんでもいいので
     } else {
         if (typeof response.errMsg !== "string") {
-            consoleWrap.warn("typeof m.errMsg !== \"string\"");
+            consoleWrap.warn("typeof response.errMsg !== \"string\"", {
+                response: response,
+            });
             return false;
         }
     }
