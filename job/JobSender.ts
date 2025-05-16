@@ -9,7 +9,7 @@ export const JobSenderConsoleOption = consoleWrap.enables;
 
 // TODO複数のjobを管理できるようにする、メッセージタイプとかつければ行けると思う
 class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
-    private sendorID: string;
+    private senderID: string;
 
     private jobKeyList: (keyof JOB_MAP)[];
     private funcList: ConstructorParameters<typeof JobSender<JOB_MAP, REQUEST_SEND_META>>[0];
@@ -25,12 +25,12 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
     constructor(
         func: {
             [JOB_KEY in keyof JOB_MAP]: {
-                typeGuard: (res: any) => res is JOB_MAP[JOB_KEY]['response'];
+                typeGuard: (response: any) => response is JOB_MAP[JOB_KEY]['response'];
             }
         },
-        requestSendFunc: (req: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => Promise<void>,
+        requestSendFunc: (request: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => Promise<void>,
     ) {
-        this.sendorID = crypto.randomUUID();
+        this.senderID = crypto.randomUUID();
 
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -54,7 +54,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             return false;
         }
 
-        if (response.sendorID !== this.sendorID) {
+        if (response.senderID !== this.senderID) {
             return true;
         }
 
@@ -103,7 +103,7 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
 
             try {
                 const request: tJobMessageRequest<JOB_KEY> = {
-                    sendorID: this.sendorID,
+                    senderID: this.senderID,
                     jobID: jobID,
                     jobKey: jobKey,
                     argument: argument,

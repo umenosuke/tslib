@@ -12,7 +12,7 @@ type Job<ARGUMENT = any, RESPONSE = any> = {
 };
 
 type tJobMessage<JOB_KEY> = {
-    sendorID: string,
+    senderID: string,
     jobID: string,
     jobKey: JOB_KEY,
 }
@@ -23,8 +23,8 @@ function isJobMessage<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessage<
         return false;
     }
 
-    if (typeof m.sendorID !== "string") {
-        consoleWrap.warn("typeof m.sendorID !== \"string\"");
+    if (typeof m.senderID !== "string") {
+        consoleWrap.warn("typeof m.senderID !== \"string\"");
         return false;
     }
 
