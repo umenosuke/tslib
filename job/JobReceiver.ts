@@ -6,20 +6,20 @@ export { JobReceiver };
 const consoleWrap = new ConsoleWrap();
 export const JobReceiverConsoleOption = consoleWrap.enables;
 
-class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
+class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_AND_JOB_META> {
     private jobKeyList: (keyof JOB_MAP)[];
-    private funcList: ConstructorParameters<typeof JobReceiver<JOB_MAP, RESPONSE_SEND_META>>[0];
+    private funcList: ConstructorParameters<typeof JobReceiver<JOB_MAP, RESPONSE_SEND_AND_JOB_META>>[0];
 
-    private responseSendFunc: ConstructorParameters<typeof JobReceiver<JOB_MAP, RESPONSE_SEND_META>>[1];
+    private responseSendFunc: ConstructorParameters<typeof JobReceiver<JOB_MAP, RESPONSE_SEND_AND_JOB_META>>[1];
 
     constructor(
         func: {
             [JOB_KEY in keyof JOB_MAP]: {
-                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: RESPONSE_SEND_META) => Promise<JOB_MAP[JOB_KEY]["returnValue"]>,
+                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: RESPONSE_SEND_AND_JOB_META) => Promise<JOB_MAP[JOB_KEY]["returnValue"]>,
                 typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
             }
         },
-        responseSendFunc: (response: tJobMessageResponse<keyof JOB_MAP>) => Promise<void>,
+        responseSendFunc: (response: tJobMessageResponse<keyof JOB_MAP>, meta: RESPONSE_SEND_AND_JOB_META) => Promise<void>,
     ) {
         this.jobKeyList = [];
         for (const jobKey in func) {
@@ -30,7 +30,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
         this.responseSendFunc = responseSendFunc;
     }
 
-    public async Listener(request: unknown, meta: RESPONSE_SEND_META): Promise<boolean> {
+    public async Listener(request: unknown, meta: RESPONSE_SEND_AND_JOB_META): Promise<boolean> {
         consoleWrap.log("request receive", request);
 
         if (!isJobMessageRequest(request, this.jobKeyList)) {
@@ -63,7 +63,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
 
             try {
                 consoleWrap.log("response send (job internal error)", errResponse);
-                await this.responseSendFunc(errResponse);
+                await this.responseSendFunc(errResponse, meta);
                 return false;
             } catch (err) {
                 consoleWrap.error("fail this.responseSendFunc (job internal error)", {
@@ -87,7 +87,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
 
             try {
                 consoleWrap.log("response send (job success)", response);
-                await this.responseSendFunc(response);
+                await this.responseSendFunc(response, meta);
                 return true;
             } catch (err) {
                 consoleWrap.error("fail this.responseSendFunc (job success)", {
@@ -109,7 +109,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
 
             try {
                 consoleWrap.log("response send (job fail)", errResponse);
-                await this.responseSendFunc(errResponse);
+                await this.responseSendFunc(errResponse, meta);
                 return true;
             } catch (err) {
                 consoleWrap.error("fail this.responseSendFunc (job fail)", {
