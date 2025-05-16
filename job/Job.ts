@@ -5,10 +5,9 @@ export { type Job, type tJobMessage, isJobMessage, type tJobMessageRequest, isJo
 const consoleWrap = new ConsoleWrap();
 export const JobConsoleOption = consoleWrap.enables;
 
-// argumentの反対はreturn使いたいけど、試すとコードの一部が壊れたからやめておく"."でアクセスしたいし
-type Job<ARGUMENT = any, RESPONSE = any> = {
+type Job<ARGUMENT = any, RETURN_VALUE = any> = {
     argument: ARGUMENT,
-    response: RESPONSE,
+    returnValue: RETURN_VALUE,
 };
 
 type tJobMessage<JOB_KEY> = {
@@ -17,23 +16,23 @@ type tJobMessage<JOB_KEY> = {
     jobKey: JOB_KEY,
 }
 
-function isJobMessage<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessage<JOB_KEY> {
-    if (m == undefined) {
+function isJobMessage<JOB_KEY>(message: any, jobKeyList: JOB_KEY[]): message is tJobMessage<JOB_KEY> {
+    if (message == undefined) {
         consoleWrap.warn("m == undefined");
         return false;
     }
 
-    if (typeof m.senderID !== "string") {
+    if (typeof message.senderID !== "string") {
         consoleWrap.warn("typeof m.senderID !== \"string\"");
         return false;
     }
 
-    if (typeof m.jobID !== "string") {
+    if (typeof message.jobID !== "string") {
         consoleWrap.warn("typeof m.jobID !== \"string\"");
         return false;
     }
 
-    if (!isJobKey(m.jobKey, jobKeyList)) {
+    if (!isJobKey(message.jobKey, jobKeyList)) {
         consoleWrap.warn("!isJobKey(m.jobKey, jobKeyList)");
         return false;
     }
@@ -45,45 +44,45 @@ type tJobMessageRequest<JOB_KEY> = {
     argument: unknown,
 } & tJobMessage<JOB_KEY>;
 
-function isJobMessageRequest<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessageRequest<JOB_KEY> {
-    if (m == undefined) {
+function isJobMessageRequest<JOB_KEY>(request: any, jobKeyList: JOB_KEY[]): request is tJobMessageRequest<JOB_KEY> {
+    if (request == undefined) {
         consoleWrap.warn("m == undefined");
         return false;
     }
 
     // argument の型はなんでもいいので
 
-    return isJobMessage(m, jobKeyList);
+    return isJobMessage(request, jobKeyList);
 }
 
 type tJobMessageResponse<JOB_KEY> = {
     success: true,
-    response: unknown,
+    returnValue: unknown,
 } & tJobMessage<JOB_KEY> | {
     success: false,
     errMsg: string,
 } & tJobMessage<JOB_KEY>;
 
-function isJobMessageResponse<JOB_KEY>(m: any, jobKeyList: JOB_KEY[]): m is tJobMessageResponse<JOB_KEY> {
-    if (m == undefined) {
+function isJobMessageResponse<JOB_KEY>(response: any, jobKeyList: JOB_KEY[]): response is tJobMessageResponse<JOB_KEY> {
+    if (response == undefined) {
         consoleWrap.warn("m == undefined");
         return false;
     }
 
-    if (typeof m.success !== "boolean") {
+    if (typeof response.success !== "boolean") {
         consoleWrap.warn("typeof m.success !== \"boolean\"");
         return false;
     }
-    if (m.success) {
-        // response の型はなんでもいいので
+    if (response.success) {
+        // returnValue の型はなんでもいいので
     } else {
-        if (typeof m.errMsg !== "string") {
+        if (typeof response.errMsg !== "string") {
             consoleWrap.warn("typeof m.errMsg !== \"string\"");
             return false;
         }
     }
 
-    return isJobMessage(m, jobKeyList);
+    return isJobMessage(response, jobKeyList);
 }
 
 function isJobKey<JOB_KEY>(key: any, jobKeyList: JOB_KEY[]): key is JOB_KEY {

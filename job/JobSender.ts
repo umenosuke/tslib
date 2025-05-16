@@ -19,13 +19,13 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
     private waitingJobList: OrderObjectsAutoKey<string, {
         jobID: string,
         jobKey: keyof JOB_MAP,
-        p: tPromiseHandlers<JOB_MAP[keyof JOB_MAP]['response']>,
+        p: tPromiseHandlers<JOB_MAP[keyof JOB_MAP]['returnValue']>,
     }>;
 
     constructor(
         func: {
             [JOB_KEY in keyof JOB_MAP]: {
-                typeGuard: (response: any) => response is JOB_MAP[JOB_KEY]['response'];
+                typeGuard: (returnValue: any) => returnValue is JOB_MAP[JOB_KEY]['returnValue'];
             }
         },
         requestSendFunc: (request: tJobMessageRequest<keyof JOB_MAP>, meta: REQUEST_SEND_META) => Promise<void>,
@@ -77,19 +77,19 @@ class JobSender<JOB_MAP extends Record<string, Job>, REQUEST_SEND_META> {
             return false;
         }
 
-        if (!this.funcList[response.jobKey].typeGuard(response.response)) {
-            consoleWrap.error("!typeGuard[jobKey](response)", {
+        if (!this.funcList[response.jobKey].typeGuard(response.returnValue)) {
+            consoleWrap.error("!typeGuard[jobKey](response.returnValue)", {
                 response: response,
             });
-            waiting.p.reject(new Error("!typeGuard[jobKey](response)"));
+            waiting.p.reject(new Error("!typeGuard[jobKey](response.returnValue)"));
             return false;
         }
 
-        waiting.p.resolve(response.response);
+        waiting.p.resolve(response.returnValue);
         return true;
     };
 
-    public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"], meta: REQUEST_SEND_META): Promise<JOB_MAP[JOB_KEY]["response"]> {
+    public request<JOB_KEY extends keyof JOB_MAP>(jobKey: JOB_KEY, argument: JOB_MAP[JOB_KEY]["argument"], meta: REQUEST_SEND_META): Promise<JOB_MAP[JOB_KEY]["returnValue"]> {
         return new Promise(async (resolve, reject): Promise<void> => {
             const jobID = crypto.randomUUID();
             this.waitingJobList.pushAuto({

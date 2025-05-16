@@ -15,7 +15,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
     constructor(
         func: {
             [JOB_KEY in keyof JOB_MAP]: {
-                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: RESPONSE_SEND_META) => Promise<JOB_MAP[JOB_KEY]["response"]>,
+                job: (data: JOB_MAP[JOB_KEY]["argument"], meta: RESPONSE_SEND_META) => Promise<JOB_MAP[JOB_KEY]["returnValue"]>,
                 typeGuard: (data: any) => data is JOB_MAP[JOB_KEY]['argument'],
             }
         },
@@ -51,7 +51,7 @@ class JobReceiver<JOB_MAP extends Record<string, Job>, RESPONSE_SEND_META> {
                 jobID: request.jobID,
                 success: true,
                 jobKey: request.jobKey,
-                response: await this.funcList[request.jobKey].job(request.argument, meta),
+                returnValue: await this.funcList[request.jobKey].job(request.argument, meta),
             }
 
             consoleWrap.log("response send", response);
