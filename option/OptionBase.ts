@@ -2,7 +2,7 @@ import { ConsoleWrap } from "../console/ConsoleWrap.js";
 import type { tJson } from "../data/typeJson.js";
 import { TokenBucket } from "../time/TokenBucket.js";
 import type { RecursivePartial } from "../type/RecursivePartial.js";
-import type { PropertyData, PropertyDataEnum, PropertyInfo, PropertyInfoEnum } from "./type.js";
+import { isPropertyInfo, isPropertyInfoEnum, isPropertyInfoNest, type PropertyData, type PropertyDataEnum, type PropertyInfo, type PropertyInfoEnum, type PropertyInfoInternal } from "./type.js";
 
 export { OptionBase, isDataPropertyKey, isEnumValue };
 
@@ -10,9 +10,9 @@ const consoleWrap = new ConsoleWrap();
 export const OptionBaseConsoleOption = consoleWrap.enables;
 
 class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
-    public readonly dataPropertyInfo: DATA_PROPERTY_INFO;
+    public readonly dataPropertyInfo: PropertyInfoInternal<DATA_PROPERTY_INFO>;
     public readonly data: PropertyData<DATA_PROPERTY_INFO>;
-    public readonly dataReal: PropertyData<DATA_PROPERTY_INFO>;
+    private readonly dataReal: PropertyData<DATA_PROPERTY_INFO>;
 
     private saveFunc: (dataStr: string) => Promise<void>;
     private loadFunc: () => Promise<{
@@ -55,9 +55,12 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
             saveOnChanged?: boolean,
         } = {},
     ) {
-        this.dataPropertyInfo = dataPropertyInfo;
         {
-            const d = genGetSet(defaultData, dataPropertyInfo, () => {
+            // todo
+            this.dataPropertyInfo = <any>dataPropertyInfo;
+        }
+        {
+            const d = genDataGeterSeter(defaultData, dataPropertyInfo, () => {
                 if (this.opt.saveOnChanged) {
                     this.save();
                 }
@@ -97,7 +100,11 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
                 }
 
                 const loadData = <tJson>JSON.parse(loadRes.dataStr);
-                const setRes = setData(loadData, this.data, this.dataPropertyInfo);
+                const dataPropertyInfo = <unknown>this.dataPropertyInfo;
+                if (!isPropertyInfo(dataPropertyInfo)) {
+                    throw new Error("!isPropertyInfo(dataPropertyInfo)");
+                }
+                const setRes = setData(loadData, this.data, dataPropertyInfo);
                 return {
                     abort: false,
                     containsInvalidData: setRes.containsInvalidData,
@@ -123,7 +130,11 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
         const nowSaveOnChanged = this.opt.saveOnChanged;
         this.opt.saveOnChanged = false;
         try {
-            const setRes = setData(fromData, this.data, this.dataPropertyInfo);
+            const dataPropertyInfo = <unknown>this.dataPropertyInfo;
+            if (!isPropertyInfo(dataPropertyInfo)) {
+                throw new Error("!isPropertyInfo(dataPropertyInfo)");
+            }
+            const setRes = setData(fromData, this.data, dataPropertyInfo);
             if (nowSaveOnChanged && setRes.changed) {
                 this.save();
             }
@@ -237,7 +248,7 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                     continue;
                 }
                 if (toData[key] !== fromData[key]) {
-                    // ここ怪しい
+                    // ↑でチェックしているから大丈夫かな
                     toData[key] = <any>fromData[key];
                     res.changed = true;
                 }
@@ -259,13 +270,12 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                 }
 
                 const dataPropertyInfoEnum = dataPropertyInfo[key];
-                if (dataPropertyInfoEnum == undefined) {
-                    consoleWrap.error("dataPropertyInfoEnum == undefined");
-                    throw new Error("dataPropertyInfoEnum == undefined");
-                }
-                if (dataPropertyInfoEnum.type !== "enum") {
-                    consoleWrap.error("dataPropertyInfoEnum.type !== enum");
-                    throw new Error("dataPropertyInfoEnum.type !== enum");
+                if (!isPropertyInfoEnum(dataPropertyInfoEnum)) {
+                    consoleWrap.error("!isPropertyInfoEnum(dataPropertyInfoEnum)", {
+                        key,
+                        dataPropertyInfo,
+                    });
+                    throw new Error("!isPropertyInfoEnum(dataPropertyInfoEnum)");
                 }
 
                 if (!isEnumValue(val, dataPropertyInfoEnum)) {
@@ -300,10 +310,13 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                     continue;
                 }
 
-                const dataPropertyInfoChildInfo = dataPropertyInfo[key]?.["child"];
-                if (dataPropertyInfoChildInfo == undefined) {
-                    consoleWrap.error("dataPropertyInfoChildInfo == undefined");
-                    throw new Error("dataPropertyInfoChildInfo == undefined");
+                const dataPropertyInfoNest = dataPropertyInfo[key];
+                if (!isPropertyInfoNest(dataPropertyInfoNest)) {
+                    consoleWrap.error("!isPropertyInfoNest(dataPropertyInfoNest)", {
+                        key,
+                        dataPropertyInfo,
+                    });
+                    throw new Error("!isPropertyInfoNest(dataPropertyInfoNest)");
                 }
 
                 // toData[key]がnestの時の型が欠落するのはなんでじゃろか
@@ -312,7 +325,7 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                     throw new Error("nest data is not object");
                 }
 
-                const nestRes = setData(fromData[key], toData[key], dataPropertyInfoChildInfo);
+                const nestRes = setData(fromData[key], toData[key], dataPropertyInfoNest["child"]);
                 if (nestRes.changed) {
                     res.changed = true;
                 }
@@ -321,7 +334,7 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
                         dataIn: fromData,
                         key: key,
                         dataVal: fromData[key],
-                        dataExpectType: dataPropertyInfoChildInfo,
+                        dataExpectType: dataPropertyInfoNest,
                     });
                     res.containsInvalidData = true;
                 }
@@ -339,7 +352,7 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
 }
 
 // セット時にコールバックを注入するテスト中
-function genGetSet<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO, saveFunc: () => void): { real: PropertyData<DATA_PROPERTY_INFO>, wrap: PropertyData<DATA_PROPERTY_INFO>, } {
+function genDataGeterSeter<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO, saveFunc: () => void): { real: PropertyData<DATA_PROPERTY_INFO>, wrap: PropertyData<DATA_PROPERTY_INFO>, } {
     const real: { [key: string]: any } = {};
     const wrap = {};
 
@@ -470,7 +483,7 @@ function genGetSet<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyDa
                     }
                 }
 
-                let origDataValue: number = <any>origData[propKey];
+                let origDataValue = <unknown>origData[propKey];
                 {
                     if (typeof origDataValue !== "number") {
                         consoleWrap.error("invalid origData", {
@@ -675,7 +688,7 @@ function genGetSet<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyDa
                 try {
                     const dataPropertyChildInfo = dataProperty["child"];
 
-                    const child = genGetSet(origDataValue, dataPropertyChildInfo, saveFunc);
+                    const child = genDataGeterSeter(origDataValue, dataPropertyChildInfo, saveFunc);
                     real[propKey] = child.real;
                     Object.defineProperty(wrap, propKey, {
                         get: () => {
@@ -694,7 +707,6 @@ function genGetSet<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyDa
                         dataProperty,
                         nestError: err,
                     });
-
                     throw new Error("invalid origData");
                 }
                 continue;
@@ -707,6 +719,7 @@ function genGetSet<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyDa
         }
     }
 
+    // ここどうにかしたい
     return {
         real: <any>real,
         wrap: <any>wrap,
@@ -720,7 +733,7 @@ function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, da
         }
     }
 
-    const keyExpectList: any[] = [];
+    const keyExpectList: string[] = [];
     for (const k in dataPropertyInfo) {
         keyExpectList.push(k);
     }
@@ -732,6 +745,13 @@ function isDataPropertyKey<DATA_PROPERTY_INFO extends PropertyInfo>(key: any, da
 };
 
 function isEnumValue<DATA_PROPERTY_INFO extends PropertyInfoEnum>(value: string, dataPropertyInfo: DATA_PROPERTY_INFO): value is PropertyDataEnum<DATA_PROPERTY_INFO["list"]> {
+    if (!isPropertyInfoEnum(dataPropertyInfo)) {
+        consoleWrap.error("!isPropertyInfoEnum(dataPropertyInfo)", {
+            dataPropertyInfo,
+        });
+        throw new Error("invalid origData");
+    }
+
     for (const e of dataPropertyInfo["list"]) {
         if (value === e.value) {
             return true;
