@@ -307,7 +307,19 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                             if (p.step != undefined) {
                                 input.step = String(p.step);
                             }
-                            input.addEventListener("change", handlerList["number"]);
+                            switch (p.type) {
+                                case "number": {
+                                    input.addEventListener("change", handlerList["number"]);
+                                    break;
+                                }
+                                case "range": {
+                                    input.addEventListener("input", handlerList["range"]);
+                                    break;
+                                }
+
+                                default:
+                                    throw new Error("why?");
+                            }
                             // ここ怪しい
                             (dataPropertyInfo[key] as any).onSet.addListener((v: unknown) => {
                                 input.value = <any>String(v);
