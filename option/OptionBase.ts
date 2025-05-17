@@ -57,7 +57,7 @@ class OptionBase<DATA_PROPERTY_INFO extends PropertyInfo> {
     ) {
         this.dataPropertyInfo = dataPropertyInfo;
         {
-            const d = genGetSet(defaultData, () => {
+            const d = genGetSet(defaultData, dataPropertyInfo, () => {
                 if (this.opt.saveOnChanged) {
                     this.save();
                 }
@@ -339,50 +339,377 @@ function setData<DATA_PROPERTY_INFO extends PropertyInfo>(fromData: any, toData:
 }
 
 // セット時にコールバックを注入するテスト中
-function genGetSet<T extends {}>(d: T, saveFunc: () => void): { real: T, wrap: T, } {
+function genGetSet<DATA_PROPERTY_INFO extends PropertyInfo>(origData: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO, saveFunc: () => void): { real: PropertyData<DATA_PROPERTY_INFO>, wrap: PropertyData<DATA_PROPERTY_INFO>, } {
     const real: { [key: string]: any } = {};
     const wrap = {};
 
-    Object.keys(d).forEach((prop) => {
-        const val = (d as any)[prop];
-        if (typeof val !== "object") {
-            real[prop] = val;
-            Object.defineProperty(wrap, prop, {
-                get: () => {
-                    consoleWrap.log("get", {
-                        name: prop,
-                    });
-                    return (real as any)[prop];
-                },
-                set: (newValue) => {
-                    consoleWrap.log("set", {
-                        name: prop,
-                        same: (real as any)[prop] === newValue,
-                        oldValue: (real as any)[prop],
-                        newValue: newValue,
-                    });
-                    if ((real as any)[prop] !== newValue) {
-                        (real as any)[prop] = newValue;
-                        saveFunc();
-                    }
-                },
-            });
-        } else {
-            const nest = genGetSet(val, saveFunc);
-            real[prop] = nest.real;
-            Object.defineProperty(wrap, prop, {
-                get: () => {
-                    consoleWrap.log("get nest", prop);
-                    return nest.wrap;
-                },
-            });
-            consoleWrap.log({ real, wrap, });
+    for (const propKey in dataPropertyInfo) {
+        // なんでundefinedになる可能性があるんやろ？
+        const dataProperty = dataPropertyInfo[propKey];
+        if (dataProperty == undefined) {
+            consoleWrap.error("dataProperty == undefined");
+            throw new Error("dataProperty == undefined");
         }
-    });
+
+        switch (dataProperty["type"]) {
+            case "boolean": {
+                const origDataValue = origData[propKey];
+
+                {
+                    if (typeof origDataValue !== "boolean") {
+                        consoleWrap.error("invalid origData", {
+                            origData,
+                            propKey,
+                            origDataValueType: typeof origDataValue,
+                            origDataValue,
+                            dataProperty,
+                        });
+                        throw new Error("invalid origData");
+                    }
+                }
+
+                real[propKey] = origDataValue;
+                Object.defineProperty(wrap, propKey, {
+                    get: () => {
+                        consoleWrap.log("get", {
+                            propKey,
+                        });
+                        return real[propKey];
+                    },
+                    set: (newValue) => {
+                        consoleWrap.log("set", {
+                            propKey,
+                            same: real[propKey] === newValue,
+                            oldValue: real[propKey],
+                            newValue,
+                            dataProperty,
+                        });
+                        if (typeof newValue !== "boolean") {
+                            consoleWrap.error("invalid newValue", {
+                                propKey,
+                                oldValue: real[propKey],
+                                oldValueType: typeof real[propKey],
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            throw new Error("invalid newValue");
+                        }
+                        if (real[propKey] !== newValue) {
+                            real[propKey] = newValue;
+                            saveFunc();
+                        }
+                    },
+                });
+                continue;
+            }
+
+            case "string": {
+                const origDataValue = origData[propKey];
+
+                {
+                    if (typeof origDataValue !== "string") {
+                        consoleWrap.error("invalid origData", {
+                            origData,
+                            propKey,
+                            origDataValueType: typeof origDataValue,
+                            origDataValue,
+                            dataProperty,
+                        });
+                        throw new Error("invalid origData");
+                    }
+                }
+
+                real[propKey] = origDataValue;
+                Object.defineProperty(wrap, propKey, {
+                    get: () => {
+                        consoleWrap.log("get", {
+                            propKey,
+                        });
+                        return real[propKey];
+                    },
+                    set: (newValue) => {
+                        consoleWrap.log("set", {
+                            propKey,
+                            same: real[propKey] === newValue,
+                            oldValue: real[propKey],
+                            newValue,
+                            dataProperty,
+                        });
+                        if (typeof newValue !== "string") {
+                            consoleWrap.error("invalid newValue", {
+                                propKey,
+                                oldValue: real[propKey],
+                                oldValueType: typeof real[propKey],
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            throw new Error("invalid newValue");
+                        }
+                        if (real[propKey] !== newValue) {
+                            real[propKey] = newValue;
+                            saveFunc();
+                        }
+                    },
+                });
+                continue;
+            }
+
+            case "number":
+            case "range": {
+                {
+                    if (dataProperty["min"] != undefined && dataProperty["max"] != undefined) {
+                        if (dataProperty["min"] > dataProperty["max"]) {
+                            consoleWrap.error("invalid dataProperty (min > max)", {
+                                propKey,
+                                dataProperty,
+                            });
+                            throw new Error("invalid dataProperty (min > max)");
+                        }
+                    }
+                }
+
+                let origDataValue: number = <any>origData[propKey];
+                {
+                    if (typeof origDataValue !== "number") {
+                        consoleWrap.error("invalid origData", {
+                            origData,
+                            propKey,
+                            origDataValueType: typeof origDataValue,
+                            origDataValue,
+                            dataProperty,
+                        });
+                        throw new Error("invalid origData");
+                    }
+                    {
+                        const min = dataProperty["min"];
+                        if (min != undefined) {
+                            if (origDataValue < min) {
+                                consoleWrap.error("out of range origDataValue", {
+                                    origData,
+                                    propKey,
+                                    origDataValueType: typeof origDataValue,
+                                    origDataValue,
+                                    dataProperty,
+                                });
+                                throw new Error("out of range origDataValue");
+                            }
+                        }
+                    }
+                    {
+                        const max = dataProperty["max"];
+                        if (max != undefined) {
+                            if (max < origDataValue) {
+                                consoleWrap.error("out of range origDataValue", {
+                                    origData,
+                                    propKey,
+                                    origDataValueType: typeof origDataValue,
+                                    origDataValue,
+                                    dataProperty,
+                                });
+                                throw new Error("out of range origDataValue");
+                            }
+                        }
+                    }
+                }
+
+                real[propKey] = origDataValue;
+                Object.defineProperty(wrap, propKey, {
+                    get: () => {
+                        consoleWrap.log("get", {
+                            propKey,
+                        });
+                        return (real as any)[propKey];
+                    },
+                    set: (newValue) => {
+                        consoleWrap.log("set", {
+                            propKey,
+                            same: (real as any)[propKey] === newValue,
+                            oldValue: (real as any)[propKey],
+                            newValue,
+                            dataProperty,
+                        });
+                        if (typeof newValue !== "number") {
+                            consoleWrap.error("invalid newValue", {
+                                propKey,
+                                oldValue: real[propKey],
+                                oldValueType: typeof real[propKey],
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            throw new Error("invalid newValue");
+                        }
+                        {
+                            const min = dataProperty["min"];
+                            if (min != undefined) {
+                                if (newValue < min) {
+                                    consoleWrap.warn("out of range newValue", {
+                                        propKey,
+                                        oldValue: real[propKey],
+                                        oldValueType: typeof real[propKey],
+                                        newValue,
+                                        newValueType: typeof newValue,
+                                        dataProperty,
+                                    });
+                                    newValue = min;
+                                }
+                            }
+                        }
+                        {
+                            const max = dataProperty["max"];
+                            if (max != undefined) {
+                                if (max < newValue) {
+                                    consoleWrap.warn("out of range newValue", {
+                                        propKey,
+                                        oldValue: real[propKey],
+                                        oldValueType: typeof real[propKey],
+                                        newValue,
+                                        newValueType: typeof newValue,
+                                        dataProperty,
+                                    });
+                                    newValue = max;
+                                }
+                            }
+                        }
+                        if (real[propKey] !== newValue) {
+                            real[propKey] = newValue;
+                            saveFunc();
+                        }
+                    },
+                });
+                continue;
+            }
+
+            case "enum": {
+                const origDataValue = origData[propKey];
+
+                {
+                    if (typeof origDataValue !== "string") {
+                        consoleWrap.error("invalid origData", {
+                            origData,
+                            propKey,
+                            origDataValueType: typeof origDataValue,
+                            origDataValue,
+                            dataProperty,
+                        });
+                        throw new Error("invalid origData");
+                    }
+
+                    if (!isEnumValue(origDataValue, dataProperty)) {
+                        consoleWrap.error("invalid origData", {
+                            origData,
+                            propKey,
+                            origDataValueType: typeof origDataValue,
+                            origDataValue,
+                            dataProperty,
+                        });
+                        continue;
+                    }
+                }
+
+                real[propKey] = origDataValue;
+                Object.defineProperty(wrap, propKey, {
+                    get: () => {
+                        consoleWrap.log("get", {
+                            propKey,
+                        });
+                        return real[propKey];
+                    },
+                    set: (newValue) => {
+                        consoleWrap.log("set", {
+                            propKey,
+                            same: real[propKey] === newValue,
+                            oldValue: real[propKey],
+                            newValue: newValue,
+                            dataProperty,
+                        });
+                        if (typeof newValue !== "string") {
+                            consoleWrap.error("invalid newValue", {
+                                propKey,
+                                oldValue: real[propKey],
+                                oldValueType: typeof real[propKey],
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            throw new Error("invalid newValue");
+                        }
+                        if (!isEnumValue(newValue, dataProperty)) {
+                            consoleWrap.error("invalid newValue", {
+                                propKey,
+                                oldValue: real[propKey],
+                                oldValueType: typeof real[propKey],
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            throw new Error("invalid newValue");
+                        }
+                        if (real[propKey] !== newValue) {
+                            real[propKey] = newValue;
+                            saveFunc();
+                        }
+                    },
+                });
+                continue;
+            }
+
+            case "nest": {
+                const origDataValue = origData[propKey];
+
+                {
+                    if (typeof origDataValue !== "object") {
+                        consoleWrap.error("invalid origData", {
+                            origData,
+                            propKey,
+                            origDataValueType: typeof origDataValue,
+                            origDataValue,
+                            dataProperty,
+                        });
+                        throw new Error("invalid origData");
+                    }
+                }
+
+                try {
+                    const dataPropertyChildInfo = dataProperty["child"];
+
+                    const child = genGetSet(origDataValue, dataPropertyChildInfo, saveFunc);
+                    real[propKey] = child.real;
+                    Object.defineProperty(wrap, propKey, {
+                        get: () => {
+                            consoleWrap.log("get", {
+                                propKey,
+                            });
+                            return child.wrap;
+                        },
+                    });
+                } catch (err) {
+                    consoleWrap.error("invalid origData nest", {
+                        origData,
+                        propKey,
+                        origDataValueType: typeof origDataValue,
+                        origDataValue,
+                        dataProperty,
+                        nestError: err,
+                    });
+
+                    throw new Error("invalid origData");
+                }
+                continue;
+            }
+
+            default: {
+                consoleWrap.error("unknown dataProperty type", dataProperty["type"]);
+                throw new Error("unknown dataProperty type");
+            }
+        }
+    }
 
     return {
-        real: <T>real,
-        wrap: <T>wrap,
+        real: <any>real,
+        wrap: <any>wrap,
     };
 }
 
