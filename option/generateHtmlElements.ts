@@ -14,7 +14,7 @@ function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(opt: 
 
 function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: PropertyInfoInternalList<DATA_PROPERTY_INFO>): PropertyHtml<DATA_PROPERTY_INFO> {
     if (!isPropertyInfoList(dataPropertyInfo)) {
-        throw new Error("");
+        throw new Error("!isPropertyInfoList(dataPropertyInfo)");
     }
 
     const handlerList: { [key in keyof PropertyPrimitiveMap | "enum"]: EventListenerObject } = {
@@ -205,6 +205,10 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                             checkbox.type = "checkbox";
                             checkbox.checked = val;
                             checkbox.addEventListener("click", handlerList["boolean"]);
+                            // ここ怪しい
+                            (dataPropertyInfo[key] as any).onSet.addListener((v: unknown) => {
+                                checkbox.checked = <any>v;
+                            });
                         }
                     }
                 }
@@ -241,6 +245,10 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                             input.type = "text";
                             input.value = val;
                             input.addEventListener("change", handlerList["string"]);
+                            // ここ怪しい
+                            (dataPropertyInfo[key] as any).onSet.addListener((v: unknown) => {
+                                input.value = <any>v;
+                            });
                         }
                     }
                 }
@@ -306,6 +314,10 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                                 input.step = String(p.step);
                             }
                             input.addEventListener("change", handlerList["number"]);
+                            // ここ怪しい
+                            (dataPropertyInfo[key] as any).onSet.addListener((v: unknown) => {
+                                input.value = <any>String(v);
+                            });
                         }
                     }
                 }
@@ -361,6 +373,10 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                             }
                             select.value = val;
                             select.addEventListener("change", handlerList["enum"]);
+                            // ここ怪しい
+                            (dataPropertyInfo[key] as any).onSet.addListener((v: unknown) => {
+                                select.value = <any>v;
+                            });
                         }
                     }
                 }
