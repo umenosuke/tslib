@@ -84,9 +84,6 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                             throw new Error("!this.isDataPropertyKey(key)");
                         }
                         const val = Number.parseFloat(input.value);
-                        if (Number.isNaN(val) || !Number.isFinite(val)) {
-                            throw new Error("Number.isNaN(val) || !Number.isFinite(val)");
-                        }
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
                     } catch (e) {
@@ -112,9 +109,6 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data
                             throw new Error("!this.isDataPropertyKey(key)");
                         }
                         const val = Number.parseFloat(input.value);
-                        if (Number.isNaN(val) || !Number.isFinite(val)) {
-                            throw new Error("Number.isNaN(val) || !Number.isFinite(val)");
-                        }
                         // 多分大丈夫だけどいつか改善したい
                         (data as any)[key] = val;
                     } catch (e) {

@@ -731,6 +731,28 @@ function genDataGeterSeter<DATA_PROPERTY_INFO extends PropertyInfoList>(origData
                             });
                             throw new Error("invalid newValue");
                         }
+                        if (Number.isNaN(newValue)) {
+                            consoleWrap.warn("Number.isNaN(newValue)", {
+                                propKey,
+                                oldValue,
+                                oldValueType: typeof oldValue,
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            newValue = oldValue;
+                        }
+                        if (!Number.isFinite(newValue)) {
+                            consoleWrap.warn("!Number.isFinite(newValue)", {
+                                propKey,
+                                oldValue,
+                                oldValueType: typeof oldValue,
+                                newValue,
+                                newValueType: typeof newValue,
+                                dataProperty,
+                            });
+                            newValue = oldValue;
+                        }
                         {
                             const min = dataProperty["min"];
                             if (min != undefined) {
