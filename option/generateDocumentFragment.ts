@@ -22,8 +22,8 @@ function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(elem
                 const label = document.createElement("label");
                 frag.appendChild(label);
                 {
-                    label.appendChild(elem.value);
-                    label.appendChild(elem.label);
+                    label.appendChild(elem.valueElem);
+                    label.appendChild(elem.labelElem);
                 }
 
                 frag.appendChild(document.createElement("br"));
@@ -37,8 +37,8 @@ function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(elem
                 const label = document.createElement("label");
                 frag.appendChild(label);
                 {
-                    label.appendChild(elem.label);
-                    label.appendChild(elem.value);
+                    label.appendChild(elem.labelElem);
+                    label.appendChild(elem.valueElem);
                 }
 
                 frag.appendChild(document.createElement("br"));
@@ -50,7 +50,7 @@ function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(elem
                 frag.appendChild(div);
                 {
                     {
-                        div.appendChild(elem.label);
+                        div.appendChild(elem.labelElem);
                         div.appendChild(document.createElement("br"));
                         {
                             const child = (elem as any)["child"];

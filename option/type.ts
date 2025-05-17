@@ -96,22 +96,22 @@ type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
     [K in keyof PROPERTY_INFO]: PROPERTY_INFO[K]["type"] extends keyof PropertyInfoPrimitiveMap
     ? ({
         type: PROPERTY_INFO[K]["type"],
-        label: HTMLSpanElement,
-        value: HTMLInputElement,
+        labelElem: HTMLSpanElement,
+        valueElem: HTMLInputElement,
     })
     : (PROPERTY_INFO[K]["type"] extends "enum"
         ? ({
             type: PROPERTY_INFO[K]["type"],
-            label: HTMLSpanElement,
-            value: HTMLSelectElement,
+            labelElem: HTMLSpanElement,
+            valueElem: HTMLSelectElement,
         })
         : (PROPERTY_INFO[K]["type"] extends "nest"
             ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
                 ? (CHILD extends PropertyInfo
                     ? ({
                         type: PROPERTY_INFO[K]["type"],
-                        label: HTMLSpanElement,
-                        child: PropertyHtml<CHILD>,
+                        labelElem: HTMLSpanElement,
+                        childElem: PropertyHtml<CHILD>,
                     })
                     : never
                 )

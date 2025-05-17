@@ -179,7 +179,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                 resHtmlTemp.type = p.type;
                 {
                     const span = document.createElement("span");
-                    resHtmlTemp.label = span;
+                    resHtmlTemp.labelElem = span;
                     {
                         span.classList.add("label");
                         span.textContent = p.label;
@@ -188,7 +188,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                 {
                     {
                         const checkbox = document.createElement("input");
-                        resHtmlTemp.value = checkbox;
+                        resHtmlTemp.valueElem = checkbox;
                         {
                             checkbox.classList.add("value");
                             checkbox.dataset["key"] = key;
@@ -216,7 +216,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                 {
                     {
                         const span = document.createElement("span");
-                        resHtmlTemp.label = span;
+                        resHtmlTemp.labelElem = span;
                         {
                             span.classList.add("label");
                             span.textContent = p.label;
@@ -224,7 +224,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     }
                     {
                         const input = document.createElement("input");
-                        resHtmlTemp.value = input;
+                        resHtmlTemp.valueElem = input;
                         {
                             input.classList.add("value");
                             input.dataset["key"] = key;
@@ -253,7 +253,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                 {
                     {
                         const span = document.createElement("span");
-                        resHtmlTemp.label = span;
+                        resHtmlTemp.labelElem = span;
                         {
                             span.classList.add("label");
                             span.textContent = p.label;
@@ -261,7 +261,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     }
                     {
                         const input = document.createElement("input");
-                        resHtmlTemp.value = input;
+                        resHtmlTemp.valueElem = input;
                         {
                             input.classList.add("value");
                             input.dataset["key"] = key;
@@ -310,7 +310,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                 {
                     {
                         const span = document.createElement("span");
-                        resHtmlTemp.label = span;
+                        resHtmlTemp.labelElem = span;
                         {
                             span.classList.add("label");
                             span.textContent = p.label;
@@ -318,7 +318,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     }
                     {
                         const select = document.createElement("select");
-                        resHtmlTemp.value = select;
+                        resHtmlTemp.valueElem = select;
                         {
                             select.classList.add("value");
                             select.dataset["key"] = key;
@@ -358,7 +358,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                 {
                     {
                         const span = document.createElement("span");
-                        resHtmlTemp.label = span;
+                        resHtmlTemp.labelElem = span;
                         {
                             span.classList.add("label");
                             span.textContent = p.label;
