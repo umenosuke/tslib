@@ -1,18 +1,20 @@
 import { ConsoleWrap } from "../console/ConsoleWrap.js";
+import type { Callback } from "./OptionBase.js";
 
 export { };
 
 const consoleWrap = new ConsoleWrap();
 export const OptionBaseTypeConsoleOption = consoleWrap.enables;
 
-export type PropertyInfo = Record<string,
+export type PropertyInfoList = Record<string, PropertyInfo>;
+export type PropertyInfo = (
     PropertyInfoBoolean
     | PropertyInfoString
     | PropertyInfoNumber
     | PropertyInfoRange
     | PropertyInfoEnum
     | PropertyInfoNest
->;
+);
 export type PropertyInfoBoolean = Readonly<{
     "type": "boolean",
     "label": string,
@@ -46,7 +48,7 @@ export type PropertyInfoEnum = Readonly<{
 export type PropertyInfoNest = Readonly<{
     "type": "nest",
     "label": string,
-    "child": PropertyInfo,
+    "child": PropertyInfoList,
 }>;
 export type PropertyPrimitiveMap = Readonly<{
     "boolean": boolean,
@@ -55,35 +57,36 @@ export type PropertyPrimitiveMap = Readonly<{
     "range": number,
 }>;
 
-export type PropertyInfoInternal<PROPERTY_INFO extends PropertyInfo> = {
-    readonly [K in keyof PROPERTY_INFO]: (
-        PROPERTY_INFO[K]["type"] extends keyof PropertyPrimitiveMap
-        ? Readonly<PROPERTY_INFO[K] & { "onSet": Callback<PropertyPrimitiveMap[PROPERTY_INFO[K]["type"]]>, }>
+export type PropertyInfoInternalList<PROPERTY_INFO_LIST extends PropertyInfoList> = {
+    readonly [K in keyof PROPERTY_INFO_LIST]: PropertyInfoInternal<PROPERTY_INFO_LIST[K]>
+};
+export type PropertyInfoInternal<PROPERTY_INFO extends PropertyInfo> = (
+    PROPERTY_INFO["type"] extends keyof PropertyPrimitiveMap
+    ? Readonly<PROPERTY_INFO & { "onSet": Callback<PropertyPrimitiveMap[PROPERTY_INFO["type"]]>, }>
+    : (
+        PROPERTY_INFO["type"] extends "enum"
+        ? (
+            PROPERTY_INFO extends PropertyInfoEnum
+            ? PropertyInfoInternalEnum<PROPERTY_INFO>
+            : never
+        )
         : (
-            PROPERTY_INFO[K]["type"] extends "enum"
-            ? (
-                PROPERTY_INFO[K] extends PropertyInfoEnum
-                ? PropertyInfoInternalEnum<PROPERTY_INFO[K]>
-                : never
-            )
-            : (
-                PROPERTY_INFO[K]["type"] extends "nest"
-                ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
-                    ? (CHILD extends PropertyInfo
-                        ? Readonly<{
-                            "type": "nest",
-                            "label": string,
-                            "child": PropertyInfoInternal<CHILD>,
-                        }>
-                        : never
-                    )
+            PROPERTY_INFO["type"] extends "nest"
+            ? (PROPERTY_INFO extends { "child": infer CHILD }
+                ? (CHILD extends PropertyInfoList
+                    ? Readonly<{
+                        "type": "nest",
+                        "label": string,
+                        "child": PropertyInfoInternalList<CHILD>,
+                    }>
                     : never
                 )
                 : never
             )
+            : never
         )
     )
-};
+);
 export type PropertyInfoInternalEnum<E extends PropertyInfoEnum> = (
     E extends { "list": infer PROPERTY_INFO_ENUM_LIST }
     ? (
@@ -97,37 +100,8 @@ export type PropertyInfoInternalEnum<E extends PropertyInfoEnum> = (
     )
     : never
 );
-class Callback<T> {
-    private callBackList: Map<string, (oldValue: T, newValue: T) => void>;
 
-    constructor() {
-        this.callBackList = new Map();
-    }
-
-    public addListener(callback: (oldValue: T, newValue: T) => void): string {
-        const id = crypto.randomUUID();
-        this.callBackList.set(id, callback);
-        return id;
-    }
-    public removeListener(id: string): void {
-        this.callBackList.delete(id);
-    }
-
-    public exec(oldValue: T, newValue: T): void {
-        for (const [id, callBack] of this.callBackList) {
-            try {
-                callBack(oldValue, newValue);
-            } catch (err) {
-                consoleWrap.error("Callback exec fail", {
-                    id,
-                    err,
-                });
-            }
-        }
-    }
-}
-
-export type PropertyData<PROPERTY_INFO extends PropertyInfo> = PropertyDataPropertyRoRw<{
+export type PropertyData<PROPERTY_INFO extends PropertyInfoList> = PropertyDataPropertyRoRw<{
     [K in keyof PROPERTY_INFO]: (
         PROPERTY_INFO[K]["type"] extends keyof PropertyPrimitiveMap
         ? ({
@@ -147,7 +121,7 @@ export type PropertyData<PROPERTY_INFO extends PropertyInfo> = PropertyDataPrope
             )
             : (PROPERTY_INFO[K]["type"] extends "nest"
                 ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
-                    ? (CHILD extends PropertyInfo
+                    ? (CHILD extends PropertyInfoList
                         ? ({
                             readonly: true,
                             value: PropertyData<CHILD>,
@@ -176,7 +150,7 @@ type PropertyDataPropertyRoRw<T extends Record<string, { readonly: boolean, valu
     readonly [K in keyof T as T[K]["readonly"] extends true ? K : never]: T[K]["value"]
 };
 
-export type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
+export type PropertyHtml<PROPERTY_INFO extends PropertyInfoList> = {
     [K in keyof PROPERTY_INFO]: (
         PROPERTY_INFO[K]["type"] extends keyof PropertyPrimitiveMap
         ? ({
@@ -192,7 +166,7 @@ export type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
             })
             : (PROPERTY_INFO[K]["type"] extends "nest"
                 ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
-                    ? (CHILD extends PropertyInfo
+                    ? (CHILD extends PropertyInfoList
                         ? ({
                             type: PROPERTY_INFO[K]["type"],
                             labelElem: HTMLSpanElement,
@@ -208,12 +182,59 @@ export type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
     )
 };
 
+export function isPropertyInfoList(info: any): info is PropertyInfoList {
+    if (info == undefined) {
+        consoleWrap.warn("isPropertyInfoList", {
+            msg: "info == undefined",
+            info,
+        });
+        return false;
+    }
+
+    if (typeof info !== "object") {
+        consoleWrap.warn("isPropertyInfoList", {
+            msg: "typeof info !== object",
+            info,
+        });
+        return false;
+    }
+
+    for (const key in info) {
+        if (typeof key !== "string") {
+            consoleWrap.warn("isPropertyInfoList", {
+                msg: "typeof key !== string",
+                info,
+                key,
+            });
+            return false;
+        }
+
+        if (!isPropertyInfo(info[key])) {
+            consoleWrap.warn("isPropertyInfoList", {
+                msg: "!isPropertyInfo(info[key])",
+                info,
+                key,
+            });
+            return false;
+        }
+    }
+
+    return true;
+}
 export function isPropertyInfo(info: any): info is PropertyInfo {
     if (info == undefined) {
+        consoleWrap.warn("isPropertyInfo", {
+            msg: "info == undefined",
+            info,
+        });
         return false;
     }
 
     if (typeof info.type !== "string") {
+        consoleWrap.warn("isPropertyInfo", {
+            msg: "typeof info.type !== string",
+            info,
+        });
         return false;
     }
     switch (info.type) {
@@ -248,17 +269,33 @@ export function isPropertyInfo(info: any): info is PropertyInfo {
 }
 export function isPropertyInfoBoolean(info: any): info is PropertyInfoBoolean {
     if (info == undefined) {
+        consoleWrap.warn("isPropertyInfoBoolean", {
+            msg: "info == undefined",
+            info,
+        });
         return false;
     }
 
     if (typeof info.type !== "string") {
+        consoleWrap.warn("isPropertyInfoBoolean", {
+            msg: "typeof info.type !== string",
+            info,
+        });
         return false;
     }
     if (info.type !== "boolean") {
+        consoleWrap.warn("isPropertyInfoBoolean", {
+            msg: "info.type !== boolean",
+            info,
+        });
         return false;
     }
 
     if (typeof info.label !== "string") {
+        consoleWrap.warn("isPropertyInfoBoolean", {
+            msg: "typeof info.label !== string",
+            info,
+        });
         return false;
     }
 
@@ -282,7 +319,7 @@ export function isPropertyInfoString(info: any): info is PropertyInfoString {
 
     return true;
 }
-export function isPropertyInfoNumber(info: any): info is PropertyInfoNumber {
+export function isPropertyInfoNumberOrRange(info: any): info is (PropertyInfoNumber | PropertyInfoRange) {
     if (info == undefined) {
         return false;
     }
@@ -290,7 +327,7 @@ export function isPropertyInfoNumber(info: any): info is PropertyInfoNumber {
     if (typeof info.type !== "string") {
         return false;
     }
-    if (info.type !== "number") {
+    if (info.type !== "number" && info.type !== "range") {
         return false;
     }
 
@@ -318,38 +355,56 @@ export function isPropertyInfoNumber(info: any): info is PropertyInfoNumber {
 
     return true;
 }
+export function isPropertyInfoNumber(info: any): info is PropertyInfoNumber {
+    if (info == undefined) {
+        consoleWrap.warn("isPropertyInfoNumber", {
+            msg: "info == undefined",
+            info,
+        });
+        return false;
+    }
+
+    if (!isPropertyInfoNumberOrRange(info)) {
+        consoleWrap.warn("isPropertyInfoNumber", {
+            msg: "!isPropertyInfoNumberOrRange(info)",
+            info,
+        });
+        return false;
+    }
+
+    if (info.type !== "number") {
+        consoleWrap.warn("isPropertyInfoNumber", {
+            msg: "info.type !== number",
+            info,
+        });
+        return false;
+    }
+
+    return true;
+}
 export function isPropertyInfoRange(info: any): info is PropertyInfoRange {
     if (info == undefined) {
+        consoleWrap.warn("isPropertyInfoRange", {
+            msg: "info == undefined",
+            info,
+        });
         return false;
     }
 
-    if (typeof info.type !== "string") {
+    if (!isPropertyInfoNumberOrRange(info)) {
+        consoleWrap.warn("isPropertyInfoRange", {
+            msg: "!isPropertyInfoNumberOrRange(info)",
+            info,
+        });
         return false;
     }
+
     if (info.type !== "range") {
+        consoleWrap.warn("isPropertyInfoRange", {
+            msg: "info.type !== range",
+            info,
+        });
         return false;
-    }
-
-    if (typeof info.label !== "string") {
-        return false;
-    }
-
-    if (info.min != undefined) {
-        if (typeof info.min !== "number") {
-            return false;
-        }
-    }
-
-    if (info.max != undefined) {
-        if (typeof info.max !== "number") {
-            return false;
-        }
-    }
-
-    if (info.step != undefined) {
-        if (typeof info.step !== "number") {
-            return false;
-        }
     }
 
     return true;
@@ -390,21 +445,41 @@ export function isPropertyInfoEnum(info: any): info is PropertyInfoEnum {
 }
 export function isPropertyInfoNest(info: any): info is PropertyInfoNest {
     if (info == undefined) {
+        consoleWrap.warn("isPropertyInfoNest", {
+            msg: "info == undefined",
+            info,
+        });
         return false;
     }
 
     if (typeof info.type !== "string") {
+        consoleWrap.warn("isPropertyInfoNest", {
+            msg: "typeof info.type !== string",
+            info,
+        });
         return false;
     }
     if (info.type !== "nest") {
+        consoleWrap.warn("isPropertyInfoNest", {
+            msg: "info.type !== nest",
+            info,
+        });
         return false;
     }
 
     if (typeof info.label !== "string") {
+        consoleWrap.warn("isPropertyInfoNest", {
+            msg: "typeof info.label !== string",
+            info,
+        });
         return false;
     }
 
-    if (!isPropertyInfo(info.child)) {
+    if (!isPropertyInfoList(info.child)) {
+        consoleWrap.warn("isPropertyInfoNest", {
+            msg: "!isPropertyInfo(info.child)",
+            info,
+        });
         return false;
     }
 

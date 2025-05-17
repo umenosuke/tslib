@@ -1,19 +1,23 @@
 import { ConsoleWrap } from "../console/ConsoleWrap.js";
 import type { exEvent } from "../html/exEvents.js";
 import { isDataPropertyKey, isEnumValue, OptionBase } from "./OptionBase.js";
-import type { PropertyData, PropertyHtml, PropertyInfo, PropertyInfoPrimitiveMap } from "./type.js";
+import { isPropertyInfoEnum, isPropertyInfoNumberOrRange, type PropertyData, type PropertyHtml, type PropertyInfoList, type PropertyInfoInternalList, type PropertyPrimitiveMap, isPropertyInfoList } from "./type.js";
 
 export { generateHtmlElements };
 
 const consoleWrap = new ConsoleWrap();
 export const generateHtmlElementsConsoleOption = consoleWrap.enables;
 
-function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(opt: OptionBase<DATA_PROPERTY_INFO>): PropertyHtml<DATA_PROPERTY_INFO> {
+function generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(opt: OptionBase<DATA_PROPERTY_INFO>): PropertyHtml<DATA_PROPERTY_INFO> {
     return _generateHtmlElements(opt.data, opt.dataPropertyInfo);
 }
 
-function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: DATA_PROPERTY_INFO): PropertyHtml<DATA_PROPERTY_INFO> {
-    const handlerList: { [key in keyof PropertyInfoPrimitiveMap | "enum"]: EventListenerObject } = {
+function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfoList>(data: PropertyData<DATA_PROPERTY_INFO>, dataPropertyInfo: PropertyInfoInternalList<DATA_PROPERTY_INFO>): PropertyHtml<DATA_PROPERTY_INFO> {
+    if (!isPropertyInfoList(dataPropertyInfo)) {
+        throw new Error("");
+    }
+
+    const handlerList: { [key in keyof PropertyPrimitiveMap | "enum"]: EventListenerObject } = {
         "boolean": {
             handleEvent:
                 async (e: exEvent<HTMLInputElement>) => {
@@ -136,13 +140,12 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                         }
                         const val = select.value;
                         const dataPropertyInfoEnum = dataPropertyInfo[key];
-                        if (dataPropertyInfoEnum == undefined) {
-                            consoleWrap.error("dataPropertyInfoEnum == undefined");
-                            throw new Error("dataPropertyInfoEnum == undefined");
-                        }
-                        if (dataPropertyInfoEnum.type !== "enum") {
-                            consoleWrap.error("dataPropertyInfoEnum.type !== enum");
-                            throw new Error("dataPropertyInfoEnum.type !== enum");
+                        if (!isPropertyInfoEnum(dataPropertyInfoEnum)) {
+                            consoleWrap.error("!isPropertyInfoEnum(dataPropertyInfoEnum)", {
+                                key,
+                                dataPropertyInfo,
+                            });
+                            throw new Error("!isPropertyInfoEnum(dataPropertyInfoEnum)");
                         }
                         if (!isEnumValue(val, dataPropertyInfoEnum)) {
                             throw new Error("!this.isEnumValue(val)");
@@ -159,6 +162,13 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
     const resHtml: Partial<PropertyHtml<DATA_PROPERTY_INFO>> = {};
 
     for (const key in dataPropertyInfo) {
+        // ここやばポイント
+        if (!((k: any): k is keyof PropertyData<DATA_PROPERTY_INFO> => {
+            return true;
+        })(key)) {
+            throw new Error("k is not KEYS");
+        }
+
         const p = dataPropertyInfo[key];
         const d = data[key];
 
@@ -175,7 +185,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     throw new Error("typeof val !== boolean");
                 }
 
-                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[keyof DATA_PROPERTY_INFO]> = {};
                 resHtmlTemp.type = p.type;
                 {
                     const span = document.createElement("span");
@@ -194,7 +204,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                             checkbox.dataset["key"] = key;
                             checkbox.type = "checkbox";
                             checkbox.checked = val;
-                            checkbox.addEventListener("click", handlerList[p.type]);
+                            checkbox.addEventListener("click", handlerList["boolean"]);
                         }
                     }
                 }
@@ -211,7 +221,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     throw new Error("typeof val !== string");
                 }
 
-                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[keyof DATA_PROPERTY_INFO]> = {};
                 resHtmlTemp.type = p.type;
                 {
                     {
@@ -230,7 +240,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                             input.dataset["key"] = key;
                             input.type = "text";
                             input.value = val;
-                            input.addEventListener("change", handlerList[p.type]);
+                            input.addEventListener("change", handlerList["string"]);
                         }
                     }
                 }
@@ -242,13 +252,20 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
 
             case "number":
             case "range": {
+                if (!isPropertyInfoNumberOrRange(p)) {
+                    consoleWrap.error("!isPropertyInfoNumberOrRange(dataProperty)", {
+                        dataProperty: p,
+                    });
+                    throw new Error("!isPropertyInfoNumberOrRange(dataProperty)");
+                }
+
                 const val = d;
                 if (typeof val !== "number") {
                     consoleWrap.error("typeof val !== number");
                     throw new Error("typeof val !== number");
                 }
 
-                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[keyof DATA_PROPERTY_INFO]> = {};
                 resHtmlTemp.type = p.type;
                 {
                     {
@@ -288,7 +305,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                             if (p.step != undefined) {
                                 input.step = String(p.step);
                             }
-                            input.addEventListener("change", handlerList[p.type]);
+                            input.addEventListener("change", handlerList["number"]);
                         }
                     }
                 }
@@ -305,7 +322,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     throw new Error("typeof val !== string");
                 }
 
-                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[keyof DATA_PROPERTY_INFO]> = {};
                 resHtmlTemp.type = p.type;
                 {
                     {
@@ -332,7 +349,8 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                                     consoleWrap.error("dataPropertyInfoEnum.type !== enum");
                                     throw new Error("dataPropertyInfoEnum.type !== enum");
                                 }
-                                const dataPropertyInfoEnumList = dataPropertyInfoEnum["list"];
+                                // ここやばポイント
+                                const dataPropertyInfoEnumList = (<any>dataPropertyInfoEnum)["list"];
 
                                 for (const e of dataPropertyInfoEnumList) {
                                     const option = document.createElement("option");
@@ -342,7 +360,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                                 }
                             }
                             select.value = val;
-                            select.addEventListener("change", handlerList[p.type]);
+                            select.addEventListener("change", handlerList["enum"]);
                         }
                     }
                 }
@@ -353,7 +371,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
             }
 
             case "nest": {
-                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[typeof key]> = {};
+                const resHtmlTemp: Partial<PropertyHtml<DATA_PROPERTY_INFO>[keyof DATA_PROPERTY_INFO]> = {};
                 resHtmlTemp.type = p.type;
                 {
                     {
@@ -374,7 +392,8 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                             consoleWrap.error("dataPropertyInfoChild.type !== nest");
                             throw new Error("dataPropertyInfoChild.type !== nest");
                         }
-                        const dataPropertyInfoChildInfo = dataPropertyInfoChild["child"];
+                        // ここやばポイント
+                        const dataPropertyInfoChildInfo = (<any>dataPropertyInfoChild)["child"];
                         if (dataPropertyInfoChildInfo == undefined) {
                             consoleWrap.error("dataPropertyInfoChildInfo == undefined");
                             throw new Error("dataPropertyInfoChildInfo == undefined");

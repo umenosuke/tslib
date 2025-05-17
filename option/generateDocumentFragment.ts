@@ -1,17 +1,17 @@
 import { ConsoleWrap } from "../console/ConsoleWrap.js";
 import { generateHtmlElements } from "./generateHtmlElements.js";
 import type { OptionBase } from "./OptionBase.js";
-import type { PropertyHtml, PropertyInfo } from "./type.js";
+import type { PropertyHtml, PropertyInfoList } from "./type.js";
 
 export { generateDocumentFragment };
 const consoleWrap = new ConsoleWrap();
 export const generateDocumentFragmentConsoleOption = consoleWrap.enables;
 
-function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(opt: OptionBase<DATA_PROPERTY_INFO>): DocumentFragment {
+function generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfoList>(opt: OptionBase<DATA_PROPERTY_INFO>): DocumentFragment {
     return _generateDocumentFragment(generateHtmlElements(opt));
 }
 
-function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfo>(elems: PropertyHtml<DATA_PROPERTY_INFO>): DocumentFragment {
+function _generateDocumentFragment<DATA_PROPERTY_INFO extends PropertyInfoList>(elems: PropertyHtml<DATA_PROPERTY_INFO>): DocumentFragment {
     const frag = document.createDocumentFragment();
 
     for (const key in elems) {
