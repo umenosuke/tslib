@@ -181,14 +181,16 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                     const span = document.createElement("span");
                     resHtmlTemp.label = span;
                     {
+                        span.classList.add("label");
                         span.textContent = p.label;
                     }
                 }
                 {
                     {
                         const checkbox = document.createElement("input");
-                        resHtmlTemp.elem = checkbox;
+                        resHtmlTemp.value = checkbox;
                         {
+                            checkbox.classList.add("value");
                             checkbox.dataset["key"] = key;
                             checkbox.type = "checkbox";
                             checkbox.checked = val;
@@ -216,13 +218,15 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                         const span = document.createElement("span");
                         resHtmlTemp.label = span;
                         {
+                            span.classList.add("label");
                             span.textContent = p.label;
                         }
                     }
                     {
                         const input = document.createElement("input");
-                        resHtmlTemp.elem = input;
+                        resHtmlTemp.value = input;
                         {
+                            input.classList.add("value");
                             input.dataset["key"] = key;
                             input.type = "text";
                             input.value = val;
@@ -251,13 +255,15 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                         const span = document.createElement("span");
                         resHtmlTemp.label = span;
                         {
+                            span.classList.add("label");
                             span.textContent = p.label;
                         }
                     }
                     {
                         const input = document.createElement("input");
-                        resHtmlTemp.elem = input;
+                        resHtmlTemp.value = input;
                         {
+                            input.classList.add("value");
                             input.dataset["key"] = key;
                             switch (p.type) {
                                 case "number": {
@@ -306,13 +312,15 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                         const span = document.createElement("span");
                         resHtmlTemp.label = span;
                         {
+                            span.classList.add("label");
                             span.textContent = p.label;
                         }
                     }
                     {
                         const select = document.createElement("select");
-                        resHtmlTemp.elem = select;
+                        resHtmlTemp.value = select;
                         {
+                            select.classList.add("value");
                             select.dataset["key"] = key;
                             {
                                 const dataPropertyInfoEnum = dataPropertyInfo[key];
@@ -352,6 +360,7 @@ function _generateHtmlElements<DATA_PROPERTY_INFO extends PropertyInfo>(data: Pr
                         const span = document.createElement("span");
                         resHtmlTemp.label = span;
                         {
+                            span.classList.add("label");
                             span.textContent = p.label;
                         }
                     }

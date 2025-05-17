@@ -97,13 +97,13 @@ type PropertyHtml<PROPERTY_INFO extends PropertyInfo> = {
     ? ({
         type: PROPERTY_INFO[K]["type"],
         label: HTMLSpanElement,
-        elem: HTMLInputElement,
+        value: HTMLInputElement,
     })
     : (PROPERTY_INFO[K]["type"] extends "enum"
         ? ({
             type: PROPERTY_INFO[K]["type"],
             label: HTMLSpanElement,
-            elem: HTMLSelectElement,
+            value: HTMLSelectElement,
         })
         : (PROPERTY_INFO[K]["type"] extends "nest"
             ? (PROPERTY_INFO[K] extends { "child": infer CHILD }
