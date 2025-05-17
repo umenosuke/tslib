@@ -387,7 +387,7 @@ class Callback<T> {
         this.callBackList = new Map();
     }
 
-    public addListener(callback: (oldValue: T, newValue: T) => void): string {
+    public addListener(callback: (newValue: T, oldValue: T) => void): string {
         const id = crypto.randomUUID();
         this.callBackList.set(id, callback);
         return id;
@@ -399,7 +399,7 @@ class Callback<T> {
     public exec(oldValue: T, newValue: T): void {
         for (const [id, callBack] of this.callBackList) {
             try {
-                callBack(oldValue, newValue);
+                callBack(newValue, oldValue);
             } catch (err) {
                 consoleWrap.error("Callback exec fail", {
                     id,
